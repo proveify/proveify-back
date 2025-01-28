@@ -12,6 +12,7 @@ services:
             - ./src:/var/app/src
             - ./test:/var/app/test
             - ./package.json:/var/app/package.json
+            - ./node_modules:/var/app/node_modules
         depends_on:
             - database
         networks:
