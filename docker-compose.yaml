@@ -1,0 +1,38 @@
+services:
+    proveeify-back:
+        container_name: proveeify-api
+        build: .
+        env_file:
+            - ./.env
+        environment:
+            - NODE_ENV=${APP_ENV}
+        ports:
+            - ${APP_PORT}:${APP_PORT}
+        volumes:
+            - ./src:/var/app/src
+            - ./test:/var/app/test
+            - ./package.json:/var/app/package.json
+        depends_on:
+            - database
+        networks:
+            - proveeify-bridge
+    database:
+        image: mysql:8.0-debian
+        env_file:
+            - ./.env
+        environment:
+            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+            - MYSQL_USER=${DB_USER}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+            - MYSQL_DATABASE=${DB_NAME}
+        ports:
+            - ${DB_PORT}:${DB_PORT}
+        volumes:
+            - mysql-data:/var/lib/mysql
+        networks:
+            - proveeify-bridge
+volumes:
+    mysql-data:
+networks:
+    proveeify-bridge:
+        driver: bridge
