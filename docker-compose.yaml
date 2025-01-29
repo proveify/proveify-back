@@ -13,6 +13,8 @@ services:
             - ./test:/var/app/test
             - ./package.json:/var/app/package.json
             - ./node_modules:/var/app/node_modules
+            - ./.env:/var/app/.env
+            - ./prisma:/var/app/prisma
         depends_on:
             - database
         networks:
@@ -23,8 +25,6 @@ services:
             - ./.env
         environment:
             - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-            - MYSQL_USER=${DB_USER}
-            - MYSQL_PASSWORD=${DB_PASSWORD}
             - MYSQL_DATABASE=${DB_NAME}
         ports:
             - ${DB_PORT}:${DB_PORT}
