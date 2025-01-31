@@ -1,0 +1,16 @@
+// Model Providers
+
+model Providers {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  user_type  String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  plan       Plans    @relation(fields: [planId], references: [id])
+  planId     String
+  // Add a relation to the Users model
+  user       Users    @relation(fields: [userId], references: [id])
+  userId     String
+}
