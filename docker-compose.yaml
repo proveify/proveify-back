@@ -15,6 +15,7 @@ services:
             - ./node_modules:/var/app/node_modules
             - ./.env:/var/app/.env
             - ./prisma:/var/app/prisma
+            - ./tsconfig.json:/var/app/tsconfig.json
         depends_on:
             - database
         networks:

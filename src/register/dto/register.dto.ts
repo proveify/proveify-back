@@ -1,11 +1,11 @@
-import { IsEmail, IsInt, IsString } from "class-validator";
+import { IsInt, IsString, IsEmail } from "class-validator";
 
-export class UserDto {
+export class RegisterUserDto {
     @IsString()
     public name: string;
 
     @IsInt()
-    public user_type: number;
+    public user_type?: number;
 
     @IsEmail()
     public email: string;

@@ -1,0 +1,12 @@
+[
+    {
+        "id": 1,
+        "key": "CLIENT",
+        "name": "client"
+    },
+    {
+        "id": 2,
+        "key": "PROVIDER",
+        "name": "provider"
+    }
+]

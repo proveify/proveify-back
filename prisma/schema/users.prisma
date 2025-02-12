@@ -5,7 +5,7 @@ model Users {
   name       String
   email      String      @unique
   password   String
-  user_type  String
+  user_type  Int
   created_at DateTime    @default(now())
   updated_at DateTime    @default(now()) @updatedAt
   Providers  Providers[]

@@ -1,7 +1,23 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "src/prisma.service";
+import { Users as UserModel, Prisma } from "@prisma/client";
+import { PrismaService } from "@app/prisma/prisma.service";
+import { UserType } from "./configs/interfaces/interfaces";
+
+import UserTypes from "./configs/parameters/users_types.json";
 
 @Injectable()
 export class UserService {
+    public static CLIENT_TYPE_KEY = "CLIENT";
+    public static PROVIDER_TYPE_KEY = "PROVIDER";
+
     public constructor(private prisma: PrismaService) {}
+
+    public async createUser(data: Prisma.UsersCreateInput): Promise<UserModel> {
+        return this.prisma.users.create({ data });
+    }
+
+    public static getUserTypeIdByKey(key: string): number | undefined {
+        const types = UserTypes as UserType[];
+        return types.find((type: UserType) => type.key === key)?.id;
+    }
 }
