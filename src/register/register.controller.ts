@@ -19,13 +19,19 @@ export class RegisterController {
 
     @Post()
     public async register(@Body() data: RegisterUserDto): Promise<UserModel> {
-        data.user_type = UserService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
+        const userTypeId = UserService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
 
-        if (data.user_type === undefined) {
+        if (userTypeId === undefined) {
             throw new HttpException("User type not found", 404);
         }
 
-        const userData: UserDto = data as UserDto;
+        const userData: UserDto = {
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            user_type: userTypeId,
+        };
+
         return this.userService.createUser(userData);
     }
 }
