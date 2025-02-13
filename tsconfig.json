@@ -24,4 +24,9 @@
         "noFallthroughCasesInSwitch": false,
         "resolveJsonModule": true
     },
+    "watchOptions": {
+        "watchFile": "dynamicprioritypolling",
+        "watchDirectory": "dynamicprioritypolling",
+        "excludeDirectories": ["**/node_modules", "dist"],
+    }
 }
