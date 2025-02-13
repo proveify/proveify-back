@@ -1,7 +1,6 @@
 import { Body, Controller, HttpException, Post } from "@nestjs/common";
 import { RegisterService } from "./register.service";
 import { UserService } from "@app/user/user.service";
-import { UserDto } from "@app/user/dto/user.dto";
 import { RegisterUserDto } from "./dto/register.dto";
 import { Users as UserModel } from "@prisma/client";
 import { ApiTags } from "@nestjs/swagger";
@@ -22,16 +21,10 @@ export class RegisterController {
         const userTypeId = UserService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
 
         if (userTypeId === undefined) {
-            throw new HttpException("User type not found", 404);
+            throw new HttpException("User type not found", 400);
         }
 
-        const userData: UserDto = {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            user_type: userTypeId,
-        };
-
-        return this.userService.createUser(userData);
+        data.user_type = userTypeId;
+        return this.userService.createUser(this.registeService.generateUserDto(data));
     }
 }
