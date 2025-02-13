@@ -80,6 +80,8 @@
         "testEnvironment": "node"
     },
     "lint-staged": {
-    "*.ts": ["npm run lint"]
-  }
+        "*.ts": [
+            "npm run lint"
+        ]
+    }
 }
