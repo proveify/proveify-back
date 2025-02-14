@@ -1,5 +1,5 @@
 services:
-    proveeify-back:
+    app:
         container_name: proveeify-api
         build: .
         env_file:

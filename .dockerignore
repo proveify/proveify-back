@@ -4,3 +4,4 @@ test
 .prettierrc
 Dockerfile
 README.md
+.husky
