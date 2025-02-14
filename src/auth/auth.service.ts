@@ -5,6 +5,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Users as UserModel } from "@prisma/client";
 import { RegisterUserDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { UserAuthenticate } from "./interfaces/interfaces";
 import * as argon2 from "argon2";
 
 @Injectable()
@@ -36,29 +37,38 @@ export class AuthService {
         return this.userService.createUser(userData);
     }
 
-    public async authenticate({
-        email,
-        password,
-    }: LoginDto): Promise<{ user: UserModel; token: string }> {
+    public async authenticate({ email, password }: LoginDto): Promise<UserAuthenticate> {
         const user = await this.validateUser(email, password);
 
+        if (!user) {
+            throw new UnauthorizedException("Invalid credentials, check your email and password");
+        }
+
+        return await this.singIn(user);
+    }
+
+    public async singIn(user: UserModel): Promise<UserAuthenticate> {
+        const tokenPayload = { id: user.id, email: user.email };
+        const accessToken = await this.jwtService.signAsync(tokenPayload);
+
         return {
-            user,
-            token: "token",
+            id: user.id,
+            email: user.email,
+            token: accessToken,
         };
     }
 
-    public async validateUser(email: string, password: string): Promise<UserModel> {
+    public async validateUser(email: string, password: string): Promise<UserModel | false> {
         const user = await this.userService.findUserOneByEmail(email);
 
         if (!user) {
-            throw new UnauthorizedException("Invalid email or password");
+            return false;
         }
 
         const isMatch = await this.validatePassword(password, user.password);
 
         if (!isMatch) {
-            throw new UnauthorizedException("Invalid email or password");
+            return false;
         }
 
         return user;
