@@ -3,3 +3,8 @@ export interface UserAuthenticate {
     email: string;
     token: string;
 }
+
+export interface TokenPayload {
+    id: string;
+    email: string;
+}

@@ -12,7 +12,7 @@ export class UserService {
 
     public constructor(private prisma: PrismaService) {}
 
-    public async createUser(data: Prisma.UsersCreateInput): Promise<UserModel> {
+    public async saveUser(data: Prisma.UsersCreateInput): Promise<UserModel> {
         return this.prisma.users.create({ data });
     }
 

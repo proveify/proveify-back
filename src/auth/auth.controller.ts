@@ -1,9 +1,9 @@
-import { Controller, Post, Body } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Req } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Users as UserModel } from "@prisma/client";
 import { RegisterUserDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
 import { UserAuthenticate } from "./interfaces/interfaces";
+import { LocalAuthGuard } from "./guards/local.guard";
 
 @Controller("auth")
 export class AuthController {
@@ -18,8 +18,9 @@ export class AuthController {
         return await this.authService.createUser(data);
     }
 
+    @UseGuards(LocalAuthGuard)
     @Post("login")
-    public async login(@Body() data: LoginDto): Promise<UserAuthenticate> {
-        return await this.authService.authenticate(data);
+    public login(@Req() req: { user: UserAuthenticate }): UserAuthenticate {
+        return req.user;
     }
 }

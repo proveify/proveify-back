@@ -5,7 +5,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Users as UserModel } from "@prisma/client";
 import { RegisterUserDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
-import { UserAuthenticate } from "./interfaces/interfaces";
+import { TokenPayload, UserAuthenticate } from "./interfaces/interfaces";
 import * as argon2 from "argon2";
 
 @Injectable()
@@ -34,7 +34,7 @@ export class AuthService {
             user_type: userTypeId,
         };
 
-        return this.userService.createUser(userData);
+        return this.userService.saveUser(userData);
     }
 
     public async authenticate({ email, password }: LoginDto): Promise<UserAuthenticate> {
@@ -48,7 +48,7 @@ export class AuthService {
     }
 
     public async singIn(user: UserModel): Promise<UserAuthenticate> {
-        const tokenPayload = { id: user.id, email: user.email };
+        const tokenPayload: TokenPayload = { id: user.id, email: user.email };
         const accessToken = await this.jwtService.signAsync(tokenPayload);
 
         return {
