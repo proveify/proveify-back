@@ -1,10 +1,9 @@
 import { UserDto } from "@app/user/dto/user.dto";
 import { UserService } from "@app/user/user.service";
-import { HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Users as UserModel } from "@prisma/client";
 import { RegisterUserDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
 import { TokenPayload, UserAuthenticate } from "./interfaces/interfaces";
 import * as argon2 from "argon2";
 
@@ -37,23 +36,13 @@ export class AuthService {
         return this.userService.saveUser(userData);
     }
 
-    public async authenticate({ email, password }: LoginDto): Promise<UserAuthenticate> {
-        const user = await this.validateUser(email, password);
-
-        if (!user) {
-            throw new UnauthorizedException("Invalid credentials, check your email and password");
-        }
-
-        return await this.singIn(user);
-    }
-
-    public async singIn(user: UserModel): Promise<UserAuthenticate> {
-        const tokenPayload: TokenPayload = { id: user.id, email: user.email };
+    public async singIn(id: string, email: string): Promise<UserAuthenticate> {
+        const tokenPayload: TokenPayload = { id, email };
         const accessToken = await this.jwtService.signAsync(tokenPayload);
 
         return {
-            id: user.id,
-            email: user.email,
+            id,
+            email,
             token: accessToken,
         };
     }
