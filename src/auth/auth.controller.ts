@@ -8,11 +8,7 @@ import { Request } from "express";
 
 @Controller("auth")
 export class AuthController {
-    public authService: AuthService;
-
-    public constructor(authService: AuthService) {
-        this.authService = authService;
-    }
+    public constructor(private authService: AuthService) {}
 
     @Post("register")
     public async register(@Body() data: RegisterUserDto): Promise<UserModel> {

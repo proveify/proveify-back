@@ -9,13 +9,10 @@ import * as argon2 from "argon2";
 
 @Injectable()
 export class AuthService {
-    private userService: UserService;
-    private jwtService: JwtService;
-
-    public constructor(userService: UserService, jwtService: JwtService) {
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
+    public constructor(
+        private userService: UserService,
+        private jwtService: JwtService,
+    ) {}
 
     public async createUser(data: RegisterUserDto): Promise<UserModel> {
         const userTypeId = UserService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
@@ -38,7 +35,7 @@ export class AuthService {
 
     public async singIn(id: string, email: string): Promise<UserAuthenticate> {
         const tokenPayload: TokenPayload = { id, email };
-        const accessToken = await this.jwtService.signAsync(tokenPayload);
+        const accessToken = await this.generateToken(tokenPayload);
 
         return {
             id,
@@ -69,5 +66,9 @@ export class AuthService {
 
     public async validatePassword(password: string, hash: string): Promise<boolean> {
         return argon2.verify(hash, password);
+    }
+
+    public async generateToken(payload: TokenPayload): Promise<string> {
+        return this.jwtService.signAsync(payload);
     }
 }

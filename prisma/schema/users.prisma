@@ -1,12 +1,13 @@
 //Model Users
 
 model Users {
-  id         String      @id @default(uuid())
-  name       String
-  email      String      @unique
-  password   String
-  user_type  Int
-  created_at DateTime    @default(now())
-  updated_at DateTime    @default(now()) @updatedAt
-  Providers  Providers[]
+  id              String      @id @default(uuid())
+  name            String
+  email           String      @unique
+  password        String
+  user_type       Int
+  refreshed_token String?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @default(now()) @updatedAt
+  Providers       Providers[]
 }
