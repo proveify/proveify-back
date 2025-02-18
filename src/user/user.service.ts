@@ -4,6 +4,7 @@ import { PrismaService } from "@app/prisma/prisma.service";
 import { UserType } from "./configs/interfaces/interfaces";
 
 import * as UserTypes from "./configs/parameters/users_types.json";
+import { UpdateAllDto } from "./dto/user.dto";
 
 @Injectable()
 export class UserService {
@@ -18,6 +19,16 @@ export class UserService {
 
     public async findUserOneByEmail(email: string): Promise<UserModel | null> {
         return this.prisma.users.findUnique({ where: { email } });
+    }
+
+    public async findUserOneById(id: string): Promise<UserModel | null> {
+        return this.prisma.users.findUnique({ where: { id } });
+    }
+
+    public async update(id: string, userData: UpdateAllDto): Promise<UserModel> {
+        const user = await this.prisma.users.update({ where: { id }, data: userData });
+
+        return user;
     }
 
     public static getUserTypeIdByKey(key: string): number | undefined {

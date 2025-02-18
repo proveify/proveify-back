@@ -1,4 +1,4 @@
-import { UserDto } from "@app/user/dto/user.dto";
+import { CreateDto as UserCreateDto } from "@app/user/dto/user.dto";
 import { UserService } from "@app/user/user.service";
 import { HttpException, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -23,7 +23,7 @@ export class AuthService {
 
         const passwordHashed = await this.generatePasswordHash(data.password);
 
-        const userData: UserDto = {
+        const userData: UserCreateDto = {
             name: data.name,
             email: data.email,
             password: passwordHashed,
@@ -70,5 +70,10 @@ export class AuthService {
 
     public async generateToken(payload: TokenPayload): Promise<string> {
         return this.jwtService.signAsync(payload);
+    }
+
+    public async refreshToken(userId: string, refreshToken: string): Promise<void> {
+        const hashedRefreshToken = await argon2.hash(refreshToken);
+        await this.userService.update(userId, { refresh_token: hashedRefreshToken });
     }
 }
