@@ -22,7 +22,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
         return {
             id: user.id,
-            email: user.email,
         };
     }
 }

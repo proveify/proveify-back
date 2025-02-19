@@ -30,5 +30,5 @@ export class UpdateDto {
 
 export class UpdateAllDto extends UpdateDto {
     @IsString()
-    public refresh_token?: string;
+    public refreshed_token?: string;
 }

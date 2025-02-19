@@ -1,16 +1,14 @@
 export interface UserAuthenticate {
     id: string;
-    email: string;
-    token: string;
+    accessToken: string;
+    refreshToken: string;
 }
 
 export interface TokenPayload {
     id: string;
-    email: string;
 }
 
 export interface RefreshTokenPayload {
     id: string;
-    email: string;
     refreshToken: string;
 }

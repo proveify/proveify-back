@@ -5,6 +5,7 @@ import { RegisterUserDto } from "./dto/register.dto";
 import { TokenPayload, UserAuthenticate } from "./interfaces/interfaces";
 import { LocalAuthGuard } from "./guards/local.guard";
 import { Request } from "express";
+import { RefreshJwtAuthGuard } from "./guards/refresh-jwt.guard";
 
 @Controller("auth")
 export class AuthController {
@@ -18,6 +19,12 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post("login")
     public async login(@Req() req: Request & { user: TokenPayload }): Promise<UserAuthenticate> {
-        return this.authService.singIn(req.user.id, req.user.email);
+        return this.authService.singIn(req.user.id);
+    }
+
+    @UseGuards(RefreshJwtAuthGuard)
+    @Post("refresh")
+    public async refresh(@Req() req: Request & { user: TokenPayload }): Promise<UserAuthenticate> {
+        return this.authService.refreshToken(req.user.id);
     }
 }
