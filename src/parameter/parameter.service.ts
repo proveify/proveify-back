@@ -6,9 +6,9 @@ import * as IdentificationTypes from "./parameters/identification_types.json";
 
 @Injectable()
 export class ParameterService {
-    public getUserTypeIdByKey(key: string): number | undefined {
+    public getUserTypeByKey(key: string): ParameterType | undefined {
         const types = UserTypes as ParameterType[];
-        return types.find((type: ParameterType) => type.key === key)?.id;
+        return types.find((type: ParameterType) => type.key === key);
     }
 
     public getAllUserTypes(): ParameterType[] {

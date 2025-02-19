@@ -22,11 +22,9 @@ export class AuthService {
     ) {}
 
     public async createUser(data: RegisterUserDto): Promise<UserModel> {
-        const userTypeId = this.parameterService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
+        const userType = this.parameterService.getUserTypeByKey(UserService.CLIENT_TYPE_KEY);
 
-        if (!userTypeId) {
-            throw new HttpException("User type not found", 400);
-        }
+        if (!userType) throw new HttpException("User type not found", 400);
 
         const passwordHashed = await this.generatePasswordHash(data.password);
         const identificationType = this.parameterService.getIdentificationTypeByKey(
@@ -41,7 +39,7 @@ export class AuthService {
             identification: data.identification,
             identification_type: identificationType.id,
             password: passwordHashed,
-            user_type: userTypeId,
+            user_type: userType.id,
         };
 
         return this.userService.saveUser(userData);
