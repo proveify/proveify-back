@@ -116,4 +116,8 @@ export class AuthService {
         const hashedRefreshToken = await argon2.hash(refreshToken);
         await this.userService.update(id, { refreshed_token: hashedRefreshToken });
     }
+
+    public async singOut(id: string): Promise<void> {
+        await this.userService.update(id, { refreshed_token: null });
+    }
 }

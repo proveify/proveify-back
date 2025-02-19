@@ -6,6 +6,7 @@ import { TokenPayload, UserAuthenticate } from "./interfaces/interfaces";
 import { LocalAuthGuard } from "./guards/local.guard";
 import { Request } from "express";
 import { RefreshJwtAuthGuard } from "./guards/refresh-jwt.guard";
+import { JwtAuthGuard } from "./guards/jwt.guard";
 
 @Controller("auth")
 export class AuthController {
@@ -26,5 +27,12 @@ export class AuthController {
     @Post("refresh")
     public async refresh(@Req() req: Request & { user: TokenPayload }): Promise<UserAuthenticate> {
         return this.authService.refreshToken(req.user.id);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post("logout")
+    public async logout(@Req() req: Request & { user: TokenPayload }): Promise<string> {
+        await this.authService.singOut(req.user.id);
+        return "Logged out successfully";
     }
 }
