@@ -8,5 +8,11 @@ export class RegisterUserDto {
     public email: string;
 
     @IsString()
+    public identification: string;
+
+    @IsString()
+    public identification_type: string;
+
+    @IsString()
     public password: string;
 }

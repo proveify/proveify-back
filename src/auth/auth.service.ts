@@ -9,28 +9,37 @@ import { ConfigType } from "@nestjs/config";
 
 import * as argon2 from "argon2";
 import refreshJwtConfig from "./config/refresh-jwt-config";
+import { ParameterService } from "@app/parameter/parameter.service";
 
 @Injectable()
 export class AuthService {
     public constructor(
         private userService: UserService,
+        private parameterService: ParameterService,
         private jwtService: JwtService,
         @Inject(refreshJwtConfig.KEY)
         private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
     ) {}
 
     public async createUser(data: RegisterUserDto): Promise<UserModel> {
-        const userTypeId = UserService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
+        const userTypeId = this.parameterService.getUserTypeIdByKey(UserService.CLIENT_TYPE_KEY);
 
         if (!userTypeId) {
             throw new HttpException("User type not found", 400);
         }
 
         const passwordHashed = await this.generatePasswordHash(data.password);
+        const identificationType = this.parameterService.getIdentificationTypeByKey(
+            data.identification_type,
+        );
+
+        if (!identificationType) throw new HttpException("Identification type not found", 400);
 
         const userData: UserCreateDto = {
             name: data.name,
             email: data.email,
+            identification: data.identification,
+            identification_type: identificationType.id,
             password: passwordHashed,
             user_type: userTypeId,
         };

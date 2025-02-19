@@ -1,9 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Users as UserModel, Prisma } from "@prisma/client";
 import { PrismaService } from "@app/prisma/prisma.service";
-import { UserType } from "./configs/interfaces/interfaces";
 
-import * as UserTypes from "./configs/parameters/users_types.json";
 import { UpdateAllDto } from "./dto/user.dto";
 
 @Injectable()
@@ -29,10 +27,5 @@ export class UserService {
         const user = await this.prisma.users.update({ where: { id }, data: userData });
 
         return user;
-    }
-
-    public static getUserTypeIdByKey(key: string): number | undefined {
-        const types = UserTypes as UserType[];
-        return types.find((type: UserType) => type.key === key)?.id;
     }
 }

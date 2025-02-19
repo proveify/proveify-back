@@ -11,6 +11,11 @@ export class CreateDto {
     public email: string;
 
     @IsString()
+    public identification: string;
+
+    @IsString()
+    public identification_type: number;
+    @IsString()
     public password: string;
 }
 
