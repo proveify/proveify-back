@@ -22,6 +22,12 @@ export class AuthService {
     ) {}
 
     public async createUser(data: RegisterUserDto): Promise<UserModel> {
+        const user = await this.userService.findUserOneByEmail(data.email);
+
+        if (user) {
+            throw new HttpException("Email already used", 400);
+        }
+
         const userType = this.parameterService.getUserTypeByKey(UserService.CLIENT_TYPE_KEY);
 
         if (!userType) throw new HttpException("User type not found", 400);

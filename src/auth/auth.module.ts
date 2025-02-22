@@ -9,6 +9,7 @@ import { LocalStrategy } from "./strategies/local.strategy";
 import { RefreshJwtStrategy } from "./strategies/refresh-jwt.strategy";
 import { ParameterModule } from "@app/parameter/parameter.module";
 import { ConfigModule } from "@nestjs/config";
+import { NestjsFormDataModule } from "nestjs-form-data";
 
 import jwtConfig from "./config/jwt.config";
 import refreshJwtConfig from "./config/refresh-jwt-config";
@@ -19,6 +20,7 @@ import refreshJwtConfig from "./config/refresh-jwt-config";
         UserModule,
         ParameterModule,
         PassportModule,
+        NestjsFormDataModule,
         JwtModule.registerAsync(jwtConfig.asProvider()),
         ConfigModule.forFeature(jwtConfig),
         ConfigModule.forFeature(refreshJwtConfig),

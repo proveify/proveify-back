@@ -1,4 +1,5 @@
 import { IsString, IsEmail } from "class-validator";
+import { FileSystemStoredFile, IsFile } from "nestjs-form-data";
 
 export class RegisterUserDto {
     @IsString()
@@ -15,4 +16,12 @@ export class RegisterUserDto {
 
     @IsString()
     public password: string;
+}
+
+export class RegisterProviderDto extends RegisterUserDto {
+    @IsFile()
+    public rut: FileSystemStoredFile;
+
+    @IsFile()
+    public chamber_commerce: FileSystemStoredFile;
 }
