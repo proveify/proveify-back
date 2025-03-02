@@ -1,0 +1,13 @@
+// files
+
+model Files {
+  id            String   @id @default(uuid())
+  user          Users    @relation(fields: [user_id], references: [id])
+  user_id       String
+  original_name String
+  name          String
+  path          String
+  resource_type String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+}

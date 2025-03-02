@@ -13,6 +13,9 @@
         "paths": {
             "@app/*": [
                 "./src/*"
+            ],
+            "@root/*": [
+                "./*"
             ]
         },
         "incremental": true,

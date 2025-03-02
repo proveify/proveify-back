@@ -5,6 +5,7 @@ model Plans {
   name        String
   description String
   price       Float
+  plan_key    String      @unique
   created_at  DateTime    @default(now())
   updated_at  DateTime    @default(now()) @updatedAt
   Providers   Providers[]

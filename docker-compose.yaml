@@ -1,6 +1,5 @@
 services:
     app:
-        container_name: proveeify-api
         build: .
         env_file:
             - ./.env
@@ -18,7 +17,7 @@ services:
         depends_on:
             - database
         networks:
-            - proveeify-bridge
+            - proveify-bridge
     database:
         image: mysql:8.0-debian
         env_file:
@@ -31,9 +30,20 @@ services:
         volumes:
             - mysql-data:/var/lib/mysql
         networks:
-            - proveeify-bridge
+            - proveify-bridge
+    azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+            - 10000:10000
+            - 10001:10001
+            - 10002:10002
+        volumes:
+            -   azurite-data:/data
+        networks:
+            - proveify-bridge
 volumes:
     mysql-data:
+    azurite-data:
 networks:
-    proveeify-bridge:
+    proveify-bridge:
         driver: bridge

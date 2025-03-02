@@ -13,12 +13,16 @@ import { NestjsFormDataModule } from "nestjs-form-data";
 
 import jwtConfig from "./config/jwt.config";
 import refreshJwtConfig from "./config/refresh-jwt-config";
+import { FileModule } from "@app/file/file.module";
+import { PlanModule } from "@app/plan/plan.module";
 
 @Module({
     providers: [AuthService, JwtStrategy, LocalStrategy, RefreshJwtStrategy],
     imports: [
         UserModule,
+        FileModule,
         ParameterModule,
+        PlanModule,
         PassportModule,
         NestjsFormDataModule,
         JwtModule.registerAsync(jwtConfig.asProvider()),

@@ -6,6 +6,7 @@ import { ParameterModule } from "./parameter/parameter.module";
 import { ProviderModule } from "./provider/provider.module";
 import { FileModule } from "./file/file.module";
 import { NestjsFormDataModule } from "nestjs-form-data";
+import { PlanModule } from "./plan/plan.module";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { NestjsFormDataModule } from "nestjs-form-data";
         ProviderModule,
         FileModule,
         NestjsFormDataModule,
+        PlanModule,
     ],
     providers: [],
 })

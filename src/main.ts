@@ -16,8 +16,8 @@ async function bootstrap(): Promise<void> {
     app.enableVersioning({ type: VersioningType.URI });
 
     const config = new DocumentBuilder()
-        .setTitle("proveeify api")
-        .setDescription("Documentacion de la api proveeify")
+        .setTitle("proveify api")
+        .setDescription("Documentación de la api proveify")
         .setVersion("1.0")
         .build();
 

@@ -2,53 +2,92 @@ import { CreateDto as UserCreateDto } from "@app/user/dto/user.dto";
 import { UserService } from "@app/user/user.service";
 import { HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Users as UserModel } from "@prisma/client";
-import { RegisterUserDto } from "./dto/register.dto";
-import { TokenPayload, UserAuthenticate } from "./interfaces/interfaces";
+import { Providers as ProviderModel, Users as UserModel } from "@prisma/client";
+import { TokenPayload, UserAuthenticate } from "./interfaces/auth";
 import { ConfigType } from "@nestjs/config";
+import { PlanService } from "@app/plan/plan.service";
+import { ProviderService } from "@app/provider/provider.service";
+import { FileService } from "@app/file/file.service";
+import { APP_ENV } from "@root/config/envs";
+import { UserStoreService } from "@app/user/user-store.service";
+import { PlanTypes } from "@app/plan/interfaces/plan";
+import { UserTypes } from "@app/user/interfaces/interfaces";
+
+import {
+    CreateDto as ProviderCreateDto,
+    RegisterDto as ProviderRegisterDto,
+} from "@app/provider/dto/provider.dto";
 
 import * as argon2 from "argon2";
 import refreshJwtConfig from "./config/refresh-jwt-config";
-import { ParameterService } from "@app/parameter/parameter.service";
+import { ResourceType } from "@app/file/interfaces/file-manager";
 
 @Injectable()
 export class AuthService {
     public constructor(
         private userService: UserService,
-        private parameterService: ParameterService,
+        private userStoreService: UserStoreService,
+        private planService: PlanService,
+        private providerService: ProviderService,
+        private fileService: FileService,
         private jwtService: JwtService,
         @Inject(refreshJwtConfig.KEY)
         private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
     ) {}
 
-    public async createUser(data: RegisterUserDto): Promise<UserModel> {
+    public async createUser(data: UserCreateDto): Promise<UserModel> {
         const user = await this.userService.findUserOneByEmail(data.email);
 
         if (user) {
             throw new HttpException("Email already used", 400);
         }
 
-        const userType = this.parameterService.getUserTypeByKey(UserService.CLIENT_TYPE_KEY);
+        data.password = await this.generatePasswordHash(data.password);
+        const newUser: UserModel = await this.userService.saveUser(data);
+        this.userStoreService.setUser(newUser);
 
-        if (!userType) throw new HttpException("User type not found", 400);
+        return newUser;
+    }
 
-        const passwordHashed = await this.generatePasswordHash(data.password);
-        const identificationType = this.parameterService.getIdentificationTypeByKey(
-            data.identification_type,
-        );
+    public async createProvider(data: ProviderRegisterDto): Promise<ProviderModel> {
+        const { rut, chamber_commerce, ...fields } = data;
+        const userData = {
+            ...fields,
+            user_type: UserTypes.PROVIDER,
+        } as UserCreateDto;
 
-        if (!identificationType) throw new HttpException("Identification type not found", 400);
+        const user = await this.createUser(userData);
+        const plan = await this.planService.getPlanByKey(PlanTypes.NONE);
 
-        const userData: UserCreateDto = {
-            name: data.name,
-            email: data.email,
-            identification: data.identification,
-            identification_type: identificationType.id,
-            password: passwordHashed,
-            user_type: userType.id,
+        const [rutFileData, chamberCommerceFileData] = await Promise.all([
+            this.fileService.save(rut, ResourceType.RUT, `${APP_ENV}/providers/rut`),
+            this.fileService.save(
+                chamber_commerce,
+                ResourceType.CHAMBER_COMMERCE,
+                `${APP_ENV}/providers/chamber_commerce`,
+            ),
+        ]);
+
+        const providerData: ProviderCreateDto = {
+            name: user.name,
+            identification: user.identification,
+            identification_type: user.identification_type,
+            email: user.email,
+            rut: rutFileData.id,
+            chamber_commerce: chamberCommerceFileData.id,
+            user: {
+                connect: {
+                    id: user.id,
+                },
+            },
+            plan: {
+                connect: {
+                    id: plan.id,
+                },
+            },
         };
 
-        return this.userService.saveUser(userData);
+        return this.providerService.saveProvider(providerData);
     }
 
     public async singIn(id: string): Promise<UserAuthenticate> {
