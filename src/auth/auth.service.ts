@@ -11,7 +11,7 @@ import { FileService } from "@app/file/file.service";
 import { APP_ENV } from "@root/config/envs";
 import { UserStoreService } from "@app/user/user-store.service";
 import { PlanTypes } from "@app/plan/interfaces/plan";
-import { UserTypes } from "@app/user/interfaces/interfaces";
+import { UserTypes } from "@app/user/interfaces/users";
 
 import {
     CreateDto as ProviderCreateDto,

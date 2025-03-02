@@ -9,7 +9,7 @@ import { JwtAuthGuard } from "./guards/jwt.guard";
 import { FormDataRequest } from "nestjs-form-data";
 import { RegisterDto as UserRegisterDto, CreateDto as UserCreateDto } from "@app/user/dto/user.dto";
 import { RegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
-import { UserTypes } from "@app/user/interfaces/interfaces";
+import { UserTypes } from "@app/user/interfaces/users";
 
 @Controller("auth")
 export class AuthController {

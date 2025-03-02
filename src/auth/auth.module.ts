@@ -15,6 +15,7 @@ import jwtConfig from "./config/jwt.config";
 import refreshJwtConfig from "./config/refresh-jwt-config";
 import { FileModule } from "@app/file/file.module";
 import { PlanModule } from "@app/plan/plan.module";
+import { ProviderModule } from "@app/provider/provider.module";
 
 @Module({
     providers: [AuthService, JwtStrategy, LocalStrategy, RefreshJwtStrategy],
@@ -25,6 +26,7 @@ import { PlanModule } from "@app/plan/plan.module";
         PlanModule,
         PassportModule,
         NestjsFormDataModule,
+        ProviderModule,
         JwtModule.registerAsync(jwtConfig.asProvider()),
         ConfigModule.forFeature(jwtConfig),
         ConfigModule.forFeature(refreshJwtConfig),
