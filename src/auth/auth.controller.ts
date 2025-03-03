@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, Req } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Providers as ProviderModel, Users as UserModel } from "@prisma/client";
-import { TokenPayload, UserAuthenticate } from "./interfaces/auth";
+import { TokenPayload, UserAuthenticate } from "./interfaces/auth.interface";
 import { LocalAuthGuard } from "./guards/local.guard";
 import { Request } from "express";
 import { RefreshJwtAuthGuard } from "./guards/refresh-jwt.guard";

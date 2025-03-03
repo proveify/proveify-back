@@ -3,14 +3,14 @@ import { UserService } from "@app/user/user.service";
 import { HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Providers as ProviderModel, Users as UserModel } from "@prisma/client";
-import { TokenPayload, UserAuthenticate } from "./interfaces/auth";
+import { TokenPayload, UserAuthenticate } from "./interfaces/auth.interface";
 import { ConfigType } from "@nestjs/config";
 import { PlanService } from "@app/plan/plan.service";
 import { ProviderService } from "@app/provider/provider.service";
 import { FileService } from "@app/file/file.service";
 import { APP_ENV } from "@root/config/envs";
 import { UserStoreService } from "@app/user/user-store.service";
-import { PlanTypes } from "@app/plan/interfaces/plan";
+import { PlanTypes } from "@app/plan/interfaces/plan.interface";
 import { UserTypes } from "@app/user/interfaces/users";
 
 import {
@@ -20,7 +20,7 @@ import {
 
 import * as argon2 from "argon2";
 import refreshJwtConfig from "./config/refresh-jwt-config";
-import { ResourceType } from "@app/file/interfaces/file-manager";
+import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 
 @Injectable()
 export class AuthService {

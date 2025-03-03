@@ -4,7 +4,7 @@ export interface AzureFileConfigs {
     containerClientName: string;
 }
 
-export interface FileManager {
+export interface FileManagerInterface {
     upload(
         file: MemoryStoredFile,
         route: string | null,

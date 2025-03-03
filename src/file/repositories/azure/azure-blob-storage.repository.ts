@@ -1,11 +1,14 @@
 import { Injectable, Optional } from "@nestjs/common";
 import { BlobServiceClient, StorageSharedKeyCredential } from "@azure/storage-blob";
 
-import { AzureFileConfigs, FileManager } from "@app/file/interfaces/file-manager";
+import {
+    AzureFileConfigs,
+    FileManagerInterface,
+} from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
 
 @Injectable()
-export class AzureBlobStorageRepository implements FileManager {
+export class AzureBlobStorageRepository implements FileManagerInterface {
     private client: BlobServiceClient;
 
     public constructor(
