@@ -7,6 +7,7 @@ import { ProviderModule } from "./provider/provider.module";
 import { FileModule } from "./file/file.module";
 import { NestjsFormDataModule } from "nestjs-form-data";
 import { PlanModule } from "./plan/plan.module";
+import { ItemModule } from "./item/item.module";
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { PlanModule } from "./plan/plan.module";
         FileModule,
         NestjsFormDataModule,
         PlanModule,
+        ItemModule,
     ],
     providers: [],
 })
