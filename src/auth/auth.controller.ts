@@ -7,20 +7,28 @@ import { Request } from "express";
 import { RefreshJwtAuthGuard } from "./guards/refresh-jwt.guard";
 import { JwtAuthGuard } from "./guards/jwt.guard";
 import { FormDataRequest } from "nestjs-form-data";
-import { RegisterDto as UserRegisterDto, CreateDto as UserCreateDto } from "@app/user/dto/user.dto";
+import {
+    UserRegisterDto as UserRegisterDto,
+    UserCreateDto as UserCreateDto,
+} from "@app/user/dto/user.dto";
 import { RegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
 import { UserTypes } from "@app/user/interfaces/users";
+import { ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
     public constructor(private authService: AuthService) {}
 
+    @ApiOperation({ summary: "Register a new user" })
     @Post("register")
     public async register(@Body() data: UserRegisterDto): Promise<UserModel> {
         const userDto: UserCreateDto = Object.assign({}, data, { user_type: UserTypes.CLIENT });
         return await this.authService.createUser(userDto);
     }
 
+    @ApiOperation({ summary: "Register a new provider" })
+    @ApiConsumes("multipart/form-data")
     @Post("register/provider")
     @FormDataRequest()
     public async registerProvider(@Body() data: ProviderRegisterDto): Promise<ProviderModel> {

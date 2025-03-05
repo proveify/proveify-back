@@ -3,7 +3,7 @@ import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { APP_IS_PROD, APP_PORT } from "../config/envs";
 import type { LogLevel } from "@nestjs/common";
-import { ValidationPipe, VersioningType } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log"];
@@ -13,12 +13,10 @@ async function bootstrap(): Promise<void> {
     }
 
     const app = await NestFactory.create(AppModule, { logger: logLevel });
-    app.enableVersioning({ type: VersioningType.URI });
 
     const config = new DocumentBuilder()
         .setTitle("proveify api")
         .setDescription("Documentación de la api proveify")
-        .setVersion("1.0")
         .build();
 
     const document = SwaggerModule.createDocument(app, config);

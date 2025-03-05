@@ -1,30 +1,35 @@
-import { IsEmail, IsOptional, IsString } from "class-validator";
-import { OmitType, PartialType } from "@nestjs/mapped-types";
+import { IsEmail, IsString } from "class-validator";
+import { OmitType, PartialType, ApiProperty } from "@nestjs/swagger";
 
-export class CreateDto {
+export class UserCreateDto {
+    @ApiProperty()
     @IsString()
     public name: string;
 
+    @ApiProperty()
     @IsString()
     public user_type: string;
 
+    @ApiProperty()
     @IsEmail()
     public email: string;
 
+    @ApiProperty()
     @IsString()
     public identification: string;
 
+    @ApiProperty()
     @IsString()
     public identification_type: string;
 
+    @ApiProperty()
     @IsString()
     public password: string;
 }
 
-export class RegisterDto extends OmitType(CreateDto, ["user_type"] as const) {}
-
-export class UpdateDto extends PartialType(CreateDto) {
-    @IsOptional()
+export class UserUpdateDto extends PartialType(UserCreateDto) {
     @IsString()
     public refreshed_token?: string | null;
 }
+
+export class UserRegisterDto extends OmitType(UserCreateDto, ["user_type"] as const) {}

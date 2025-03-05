@@ -1,4 +1,4 @@
-import { CreateDto as UserCreateDto } from "@app/user/dto/user.dto";
+import { UserCreateDto as UserCreateDto } from "@app/user/dto/user.dto";
 import { UserService } from "@app/user/user.service";
 import { HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -14,7 +14,7 @@ import { PlanTypes } from "@app/plan/interfaces/plan.interface";
 import { UserTypes } from "@app/user/interfaces/users";
 
 import {
-    CreateDto as ProviderCreateDto,
+    ProviderCreateDto as ProviderCreateDto,
     RegisterDto as ProviderRegisterDto,
 } from "@app/provider/dto/provider.dto";
 

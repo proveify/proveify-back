@@ -14,10 +14,12 @@ services:
             - ./.env:/var/app/.env
             - ./prisma:/var/app/prisma
             - ./tsconfig.json:/var/app/tsconfig.json
+            - ./nest-cli.json:/var/app/nest-cli.json
         depends_on:
             - database
         networks:
             - proveify-bridge
+
     database:
         image: mysql:8.0-debian
         env_file:

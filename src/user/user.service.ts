@@ -3,7 +3,7 @@ import { Prisma, Users as UserModel } from "@prisma/client";
 import { PrismaService } from "@app/prisma/prisma.service";
 import { UserStoreService } from "@app/user/user-store.service";
 
-import { UpdateDto } from "./dto/user.dto";
+import { UserUpdateDto } from "./dto/user.dto";
 
 @Injectable()
 export class UserService {
@@ -24,7 +24,7 @@ export class UserService {
         return this.prisma.users.findUnique({ where: { id } });
     }
 
-    public async update(id: string, userData: UpdateDto): Promise<UserModel> {
+    public async update(id: string, userData: UserUpdateDto): Promise<UserModel> {
         return this.prisma.users.update({ where: { id }, data: userData });
     }
 }
