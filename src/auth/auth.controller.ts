@@ -14,6 +14,7 @@ import {
 import { RegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
 import { UserTypes } from "@app/user/interfaces/users";
 import { ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { LoginDocumentation } from "@app/auth/decorators/documentations/auth.documentation";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -35,6 +36,7 @@ export class AuthController {
         return await this.authService.createProvider(data);
     }
 
+    @LoginDocumentation()
     @UseGuards(LocalAuthGuard)
     @Post("login")
     public async login(@Req() req: Request & { user: TokenPayload }): Promise<UserAuthenticate> {
