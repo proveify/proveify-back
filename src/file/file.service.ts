@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { v4 as uuidv4 } from "uuid";
 
-import { AzureBlobStorageRepository } from "@app/file/repositories/azure/azure-blob-storage.repository";
 import { UserStoreService } from "@app/user/user-store.service";
 import { Prisma, Files as FileModel } from "@prisma/client";
 import { CreateFileDto } from "@app/file/dto/file.dto";
@@ -12,7 +11,6 @@ import { CloudStorageRepository } from "@app/file/repositories/gcp/cloud-storage
 @Injectable()
 export class FileService {
     public constructor(
-        private azureBlobStorageRepository: AzureBlobStorageRepository,
         private cloudStorageRepository: CloudStorageRepository,
         private userStoreService: UserStoreService,
         private prisma: PrismaService,
