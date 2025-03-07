@@ -4,12 +4,12 @@ export interface AzureFileConfigs {
     containerClientName: string;
 }
 
-export interface FileManagerInterface {
-    upload(
-        file: MemoryStoredFile,
-        route: string | null,
-        configs: AzureFileConfigs | null,
-    ): Promise<string> | string;
+export interface GoogleFileConfigs {
+    bucketName: string;
+}
+
+export interface FileManagerInterface<T> {
+    upload(file: MemoryStoredFile, route: string | null, configs: T): Promise<string> | string;
 }
 
 export enum ResourceType {

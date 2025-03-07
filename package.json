@@ -26,6 +26,7 @@
     "dependencies": {
         "@azure/identity": "^4.7.0",
         "@azure/storage-blob": "^12.26.0",
+        "@google-cloud/storage": "^7.15.2",
         "@nestjs/common": "^11.0.1",
         "@nestjs/config": "^4.0.0",
         "@nestjs/core": "^11.0.1",

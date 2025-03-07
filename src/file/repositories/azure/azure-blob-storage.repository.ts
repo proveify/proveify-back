@@ -8,7 +8,7 @@ import {
 import { MemoryStoredFile } from "nestjs-form-data";
 
 @Injectable()
-export class AzureBlobStorageRepository implements FileManagerInterface {
+export class AzureBlobStorageRepository implements FileManagerInterface<AzureFileConfigs> {
     private client: BlobServiceClient;
 
     public constructor(

@@ -15,11 +15,11 @@ services:
             - ./prisma:/var/app/prisma
             - ./tsconfig.json:/var/app/tsconfig.json
             - ./nest-cli.json:/var/app/nest-cli.json
+            - ${HOST_ROUTE_KEYFILENAME}:/var/app/keyFilename.json
         depends_on:
             - database
         networks:
             - proveify-bridge
-
     database:
         image: mysql:8.0-debian
         env_file:
@@ -33,19 +33,10 @@ services:
             - mysql-data:/var/lib/mysql
         networks:
             - proveify-bridge
-    azurite:
-        image: mcr.microsoft.com/azure-storage/azurite
-        ports:
-            - 10000:10000
-            - 10001:10001
-            - 10002:10002
-        volumes:
-            -   azurite-data:/data
-        networks:
-            - proveify-bridge
 volumes:
     mysql-data:
     azurite-data:
+    gcloud-data:
 networks:
     proveify-bridge:
         driver: bridge
