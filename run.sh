@@ -1,9 +1,9 @@
 #!/bin/bash
 echo "NODE_ENV: $NODE_ENV";
 
-if [ "$NODE_ENV" == "prod" ]
+if [ "$NODE_ENV" == "production" || "$NODE_ENV" == "testing" ]
     then
-        echo "start prod mode...";
+        echo "start $NODE_ENV mode...";
         npm run start:prod
 else
     echo "start dev mode...";
