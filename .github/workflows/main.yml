@@ -28,4 +28,4 @@ jobs:
           context: .
           file: ./Dockerfile.minimal
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/proveify-api:minimal
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/proveify-api:minimalV1
