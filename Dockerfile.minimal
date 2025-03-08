@@ -17,8 +17,8 @@ ENV APP_PORT=3001
 ENV APP_ENV=production
 
 COPY --from=build /var/app/dist ./dist
+COPY --from=build /var/app/node_modules ./node_modules
 COPY package*.json .
-RUN npm install --only=prod
 
 EXPOSE ${APP_PORT}
 
