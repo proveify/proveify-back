@@ -2,13 +2,10 @@ FROM node:22.13.1-alpine3.21 AS build
 
 WORKDIR /var/app
 COPY package.json .
-RUN npm install
+RUN CI=true npm install
 COPY . .
-
 RUN npx prisma generate
-
 RUN npm run build
-
 
 FROM node:22.13.1-alpine3.21
 
@@ -16,13 +13,12 @@ WORKDIR /var/app
 ENV APP_PORT=3001
 ENV APP_ENV=production
 
-COPY --from=build /var/app/dist ./dist
-COPY --from=build /var/app/node_modules ./node_modules
+COPY --from=build /var/app/dist .
+COPY --from=build /var/app/node_modules /var/app/node_modules
 COPY package.json .
 COPY package-lock.json .
 
 EXPOSE 3001
-
-CMD ["node","dist/src/main"]
+CMD ["node","src/main.js"]
 
 

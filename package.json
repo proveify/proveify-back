@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "build": "nest build",
-        "gcp-build": "nest build",
+        "gcp-build": "npm run build",
         "start": "nest start",
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
@@ -18,11 +18,12 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
+        "prisma:generate": "prisma generate",
         "compose:migrate": "docker compose exec app npx prisma migrate dev",
         "compose:migrate:init": "docker compose exec app npx prisma migrate dev --name init",
         "compose:i": "docker compose exec app npm i && docker compose restart app",
         "compose:seed": "docker compose exec app npx prisma db seed",
-        "prepare": "husky"
+        "prepare": "if [ \\\"$CI\\\" != \\\"true\\\" ]; then husky; fi"
     },
     "dependencies": {
         "@azure/identity": "^4.7.0",
