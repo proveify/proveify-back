@@ -21,7 +21,7 @@ COPY --from=build /var/app/node_modules ./node_modules
 COPY package.json .
 COPY package-lock.json .
 
-EXPOSE ${APP_PORT}
+EXPOSE 3001
 
 CMD ["node","dist/src/main"]
 
