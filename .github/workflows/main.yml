@@ -26,6 +26,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./minimal.dockerfile
+          file: ./Dockerfile.minimal
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/proveify-api:latest
