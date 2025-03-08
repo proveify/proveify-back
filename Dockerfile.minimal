@@ -11,15 +11,17 @@ RUN npm run build
 
 
 FROM node:22.13.1-alpine3.21
+
+WORKDIR /var/app
 ENV APP_PORT=3001
 ENV APP_ENV=production
 
-WORKDIR /var/app
-COPY --from=build /var/app/dist /var/app
-COPY --from=build /var/app/node_modules /var/app/node_modules
+COPY --from=build /var/app/dist ./dist
+COPY package*.json .
+RUN npm install --only=prod
 
 EXPOSE ${APP_PORT}
 
-CMD ["node","src/main"]
+CMD ["node","/dist/src/main"]
 
 
