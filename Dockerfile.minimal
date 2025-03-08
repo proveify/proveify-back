@@ -22,6 +22,6 @@ COPY package*.json .
 
 EXPOSE ${APP_PORT}
 
-CMD ["node","/dist/src/main"]
+CMD ["node","dist/src/main"]
 
 
