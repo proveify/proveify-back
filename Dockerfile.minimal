@@ -18,7 +18,8 @@ ENV APP_ENV=production
 
 COPY --from=build /var/app/dist ./dist
 COPY --from=build /var/app/node_modules ./node_modules
-COPY package*.json .
+COPY package.json .
+COPY package-lock.json .
 
 EXPOSE ${APP_PORT}
 
