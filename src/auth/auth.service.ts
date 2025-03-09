@@ -8,7 +8,7 @@ import { ConfigType } from "@nestjs/config";
 import { PlanService } from "@app/plan/plan.service";
 import { ProviderService } from "@app/provider/provider.service";
 import { FileService } from "@app/file/file.service";
-import { APP_ENV } from "@root/config/envs";
+import { APP_ENV } from "@root/configs/envs.config";
 import { UserStoreService } from "@app/user/user-store.service";
 import { PlanTypes } from "@app/plan/interfaces/plan.interface";
 import { UserTypes } from "@app/user/interfaces/users";

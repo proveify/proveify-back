@@ -1,7 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { APP_IS_PROD, APP_PORT } from "../config/envs";
+import { APP_IS_PROD, APP_PORT } from "@root/configs/envs.config";
 import type { LogLevel } from "@nestjs/common";
 import { ValidationPipe } from "@nestjs/common";
 
@@ -17,6 +17,7 @@ async function bootstrap(): Promise<void> {
     const config = new DocumentBuilder()
         .setTitle("proveify api")
         .setDescription("Documentación de la api proveify")
+        .addBearerAuth()
         .build();
 
     const document = SwaggerModule.createDocument(app, config);

@@ -12,6 +12,7 @@ services:
             - ./test:/var/app/test
             - ./package.json:/var/app/package.json
             - ./.env:/var/app/.env
+            - ./configs:/var/app/configs
             - ./prisma:/var/app/prisma
             - ./tsconfig.json:/var/app/tsconfig.json
             - ./nest-cli.json:/var/app/nest-cli.json
