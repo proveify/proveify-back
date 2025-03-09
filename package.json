@@ -22,8 +22,7 @@
         "compose:migrate": "docker compose exec app npx prisma migrate dev",
         "compose:migrate:init": "docker compose exec app npx prisma migrate dev --name init",
         "compose:i": "docker compose exec app npm i && docker compose restart app",
-        "compose:seed": "docker compose exec app npx prisma db seed",
-        "prepare": "if [ \\\"$CI\\\" != \\\"true\\\" ]; then husky; fi"
+        "compose:seed": "docker compose exec app npx prisma db seed"
     },
     "dependencies": {
         "@azure/identity": "^4.7.0",
