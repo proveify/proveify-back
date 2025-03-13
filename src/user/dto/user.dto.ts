@@ -1,5 +1,6 @@
-import { IsEmail, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsString } from "class-validator";
 import { OmitType, PartialType, ApiProperty } from "@nestjs/swagger";
+import { IdentificationTypes } from "../interfaces/users";
 
 export class UserCreateDto {
     @ApiProperty()
@@ -20,6 +21,7 @@ export class UserCreateDto {
 
     @ApiProperty()
     @IsString()
+    @IsEnum(IdentificationTypes)
     public identification_type: string;
 
     @ApiProperty()
