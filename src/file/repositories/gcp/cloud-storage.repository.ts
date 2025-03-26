@@ -5,6 +5,7 @@ import {
 } from "@app/file/interfaces/file-manager.interface";
 import { Storage } from "@google-cloud/storage";
 import { MemoryStoredFile } from "nestjs-form-data";
+import { APP_IS_DEVELOPMENT } from "@root/configs/envs.config";
 
 @Injectable()
 export class CloudStorageRepository implements FileManagerInterface<GoogleFileConfigs> {
@@ -12,11 +13,11 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
 
     public constructor(@Optional() keyFilename?: string) {
         if (!keyFilename) {
-            if (!process.env.KEY_FILENAME) {
+            if (!process.env.KEY_FILENAME && !APP_IS_DEVELOPMENT) {
                 throw new Error("Key file name is required");
             }
 
-            keyFilename = process.env.KEY_FILENAME;
+            keyFilename = process.env.KEY_FILENAME ?? "";
         }
 
         this.client = new Storage({ keyFilename });
