@@ -1,20 +1,23 @@
-import { Expose } from "class-transformer";
+import { Exclude } from "class-transformer";
 
 export class ProviderEntity {
-    @Expose()
-    public id: string;
+    @Exclude()
+    public rut: string;
 
-    @Expose()
-    public name: string;
+    @Exclude()
+    public chamber_commerce: string;
 
-    @Expose()
-    public email: string;
+    @Exclude()
+    public created_at: Date;
 
-    @Expose()
-    public identification: string;
+    @Exclude()
+    public updated_at: Date;
 
-    @Expose()
-    public identification_type: string;
+    @Exclude()
+    public plan_id: string;
+
+    @Exclude()
+    public user_id: string;
 
     public constructor(partial: Partial<ProviderEntity>) {
         Object.assign(this, partial);
