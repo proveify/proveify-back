@@ -7,17 +7,24 @@ import {
     Param,
     Put,
     Query,
+    Req,
     UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
 import { ProviderService } from "@app/provider/provider.service";
 import { ApiTags } from "@nestjs/swagger";
 import { ProvidersParamsDto } from "./dto/params.dto";
-import { GetProvidersDocumentation } from "./decorators/documentations/provider.documentation";
+import {
+    GetProviderDocumention,
+    GetProvidersDocumentation,
+    UpadteProviderDocumentation,
+} from "./decorators/documentations/provider.documentation";
 import { ProviderEntity } from "./entities/provider.entity";
 import { ProviderUpdateDto } from "./dto/provider.dto";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
 import { FormDataRequest } from "nestjs-form-data";
+import { TokenPayload } from "@app/auth/interfaces/auth.interface";
+import { Request } from "express";
 
 @ApiTags("Provider")
 @Controller("providers")
@@ -33,6 +40,7 @@ export class ProviderController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @GetProviderDocumention()
     @Get(":id")
     public async getProviderById(@Param() params: { id: string }): Promise<ProviderEntity> {
         const provider = await this.providerService.getProviderById(params.id);
@@ -47,19 +55,25 @@ export class ProviderController {
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(JwtAuthGuard)
     @FormDataRequest()
-    @Put(":id")
+    @UpadteProviderDocumentation()
+    @Put()
     public async updateProvider(
-        @Param() params: { id: string },
+        @Req() request: Request & { user: TokenPayload },
         @Body() data: ProviderUpdateDto,
     ): Promise<ProviderEntity> {
-        const providerExists = await this.providerService.providerExists(params.id);
+        const providers = await this.providerService.getProvidersByUserId(request.user.id);
 
-        if (!providerExists) {
+        if (providers.length === 0) {
             throw new HttpException("Provider not found", 404);
         }
 
-        const provider = await this.providerService.updateProvider(params.id, data);
+        /**
+         * se tomará siempre el primer provedor del arreglo
+         * las cuentas solamente tendrán un proveedor asignado
+         */
+        const provider = providers[0];
+        const providerUpdated = await this.providerService.updateProvider(provider, data);
 
-        return new ProviderEntity(provider);
+        return new ProviderEntity(providerUpdated);
     }
 }

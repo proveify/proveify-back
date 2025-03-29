@@ -1,6 +1,17 @@
+import { OmitType } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
 export class ProviderEntity {
+    public id: string;
+
+    public name: string;
+
+    public email: string;
+
+    public identification: string;
+
+    public identification_type: string;
+
     @Exclude()
     public rut: string;
 
@@ -23,3 +34,12 @@ export class ProviderEntity {
         Object.assign(this, partial);
     }
 }
+
+export class ProviderEntityDocumentation extends OmitType(ProviderEntity, [
+    "rut",
+    "chamber_commerce",
+    "created_at",
+    "updated_at",
+    "plan_id",
+    "user_id",
+] as const) {}

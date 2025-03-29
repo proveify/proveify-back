@@ -4,10 +4,16 @@ import { ProvidersParamsDto } from "./dto/params.dto";
 
 import { Providers as ProviderModel, Prisma } from "@prisma/client";
 import { ProviderUpdateDto } from "./dto/provider.dto";
+import { FileService } from "@app/file/file.service";
+import { APP_ENV } from "@root/configs/envs.config";
+import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 
 @Injectable()
 export class ProviderService {
-    public constructor(private prisma: PrismaService) {}
+    public constructor(
+        private prisma: PrismaService,
+        private fileService: FileService,
+    ) {}
 
     public async saveProvider(provider: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
         return this.prisma.providers.create({ data: provider });
@@ -27,11 +33,10 @@ export class ProviderService {
         return this.prisma.providers.findUnique({ where: { id } });
     }
 
-    public async providerExists(id: string): Promise<boolean> {
-        return (await this.getProviderById(id)) !== null;
-    }
-
-    public async updateProvider(id: string, data: ProviderUpdateDto): Promise<ProviderModel> {
+    public async updateProvider(
+        provider: ProviderModel,
+        data: ProviderUpdateDto,
+    ): Promise<ProviderModel> {
         const providerData: Prisma.ProvidersUpdateInput = {};
 
         if (data.name) providerData.name = data.name;
@@ -39,9 +44,47 @@ export class ProviderService {
         if (data.identification) providerData.identification = data.identification;
         if (data.identification_type) providerData.identification_type = data.identification_type;
 
+        if (data.chamber_commerce) {
+            let chamberCommerce = await this.fileService.getFileById(provider.chamber_commerce);
+
+            if (!chamberCommerce) {
+                chamberCommerce = await this.fileService.save(
+                    data.chamber_commerce,
+                    ResourceType.CHAMBER_COMMERCE,
+                    `${APP_ENV}/providers/chamber_commerce`,
+                );
+
+                providerData.chamber_commerce = chamberCommerce.id;
+            } else {
+                await this.fileService.update(
+                    chamberCommerce,
+                    data.chamber_commerce,
+                    chamberCommerce.path,
+                );
+            }
+        }
+
+        if (data.rut) {
+            let rut = await this.fileService.getFileById(provider.rut);
+
+            if (!rut) {
+                rut = await this.fileService.save(
+                    data.rut,
+                    ResourceType.RUT,
+                    `${APP_ENV}/providers/rut`,
+                );
+            } else {
+                await this.fileService.update(rut, data.rut, rut.path);
+            }
+        }
+
         return this.prisma.providers.update({
-            where: { id },
+            where: { id: provider.id },
             data: providerData,
         });
+    }
+
+    public async getProvidersByUserId(id: string): Promise<ProviderModel[]> {
+        return this.prisma.providers.findMany({ where: { user_id: id } });
     }
 }
