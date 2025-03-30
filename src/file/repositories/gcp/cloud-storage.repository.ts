@@ -5,7 +5,7 @@ import {
 } from "@app/file/interfaces/file-manager.interface";
 import { Storage } from "@google-cloud/storage";
 import { MemoryStoredFile } from "nestjs-form-data";
-import { APP_IS_DEVELOPMENT } from "@root/configs/envs.config";
+import { APP_IS_DEVELOPMENT, BUCKET } from "@root/configs/envs.config";
 
 @Injectable()
 export class CloudStorageRepository implements FileManagerInterface<GoogleFileConfigs> {
@@ -29,7 +29,7 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
         configs: GoogleFileConfigs | null = null,
     ): Promise<string> {
         const client = this.client;
-        const bucket = client.bucket(configs?.bucketName ?? "proveify-bucket");
+        const bucket = client.bucket(configs?.bucketName ?? BUCKET);
         const path = route ? `${route}/${file.originalName}` : file.originalName;
 
         const bucketFile = bucket.file(path);
