@@ -56,7 +56,7 @@ export class ProviderController {
     @UseGuards(JwtAuthGuard)
     @FormDataRequest()
     @UpadteProviderDocumentation()
-    @Put()
+    @Put("self")
     public async updateProvider(
         @Req() request: Request & { user: TokenPayload },
         @Body() data: ProviderUpdateDto,
