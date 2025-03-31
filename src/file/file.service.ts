@@ -57,4 +57,33 @@ export class FileService {
 
         return `${uniqueId}_${timestamp}.${extension}`;
     }
+
+    public async update(
+        file: FileModel,
+        memoryFile: MemoryStoredFile,
+        path: string,
+    ): Promise<{ path: string; hasUpdated: boolean }> {
+        const hasUpdated = await this.cloudStorageRepository.update(memoryFile, path);
+
+        if (hasUpdated) {
+            const data: Prisma.FilesUpdateInput = {
+                original_name: memoryFile.originalName,
+            };
+
+            await this.updateFile(file.id, data);
+        }
+
+        return {
+            path,
+            hasUpdated,
+        };
+    }
+
+    private async updateFile(id: string, data: Prisma.FilesUpdateInput): Promise<FileModel> {
+        return this.prisma.files.update({ where: { id }, data });
+    }
+
+    public async getFileById(id: string): Promise<FileModel | null> {
+        return this.prisma.files.findUnique({ where: { id } });
+    }
 }

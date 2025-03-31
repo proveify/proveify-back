@@ -1,7 +1,7 @@
 import { IsObject, IsOptional, IsString } from "class-validator";
 import { Prisma } from "@prisma/client";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
-import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import { UserRegisterDto } from "@app/user/dto/user.dto";
 
 export class ProviderCreateDto {
@@ -32,7 +32,7 @@ export class ProviderCreateDto {
     public plan: Prisma.PlansCreateNestedOneWithoutProvidersInput;
 }
 
-export class RegisterDto extends IntersectionType(UserRegisterDto) {
+export class ProviderRegisterDto extends IntersectionType(UserRegisterDto) {
     @ApiProperty({
         description: "Debe ser un archivo en formato PDF.",
         type: "string",
@@ -51,3 +51,5 @@ export class RegisterDto extends IntersectionType(UserRegisterDto) {
     @HasMimeType(["application/pdf"])
     public chamber_commerce: MemoryStoredFile;
 }
+
+export class ProviderUpdateDto extends PartialType(ProviderRegisterDto) {}
