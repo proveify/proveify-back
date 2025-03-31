@@ -15,7 +15,7 @@ import { UserTypes } from "@app/user/interfaces/users";
 
 import {
     ProviderCreateDto as ProviderCreateDto,
-    RegisterDto as ProviderRegisterDto,
+    ProviderRegisterDto as ProviderRegisterDto,
 } from "@app/provider/dto/provider.dto";
 
 import * as argon2 from "argon2";
