@@ -1,5 +1,6 @@
+import { ProviderEntityDocumentation } from "@app/provider/entities/provider.entity";
 import { applyDecorators } from "@nestjs/common";
-import { ApiOperation, ApiParam } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiParam } from "@nestjs/swagger";
 
 export function GetProvidersDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
@@ -20,6 +21,33 @@ export function GetProvidersDocumentation(): MethodDecorator & ClassDecorator {
             required: false,
             type: String,
             enum: ["asc", "desc"],
+        }),
+        ApiOkResponse({
+            type: [ProviderEntityDocumentation],
+        }),
+    );
+}
+
+export function UpadteProviderDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({
+            summary: "Update provider logued",
+            description:
+                "actualiza los datos del proveedor logueado (todos los campos son opcionales)",
+        }),
+        ApiConsumes("multipart/form-data"),
+        ApiOkResponse({
+            type: ProviderEntityDocumentation,
+        }),
+        ApiBearerAuth(),
+    );
+}
+
+export function GetProviderDocumention(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({ summary: "Get provider by id" }),
+        ApiOkResponse({
+            type: ProviderEntityDocumentation,
         }),
     );
 }

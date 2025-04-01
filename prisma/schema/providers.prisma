@@ -13,7 +13,7 @@ model Providers {
   plan                Plans    @relation(fields: [plan_id], references: [id])
   plan_id             String
   // Add a relation to the Users model
-  user                Users    @relation(fields: [userId], references: [id])
-  userId              String
+  user                Users    @relation(fields: [user_id], references: [id])
+  user_id             String
   @@index([email, created_at(sort: Desc)])
 }
