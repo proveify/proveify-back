@@ -6,7 +6,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 async function bootstrap(): Promise<void> {
-    const logLevel: LogLevel[] = ["error", "warn", "fatal", "log"];
+    const logLevel: LogLevel[] = ["error", "warn", "fatal", "log", "debug", "verbose"];
     const app = await NestFactory.create(AppModule, { logger: logLevel });
 
     const config = new DocumentBuilder()
