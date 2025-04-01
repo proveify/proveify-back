@@ -20,7 +20,7 @@ import {
     RegisterDocumentation,
     RegisterProviderDocumentation,
 } from "@app/auth/decorators/documentations/auth.documentation";
-import { BasicResponse } from "@root/configs/interfaces/response.interface";
+import { BasicResponse } from "@app/configs/interfaces/response.interface";
 
 @ApiTags("Auth")
 @Controller("auth")

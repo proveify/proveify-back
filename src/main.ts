@@ -1,17 +1,12 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { APP_IS_PROD, APP_PORT, CORS_URL_LIST } from "@root/configs/envs.config";
 import type { LogLevel } from "@nestjs/common";
 import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log"];
-
-    if (!APP_IS_PROD) {
-        logLevel.push("debug", "verbose");
-    }
-
     const app = await NestFactory.create(AppModule, { logger: logLevel });
 
     const config = new DocumentBuilder()
@@ -23,10 +18,6 @@ async function bootstrap(): Promise<void> {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup("docs", app, document);
 
-    app.enableCors({
-        origin: APP_IS_PROD ? CORS_URL_LIST : "*",
-    });
-
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true,
@@ -36,7 +27,15 @@ async function bootstrap(): Promise<void> {
         }),
     );
 
-    await app.listen(APP_PORT);
+    const configService = app.get(ConfigService);
+    const appIsprod = configService.get<boolean>("app.isProd")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const corsUrlList = configService.get<string[]>("app.corsUrlList")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const port = configService.get<number>("app.port")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+
+    app.enableCors({
+        origin: appIsprod ? corsUrlList : "*",
+    });
+    await app.listen(port);
 }
 
 void bootstrap();

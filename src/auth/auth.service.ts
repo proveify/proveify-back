@@ -4,11 +4,10 @@ import { HttpException, Inject, Injectable, UnauthorizedException } from "@nestj
 import { JwtService } from "@nestjs/jwt";
 import { Providers as ProviderModel, Users as UserModel } from "@prisma/client";
 import { TokenPayload, UserAuthenticate } from "./interfaces/auth.interface";
-import { ConfigType } from "@nestjs/config";
+import { ConfigService, ConfigType } from "@nestjs/config";
 import { PlanService } from "@app/plan/plan.service";
 import { ProviderService } from "@app/provider/provider.service";
 import { FileService } from "@app/file/file.service";
-import { APP_ENV } from "@root/configs/envs.config";
 import { UserStoreService } from "@app/user/user-store.service";
 import { PlanTypes } from "@app/plan/interfaces/plan.interface";
 import { UserTypes } from "@app/user/interfaces/users";
@@ -19,8 +18,9 @@ import {
 } from "@app/provider/dto/provider.dto";
 
 import * as argon2 from "argon2";
-import refreshJwtConfig from "./config/refresh-jwt-config";
+import refreshJwtConfig from "../configs/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
+import { enviromentsConfig } from "@app/configs/base.config";
 
 @Injectable()
 export class AuthService {
@@ -33,6 +33,7 @@ export class AuthService {
         private jwtService: JwtService,
         @Inject(refreshJwtConfig.KEY)
         private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
+        private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
     public async createUser(data: UserCreateDto): Promise<UserModel> {
@@ -50,6 +51,7 @@ export class AuthService {
     }
 
     public async createProvider(data: ProviderRegisterDto): Promise<ProviderModel> {
+        const enviroment = this.configService.get<string>("app.enviroment", { infer: true });
         const { rut, chamber_commerce, ...fields } = data;
         const userData = {
             ...fields,
@@ -60,11 +62,11 @@ export class AuthService {
         const plan = await this.planService.getPlanByKey(PlanTypes.NONE);
 
         const [rutFileData, chamberCommerceFileData] = await Promise.all([
-            this.fileService.save(rut, ResourceType.RUT, `${APP_ENV}/providers/rut`),
+            this.fileService.save(rut, ResourceType.RUT, `${enviroment}/providers/rut`),
             this.fileService.save(
                 chamber_commerce,
                 ResourceType.CHAMBER_COMMERCE,
-                `${APP_ENV}/providers/chamber_commerce`,
+                `${enviroment}/providers/chamber_commerce`,
             ),
         ]);
 

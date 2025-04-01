@@ -5,19 +5,19 @@ import {
 } from "@app/file/interfaces/file-manager.interface";
 import { Storage } from "@google-cloud/storage";
 import { MemoryStoredFile } from "nestjs-form-data";
-import { APP_IS_DEVELOPMENT, BUCKET } from "@root/configs/envs.config";
+import { ConfigService } from "@nestjs/config";
+import { appConfig } from "@app/configs/base.config";
 
 @Injectable()
 export class CloudStorageRepository implements FileManagerInterface<GoogleFileConfigs> {
     private client: Storage;
 
-    public constructor(@Optional() keyFilename?: string) {
+    public constructor(
+        private configService: ConfigService<typeof appConfig, true>,
+        @Optional() keyFilename?: string,
+    ) {
         if (!keyFilename) {
-            if (!process.env.KEY_FILENAME && !APP_IS_DEVELOPMENT) {
-                throw new Error("Key file name is required");
-            }
-
-            keyFilename = process.env.KEY_FILENAME ?? "";
+            keyFilename = configService.get<string>("app.keyFilename", { infer: true });
         }
 
         this.client = new Storage({ keyFilename });
@@ -29,9 +29,10 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
         configs: GoogleFileConfigs | null = null,
     ): Promise<string> {
         const client = this.client;
-        const bucket = client.bucket(configs?.bucketName ?? BUCKET);
+        const bucket = client.bucket(
+            configs?.bucketName ?? this.configService.get<string>("app.bucket", { infer: true }),
+        );
         const path = route ? `${route}/${file.originalName}` : file.originalName;
-
         const bucketFile = bucket.file(path);
         await bucketFile.save(file.buffer);
 
