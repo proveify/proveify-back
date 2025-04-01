@@ -1,25 +1,24 @@
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { ConfigType } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { RefreshTokenPayload, TokenPayload } from "../interfaces/auth.interface";
 import { AuthService } from "../auth.service";
 
-import refreshJwtConfig from "../config/refresh-jwt-config";
+import refreshJwtConfig from "../../configs/refresh-jwt-config";
 
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(Strategy, "refresh-jwt") {
     public constructor(
-        @Inject(refreshJwtConfig.KEY)
-        private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
+        private configService: ConfigService<typeof refreshJwtConfig, true>,
         private authService: AuthService,
     ) {
-        if (!refreshJwtConfiguration.secret) throw new Error("SECRET is not defined");
+        const refreshJwtSecret = configService.get<string>("refresh-jwt.secret", { infer: true });
 
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: refreshJwtConfiguration.secret,
+            secretOrKey: refreshJwtSecret,
             ignoreExpiration: false,
             passReqToCallback: true,
         });

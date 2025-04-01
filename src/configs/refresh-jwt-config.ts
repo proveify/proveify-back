@@ -1,5 +1,4 @@
 import { registerAs } from "@nestjs/config";
-
 import type { JwtSignOptions } from "@nestjs/jwt";
 
 const refreshJwtConfig = (): JwtSignOptions => ({
