@@ -1,17 +1,12 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { APP_IS_PROD, APP_PORT } from "@root/configs/envs.config";
 import type { LogLevel } from "@nestjs/common";
 import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log"];
-
-    if (!APP_IS_PROD) {
-        logLevel.push("debug", "verbose");
-    }
-
     const app = await NestFactory.create(AppModule, { logger: logLevel });
 
     const config = new DocumentBuilder()
@@ -23,17 +18,6 @@ async function bootstrap(): Promise<void> {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup("docs", app, document);
 
-    /**
-     * TODO: hay que implementar mejor los cors para distintos ambientes
-     * actualmente se deja para cualquier origen pero en producción solamente
-     * debe permitir la URL del frontend, por otro lado las reglas definidas en * typescript estan poniendo dificultades para
-     * manejar constates generales de la aplicación
-     * revisar: @typescript-eslint/no-unsafe-assignment
-     */
-    app.enableCors({
-        origin: "*",
-    });
-
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true,
@@ -43,7 +27,15 @@ async function bootstrap(): Promise<void> {
         }),
     );
 
-    await app.listen(APP_PORT);
+    const configService = app.get(ConfigService);
+    const appIsprod = configService.get<boolean>("app.isProd")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const corsUrlList = configService.get<string[]>("app.corsUrlList")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const port = configService.get<number>("app.port")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+
+    app.enableCors({
+        origin: appIsprod ? corsUrlList : "*",
+    });
+    await app.listen(port);
 }
 
 void bootstrap();
