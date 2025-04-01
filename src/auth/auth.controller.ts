@@ -10,7 +10,7 @@ import {
     UserRegisterDto as UserRegisterDto,
     UserCreateDto as UserCreateDto,
 } from "@app/user/dto/user.dto";
-import { RegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
+import { ProviderRegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
 import { UserTypes } from "@app/user/interfaces/users";
 import { ApiTags } from "@nestjs/swagger";
 import {

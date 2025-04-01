@@ -37,4 +37,22 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
 
         return path;
     }
+
+    public async update(
+        file: MemoryStoredFile,
+        route: string,
+        configs: GoogleFileConfigs | null = null,
+    ): Promise<boolean> {
+        const client = this.client;
+        const bucket = client.bucket(configs?.bucketName ?? "proveify-bucket");
+
+        try {
+            const object = bucket.file(route);
+            await object.save(file.buffer);
+        } catch {
+            return false;
+        }
+
+        return true;
+    }
 }
