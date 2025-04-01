@@ -20,7 +20,7 @@ import {
     RegisterDocumentation,
     RegisterProviderDocumentation,
 } from "@app/auth/decorators/documentations/auth.documentation";
-import { BasicResponse } from "@app/configs/interfaces/response.interface";
+import { BasicResponseEntity } from "@app/configs/entities/response.entity";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -29,7 +29,7 @@ export class AuthController {
 
     @RegisterDocumentation()
     @Post("register")
-    public async register(@Body() data: UserRegisterDto): Promise<BasicResponse> {
+    public async register(@Body() data: UserRegisterDto): Promise<BasicResponseEntity> {
         const userDto: UserCreateDto = Object.assign({}, data, { user_type: UserTypes.CLIENT });
         await this.authService.createUser(userDto);
 
@@ -42,7 +42,7 @@ export class AuthController {
     @RegisterProviderDocumentation()
     @Post("register/provider")
     @FormDataRequest()
-    public async registerProvider(@Body() data: ProviderRegisterDto): Promise<BasicResponse> {
+    public async registerProvider(@Body() data: ProviderRegisterDto): Promise<BasicResponseEntity> {
         await this.authService.createProvider(data);
 
         return {
@@ -68,7 +68,9 @@ export class AuthController {
     @LogOutDocumentation()
     @UseGuards(JwtAuthGuard)
     @Post("logout")
-    public async logout(@Req() req: Request & { user: TokenPayload }): Promise<BasicResponse> {
+    public async logout(
+        @Req() req: Request & { user: TokenPayload },
+    ): Promise<BasicResponseEntity> {
         await this.authService.singOut(req.user.id);
 
         return {
