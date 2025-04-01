@@ -5,14 +5,16 @@ import { ProvidersParamsDto } from "./dto/params.dto";
 import { Providers as ProviderModel, Prisma } from "@prisma/client";
 import { ProviderUpdateDto } from "./dto/provider.dto";
 import { FileService } from "@app/file/file.service";
-import { APP_ENV } from "@root/configs/envs.config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
+import { ConfigService } from "@nestjs/config";
+import { enviromentsConfig } from "@app/configs/base.config";
 
 @Injectable()
 export class ProviderService {
     public constructor(
         private prisma: PrismaService,
         private fileService: FileService,
+        private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
     public async saveProvider(provider: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
@@ -37,6 +39,7 @@ export class ProviderService {
         provider: ProviderModel,
         data: ProviderUpdateDto,
     ): Promise<ProviderModel> {
+        const environment = this.configService.get<string>("app.ENVIRONMENT", { infer: true });
         const providerData: Prisma.ProvidersUpdateInput = {};
 
         if (data.name) providerData.name = data.name;
@@ -51,7 +54,7 @@ export class ProviderService {
                 chamberCommerce = await this.fileService.save(
                     data.chamber_commerce,
                     ResourceType.CHAMBER_COMMERCE,
-                    `${APP_ENV}/providers/chamber_commerce`,
+                    `${environment}/providers/chamber_commerce`,
                 );
 
                 providerData.chamber_commerce = chamberCommerce.id;
@@ -71,7 +74,7 @@ export class ProviderService {
                 rut = await this.fileService.save(
                     data.rut,
                     ResourceType.RUT,
-                    `${APP_ENV}/providers/rut`,
+                    `${environment}/providers/rut`,
                 );
             } else {
                 await this.fileService.update(rut, data.rut, rut.path);
