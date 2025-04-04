@@ -45,7 +45,9 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
         configs: GoogleFileConfigs | null = null,
     ): Promise<boolean> {
         const client = this.client;
-        const bucket = client.bucket(configs?.bucketName ?? "proveify-bucket");
+        const bucket = client.bucket(
+            configs?.bucketName ?? this.configService.get<string>("app.bucket", { infer: true }),
+        );
 
         try {
             const object = bucket.file(route);

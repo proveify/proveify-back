@@ -8,7 +8,6 @@ import { ConfigService, ConfigType } from "@nestjs/config";
 import { PlanService } from "@app/plan/plan.service";
 import { ProviderService } from "@app/provider/provider.service";
 import { FileService } from "@app/file/file.service";
-import { UserStoreService } from "@app/user/user-store.service";
 import { PlanTypes } from "@app/plan/interfaces/plan.interface";
 import { UserTypes } from "@app/user/interfaces/users";
 
@@ -21,12 +20,13 @@ import * as argon2 from "argon2";
 import refreshJwtConfig from "../configs/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { enviromentsConfig } from "@app/configs/base.config";
+import { AuthContextService } from "./auth-context.service";
 
 @Injectable()
 export class AuthService {
     public constructor(
         private userService: UserService,
-        private userStoreService: UserStoreService,
+        private authContextService: AuthContextService,
         private planService: PlanService,
         private providerService: ProviderService,
         private fileService: FileService,
@@ -45,7 +45,7 @@ export class AuthService {
 
         data.password = await this.generatePasswordHash(data.password);
         const newUser: UserModel = await this.userService.saveUser(data);
-        this.userStoreService.setUser(newUser);
+        this.authContextService.setUser(newUser);
 
         return newUser;
     }
@@ -151,7 +151,7 @@ export class AuthService {
     }
 
     public async validateRefreshJwt(id: string, refreshToken: string): Promise<string> {
-        const user = await this.userService.findUserOneById(id);
+        const user = await this.userService.findUserOneById({ id });
 
         if (!user?.refreshed_token) {
             throw new UnauthorizedException("Invalid refresh token");
@@ -173,5 +173,18 @@ export class AuthService {
 
     public async singOut(id: string): Promise<void> {
         await this.userService.update(id, { refreshed_token: null });
+    }
+
+    public async setUserDataRequest(tokenPayload: TokenPayload): Promise<void> {
+        const user = await this.userService.findUserOneById({
+            where: { id: tokenPayload.id },
+            include: { Providers: true },
+        });
+
+        if (!user) {
+            throw new HttpException("User not found for store", 404);
+        }
+
+        this.authContextService.setUser(user);
     }
 }

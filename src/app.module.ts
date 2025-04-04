@@ -21,7 +21,9 @@ import refreshJwtConfig from "./configs/refresh-jwt-config";
         ParameterModule,
         ProviderModule,
         FileModule,
-        NestjsFormDataModule,
+        NestjsFormDataModule.config({
+            isGlobal: true,
+        }),
         PlanModule,
         ItemModule,
         ConfigModule.forRoot({
