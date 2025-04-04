@@ -7,7 +7,9 @@ import { CreateFileDto } from "@app/file/dto/file.dto";
 import { PrismaService } from "@app/prisma/prisma.service";
 import { CloudStorageRepository } from "@app/file/repositories/gcp/cloud-storage.repository";
 import { AuthContextService } from "@app/auth/auth-context.service";
-import { ResourceType } from "./interfaces/file-manager.interface";
+import { ResourceType, ResourceTypePath } from "./interfaces/file-manager.interface";
+import { ConfigService } from "@nestjs/config";
+import { enviromentsConfig } from "@app/configs/base.config";
 
 @Injectable()
 export class FileService {
@@ -15,21 +17,23 @@ export class FileService {
         private cloudStorageRepository: CloudStorageRepository,
         private authContextService: AuthContextService,
         private prisma: PrismaService,
+        private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
     public async save(
         file: MemoryStoredFile,
         resourceType: ResourceType,
-        route: string | null = null,
+        route?: string,
     ): Promise<FileModel> {
         const user = this.authContextService.getUser();
-        const name = this.generateUniqueFIleName(file.extension);
+        const name = this.generateUniqueFileName(file.extension);
         const originalName = file.originalName;
         file.originalName = name;
 
+        route = route ?? this.getAbsolutePathByResourceType(resourceType);
         const path = await this.cloudStorageRepository.upload(file, route);
         const fileDto: CreateFileDto = {
-            path,
+            path: path,
             name,
             original_name: originalName,
             resource_type: resourceType,
@@ -47,7 +51,7 @@ export class FileService {
         return this.prisma.files.create({ data });
     }
 
-    private generateUniqueFIleName(extension: string): string {
+    private generateUniqueFileName(extension: string): string {
         const uniqueId = uuidv4();
         const timestamp = Date.now().toString();
 
@@ -80,5 +84,12 @@ export class FileService {
 
     public async getFileById(id: string): Promise<FileModel | null> {
         return this.prisma.files.findUnique({ where: { id } });
+    }
+
+    public getAbsolutePathByResourceType(resourceType: ResourceType): string {
+        const enviroment = this.configService.get<string>("enviroments.enviroment", {
+            infer: true,
+        });
+        return `${enviroment}/${ResourceTypePath[resourceType]}`;
     }
 }

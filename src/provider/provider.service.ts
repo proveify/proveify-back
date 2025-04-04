@@ -39,7 +39,6 @@ export class ProviderService {
         provider: ProviderModel,
         data: ProviderUpdateDto,
     ): Promise<ProviderModel> {
-        const environment = this.configService.get<string>("app.ENVIRONMENT", { infer: true });
         const providerData: Prisma.ProvidersUpdateInput = {};
 
         if (data.name) providerData.name = data.name;
@@ -54,7 +53,6 @@ export class ProviderService {
                 chamberCommerce = await this.fileService.save(
                     data.chamber_commerce,
                     ResourceType.CHAMBER_COMMERCE,
-                    `${environment}/providers/chamber_commerce`,
                 );
 
                 providerData.chamber_commerce = chamberCommerce.id;
@@ -71,11 +69,7 @@ export class ProviderService {
             let rut = await this.fileService.getFileById(provider.rut);
 
             if (!rut) {
-                rut = await this.fileService.save(
-                    data.rut,
-                    ResourceType.RUT,
-                    `${environment}/providers/rut`,
-                );
+                rut = await this.fileService.save(data.rut, ResourceType.RUT);
             } else {
                 await this.fileService.update(rut, data.rut, rut.path);
             }
