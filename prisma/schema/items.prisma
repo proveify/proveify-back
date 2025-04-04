@@ -1,0 +1,13 @@
+// items
+
+model Items {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal   @default(0.00) @db.Decimal(10, 2)
+  image       String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+  provider_id String
+  provider    Providers @relation(fields: [provider_id], references: [id])
+}
