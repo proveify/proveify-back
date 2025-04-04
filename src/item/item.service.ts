@@ -1,7 +1,7 @@
 import { PrismaService } from "@app/prisma/prisma.service";
 import { HttpException, Injectable } from "@nestjs/common";
 import { Prisma, Items as ItemModel, Files as FileModel } from "@prisma/client";
-import { ItemCreateDto } from "./dto/item.dto";
+import { ItemCreateDto, ItemUpdateDto } from "./dto/item.dto";
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
@@ -37,8 +37,45 @@ export class ItemService {
         return item;
     }
 
+    public async prepareUpdate(data: ItemUpdateDto, id: string): Promise<Prisma.ItemsUpdateInput> {
+        const provider = this.authContextService.getProvider();
+        const item = await this.findItemById(id);
+
+        if (!item) {
+            throw new HttpException("Item not found", 404);
+        }
+
+        if (!provider) {
+            throw new HttpException("User not has provider", 400);
+        }
+
+        const itemUpdateInput: Prisma.ItemsUpdateInput = {
+            name: data.name,
+            description: data.description,
+            price: data.price,
+        };
+
+        if (data.image && item.image) {
+            const image = await this.uploadImage(data.image, item.image);
+            itemUpdateInput.image = image.id;
+        } else if (data.image) {
+            const image = await this.uploadImage(data.image);
+            itemUpdateInput.image = image.id;
+        }
+
+        return itemUpdateInput;
+    }
+
     public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemModel> {
         return this.prisma.items.create({ data: item });
+    }
+
+    public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemModel> {
+        return this.prisma.items.update({ where: { id }, data: item });
+    }
+
+    public async findItemById(id: string): Promise<ItemModel | null> {
+        return this.prisma.items.findUnique({ where: { id } });
     }
 
     private async uploadImage(image: MemoryStoredFile, fileId?: string): Promise<FileModel> {
