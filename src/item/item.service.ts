@@ -1,7 +1,7 @@
 import { PrismaService } from "@app/prisma/prisma.service";
 import { HttpException, Injectable } from "@nestjs/common";
 import { Prisma, Items as ItemModel, Files as FileModel } from "@prisma/client";
-import { ItemCreateDto, ItemUpdateDto } from "./dto/item.dto";
+import { ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
@@ -74,8 +74,22 @@ export class ItemService {
         return this.prisma.items.update({ where: { id }, data: item });
     }
 
+    public async deleteItem(id: string): Promise<ItemModel> {
+        return this.prisma.items.delete({ where: { id } });
+    }
+
     public async findItemById(id: string): Promise<ItemModel | null> {
         return this.prisma.items.findUnique({ where: { id } });
+    }
+
+    public async getItems(params?: ItemParamDto): Promise<ItemModel[]> {
+        return this.prisma.items.findMany({
+            take: params?.limit ?? 30,
+            skip: params?.offset,
+            orderBy: {
+                id: params?.order_by ?? "desc",
+            },
+        });
     }
 
     private async uploadImage(image: MemoryStoredFile, fileId?: string): Promise<FileModel> {
@@ -87,7 +101,6 @@ export class ItemService {
 
             if (file) {
                 const fileUpdated = await this.fileService.update(file, image);
-
                 return fileUpdated.file;
             }
         }

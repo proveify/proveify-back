@@ -1,6 +1,9 @@
-import { PartialType } from "@nestjs/swagger";
+import { ParamsDto } from "@app/configs/dtos/params.dto";
+import { IntersectionType, PartialType } from "@nestjs/swagger";
 import { IsOptional, IsString, IsDecimal } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
+
+export class ItemParamDto extends IntersectionType(ParamsDto) {}
 
 export class ItemCreateDto {
     @IsString()

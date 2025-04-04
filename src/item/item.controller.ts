@@ -1,4 +1,14 @@
-import { Body, Controller, Param, Post, Put, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpException,
+    Param,
+    Post,
+    Put,
+    UseGuards,
+} from "@nestjs/common";
 import { ItemService } from "./item.service";
 import { FormDataRequest } from "nestjs-form-data";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
@@ -27,6 +37,30 @@ export class ItemController {
     ): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareUpdate(data, params.id);
         const item = await this.itemService.updateItem(itemDataInput, params.id);
+        return new ItemEntity(item);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete("self/:id")
+    public async deleteItem(@Param() params: { id: string }): Promise<ItemEntity> {
+        const item = await this.itemService.deleteItem(params.id);
+        return new ItemEntity(item);
+    }
+
+    @Get()
+    public async getItems(): Promise<ItemEntity[]> {
+        const items = await this.itemService.getItems();
+        return items.map((item) => new ItemEntity(item));
+    }
+
+    @Get(":id")
+    public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
+        const item = await this.itemService.findItemById(params.id);
+
+        if (!item) {
+            throw new HttpException("Item not found", 404);
+        }
+
         return new ItemEntity(item);
     }
 }
