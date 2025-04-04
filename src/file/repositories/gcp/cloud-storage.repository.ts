@@ -25,14 +25,14 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
 
     public async upload(
         file: MemoryStoredFile,
-        route: string | null = null,
-        configs: GoogleFileConfigs | null = null,
+        route: string,
+        configs?: GoogleFileConfigs,
     ): Promise<string> {
         const client = this.client;
         const bucket = client.bucket(
             configs?.bucketName ?? this.configService.get<string>("app.bucket", { infer: true }),
         );
-        const path = route ? `${route}/${file.originalName}` : file.originalName;
+        const path = `${route}/${file.originalName}`;
         const bucketFile = bucket.file(path);
         await bucketFile.save(file.buffer);
 
@@ -41,8 +41,8 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
 
     public async update(
         file: MemoryStoredFile,
-        route: string,
-        configs: GoogleFileConfigs | null = null,
+        path: string,
+        configs?: GoogleFileConfigs,
     ): Promise<boolean> {
         const client = this.client;
         const bucket = client.bucket(
@@ -50,7 +50,7 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
         );
 
         try {
-            const object = bucket.file(route);
+            const object = bucket.file(path);
             await object.save(file.buffer);
         } catch {
             return false;

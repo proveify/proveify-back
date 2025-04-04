@@ -51,7 +51,6 @@ export class AuthService {
     }
 
     public async createProvider(data: ProviderRegisterDto): Promise<ProviderModel> {
-        const enviroment = this.configService.get<string>("app.enviroment", { infer: true });
         const { rut, chamber_commerce, ...fields } = data;
         const userData = {
             ...fields,
@@ -62,12 +61,8 @@ export class AuthService {
         const plan = await this.planService.getPlanByKey(PlanTypes.NONE);
 
         const [rutFileData, chamberCommerceFileData] = await Promise.all([
-            this.fileService.save(rut, ResourceType.RUT, `${enviroment}/providers/rut`),
-            this.fileService.save(
-                chamber_commerce,
-                ResourceType.CHAMBER_COMMERCE,
-                `${enviroment}/providers/chamber_commerce`,
-            ),
+            this.fileService.save(rut, ResourceType.RUT),
+            this.fileService.save(chamber_commerce, ResourceType.CHAMBER_COMMERCE),
         ]);
 
         const providerData: ProviderCreateDto = {
