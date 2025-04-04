@@ -7,12 +7,13 @@ import { RefreshTokenPayload, TokenPayload } from "../interfaces/auth.interface"
 import { AuthService } from "../auth.service";
 
 import refreshJwtConfig from "../../configs/refresh-jwt-config";
+import { ContextIdFactory, ModuleRef } from "@nestjs/core";
 
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(Strategy, "refresh-jwt") {
     public constructor(
         private configService: ConfigService<typeof refreshJwtConfig, true>,
-        private authService: AuthService,
+        private moduleRef: ModuleRef,
     ) {
         const refreshJwtSecret = configService.get<string>("refresh-jwt.secret", { infer: true });
 
@@ -25,10 +26,12 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, "refresh-jwt"
     }
 
     public async validate(req: Request, payload: TokenPayload): Promise<RefreshTokenPayload> {
+        const contextId = ContextIdFactory.getByRequest(req);
+        const authService = await this.moduleRef.resolve(AuthService, contextId);
         const refreshToken = req.get("Authorization")?.replace("Bearer", "").trim();
         if (!refreshToken) throw new UnauthorizedException("Bearer Token required");
 
-        const id = await this.authService.validateRefreshJwt(payload.id, refreshToken);
+        const id = await authService.validateRefreshJwt(payload.id, refreshToken);
 
         return { id, refreshToken };
     }

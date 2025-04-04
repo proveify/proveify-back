@@ -2,31 +2,27 @@ import { Injectable } from "@nestjs/common";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { v4 as uuidv4 } from "uuid";
 
-import { UserStoreService } from "@app/user/user-store.service";
 import { Prisma, Files as FileModel } from "@prisma/client";
 import { CreateFileDto } from "@app/file/dto/file.dto";
 import { PrismaService } from "@app/prisma/prisma.service";
 import { CloudStorageRepository } from "@app/file/repositories/gcp/cloud-storage.repository";
+import { AuthContextService } from "@app/auth/auth-context.service";
+import { ResourceType } from "./interfaces/file-manager.interface";
 
 @Injectable()
 export class FileService {
     public constructor(
         private cloudStorageRepository: CloudStorageRepository,
-        private userStoreService: UserStoreService,
+        private authContextService: AuthContextService,
         private prisma: PrismaService,
     ) {}
 
     public async save(
         file: MemoryStoredFile,
-        resourceType: string,
+        resourceType: ResourceType,
         route: string | null = null,
     ): Promise<FileModel> {
-        const user = this.userStoreService.getUsers();
-
-        if (!user) {
-            throw new Error("User not found");
-        }
-
+        const user = this.authContextService.getUser();
         const name = this.generateUniqueFIleName(file.extension);
         const originalName = file.originalName;
         file.originalName = name;
@@ -61,22 +57,21 @@ export class FileService {
     public async update(
         file: FileModel,
         memoryFile: MemoryStoredFile,
-        path: string,
-    ): Promise<{ path: string; hasUpdated: boolean }> {
-        const hasUpdated = await this.cloudStorageRepository.update(memoryFile, path);
+        path?: string,
+    ): Promise<{ updated: boolean; file: FileModel }> {
+        const hasUpdated = await this.cloudStorageRepository.update(memoryFile, path ?? file.path);
 
         if (hasUpdated) {
             const data: Prisma.FilesUpdateInput = {
                 original_name: memoryFile.originalName,
+                path: path ?? file.path,
             };
 
-            await this.updateFile(file.id, data);
+            file = await this.updateFile(file.id, data);
+            return { updated: true, file };
         }
 
-        return {
-            path,
-            hasUpdated,
-        };
+        return { updated: false, file };
     }
 
     private async updateFile(id: string, data: Prisma.FilesUpdateInput): Promise<FileModel> {
