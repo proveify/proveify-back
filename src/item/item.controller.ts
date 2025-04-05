@@ -24,8 +24,10 @@ export class ItemController {
     @Post("self")
     public async createItem(@Body() data: ItemCreateDto): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareCreate(data);
-        const item = await this.itemService.createItem(itemDataInput);
-        return new ItemEntity(item);
+        const itemModel = await this.itemService.createItem(itemDataInput);
+        const item = new ItemEntity(itemModel);
+
+        return item;
     }
 
     @FormDataRequest()
