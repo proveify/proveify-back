@@ -25,12 +25,16 @@ export class FileService {
         resourceType: ResourceType,
         route?: string,
     ): Promise<FileModel> {
+        const enviroment = this.configService.get<string>("enviroments.enviroment", {
+            infer: true,
+        });
+
         const user = this.authContextService.getUser();
         const name = this.generateUniqueFileName(file.extension);
         const originalName = file.originalName;
         file.originalName = name;
 
-        route = route ?? this.getAbsolutePathByResourceType(resourceType);
+        route = route ? `${enviroment}/${route}` : this.getAbsolutePathByResourceType(resourceType);
         const path = await this.cloudStorageRepository.upload(file, route);
         const fileDto: CreateFileDto = {
             path: path,
@@ -91,5 +95,19 @@ export class FileService {
             infer: true,
         });
         return `${enviroment}/${ResourceTypePath[resourceType]}`;
+    }
+
+    public async getFileUrlById(id: string): Promise<string | null> {
+        const file = await this.getFileById(id);
+
+        if (!file) {
+            return null;
+        }
+
+        return this.cloudStorageRepository.generateReadSignedUrl(file.path);
+    }
+
+    public async getFileUrlByPath(path: string): Promise<string> {
+        return this.cloudStorageRepository.generateReadSignedUrl(path);
     }
 }

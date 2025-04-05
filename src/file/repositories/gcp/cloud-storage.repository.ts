@@ -3,7 +3,7 @@ import {
     FileManagerInterface,
     GoogleFileConfigs,
 } from "@app/file/interfaces/file-manager.interface";
-import { Storage } from "@google-cloud/storage";
+import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { ConfigService } from "@nestjs/config";
 import { appConfig } from "@app/configs/base.config";
@@ -57,5 +57,21 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
         }
 
         return true;
+    }
+
+    public async generateReadSignedUrl(path: string, bucketName?: string): Promise<string> {
+        const client = this.client;
+        const config: GetSignedUrlConfig = {
+            version: "v4",
+            action: "read",
+            expires: Date.now() + 15 * 60 * 1000,
+        };
+
+        const [url] = await client
+            .bucket(bucketName ?? this.configService.get<string>("app.bucket", { infer: true }))
+            .file(path)
+            .getSignedUrl(config);
+
+        return url;
     }
 }
