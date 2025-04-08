@@ -1,10 +1,12 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserController } from "../../../src/user/user.controller";
 import { UserService } from "../../../src/user/user.service";
-import { UserResponseInterceptor } from "../../../src/user/interceptors/user-response/user-response.interceptor";
+import { ClassSerializerInterceptor } from "@nestjs/common";
 import { JwtAuthGuard } from "../../../src/auth/guards/jwt.guard";
 import { UserNotFoundException } from "../../../src/user/exceptions/user-not-found.exception/user-not-found.exception";
-import { ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { UserEntity } from "../../../src/user/entities/user.entity";
+import { plainToInstance } from "class-transformer";
 
 // Mock para el JwtAuthGuard
 const mockJwtAuthGuard = {
@@ -33,13 +35,19 @@ describe("UserController", () => {
                     useValue: mockUserService,
                 },
                 {
-                    provide: UserResponseInterceptor,
-                    useClass: UserResponseInterceptor,
+                    provide: Reflector,
+                    useValue: {
+                        getAllAndOverride: jest.fn(),
+                    },
                 },
             ],
         })
             .overrideGuard(JwtAuthGuard)
             .useValue(mockJwtAuthGuard)
+            .overrideInterceptor(ClassSerializerInterceptor)
+            .useValue({
+                intercept: jest.fn().mockImplementation((_, next) => next.handle()),
+            })
             .compile();
 
         controller = module.get<UserController>(UserController);
@@ -52,7 +60,8 @@ describe("UserController", () => {
 
     describe("getUserProfile", () => {
         it("should return user profile when user exists", async () => {
-            const mockUser = {
+            // Creamos una instancia real de UserEntity
+            const userEntity = new UserEntity({
                 id: "test-user-id",
                 name: "Test User",
                 email: "test@example.com",
@@ -60,32 +69,31 @@ describe("UserController", () => {
                 identification_type: "CC",
                 password: "hashed_password",
                 refreshed_token: "token123",
+                user_type: "CLIENT",
+                Providers: [],
                 created_at: new Date(),
                 updated_at: new Date(),
-            };
+            });
 
             const mockRequest = {
                 user: { id: "test-user-id" },
             };
 
-            mockUserService.getUserProfile.mockResolvedValue({
-                id: mockUser.id,
-                name: mockUser.name,
-                email: mockUser.email,
-                identification: mockUser.identification,
-                identification_type: mockUser.identification_type,
-                created_at: mockUser.created_at,
-                updated_at: mockUser.updated_at,
-            });
+            mockUserService.getUserProfile.mockResolvedValue(userEntity);
 
             // Act
             const result = await controller.getUserProfile(mockRequest as any);
+            
+            // Simular la serialización que ocurriría en una petición real
+            const serialized = plainToInstance(UserEntity, result, { 
+                excludeExtraneousValues: false 
+            });
 
             // Assert
-            expect(result).toBeDefined();
-            expect(result.id).toBe("test-user-id");
-            expect(result).not.toHaveProperty("password");
-            expect(result).not.toHaveProperty("refreshed_token");
+            expect(serialized).toBeDefined();
+            expect(serialized.id).toBe("test-user-id");
+            expect(serialized).not.toHaveProperty("password");
+            expect(serialized).not.toHaveProperty("refreshed_token");
             expect(userService.getUserProfile).toHaveBeenCalledWith("test-user-id");
         });
 
