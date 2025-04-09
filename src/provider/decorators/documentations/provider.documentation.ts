@@ -1,4 +1,4 @@
-import { ProviderEntityDocumentation } from "@app/provider/entities/provider.entity";
+import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { applyDecorators } from "@nestjs/common";
 import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiParam } from "@nestjs/swagger";
 
@@ -23,7 +23,7 @@ export function GetProvidersDocumentation(): MethodDecorator & ClassDecorator {
             enum: ["asc", "desc"],
         }),
         ApiOkResponse({
-            type: [ProviderEntityDocumentation],
+            type: [ProviderEntity],
         }),
     );
 }
@@ -37,7 +37,7 @@ export function UpadteProviderDocumentation(): MethodDecorator & ClassDecorator 
         }),
         ApiConsumes("multipart/form-data"),
         ApiOkResponse({
-            type: ProviderEntityDocumentation,
+            type: ProviderEntity,
         }),
         ApiBearerAuth(),
     );
@@ -47,7 +47,7 @@ export function GetProviderDocumention(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({ summary: "Get provider by id" }),
         ApiOkResponse({
-            type: ProviderEntityDocumentation,
+            type: ProviderEntity,
         }),
     );
 }

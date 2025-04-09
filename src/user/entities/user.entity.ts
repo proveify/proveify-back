@@ -1,4 +1,5 @@
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
+import { ApiHideProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
 export class UserEntity {
@@ -13,9 +14,11 @@ export class UserEntity {
     public created_at: Date;
     public updated_at: Date;
 
+    @ApiHideProperty()
     @Exclude()
     public password: string;
 
+    @ApiHideProperty()
     @Exclude()
     public refreshed_token: string | null;
 
