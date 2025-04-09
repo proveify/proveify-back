@@ -19,7 +19,6 @@ COPY --from=build /var/app/dist .
 COPY --from=build /var/app/node_modules /var/app/node_modules
 COPY package.json .
 COPY package-lock.json .
-COPY prisma ./prisma
 
 RUN npm prune --omit=dev
 
