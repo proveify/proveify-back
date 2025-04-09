@@ -4,7 +4,9 @@ WORKDIR /var/app
 COPY package.json .
 RUN npm install
 COPY . .
-RUN npx prisma generate
+# Concatenar todos los archivos de esquema
+RUN cat prisma/schema/*.prisma > ./schema.prisma
+RUN npx prisma generate --schema=./schema.prisma
 RUN npm run build
 
 FROM node:22.13.1-alpine3.21
@@ -22,5 +24,3 @@ RUN npm prune --omit=dev
 
 EXPOSE 3001
 CMD ["node","src/main.js"]
-
-
