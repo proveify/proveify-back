@@ -7,13 +7,21 @@ import {
     Param,
     Post,
     Put,
+    Query,
     UseGuards,
 } from "@nestjs/common";
 import { ItemService } from "./item.service";
 import { FormDataRequest } from "nestjs-form-data";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
-import { ItemCreateDto, ItemUpdateDto } from "./dto/item.dto";
+import { ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { ItemEntity } from "./entities/item.entity";
+import {
+    DeleteSelfItemDocumentation,
+    GetItemDocumentation,
+    GetItemsDocumentation,
+    PostCreateItemDocumentation,
+    PutSelfItemDocumentation,
+} from "./decorators/documentations/item.documentation";
 
 @Controller("items")
 export class ItemController {
@@ -21,6 +29,7 @@ export class ItemController {
 
     @FormDataRequest()
     @UseGuards(JwtAuthGuard)
+    @PostCreateItemDocumentation()
     @Post("self")
     public async createItem(@Body() data: ItemCreateDto): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareCreate(data);
@@ -32,6 +41,7 @@ export class ItemController {
 
     @FormDataRequest()
     @UseGuards(JwtAuthGuard)
+    @PutSelfItemDocumentation()
     @Put("self/:id")
     public async updateItem(
         @Body() data: ItemUpdateDto,
@@ -43,6 +53,7 @@ export class ItemController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @DeleteSelfItemDocumentation()
     @Delete("self/:id")
     public async deleteItem(@Param() params: { id: string }): Promise<ItemEntity> {
         const item = await this.itemService.deleteItem(params.id);
@@ -50,12 +61,14 @@ export class ItemController {
     }
 
     @Get()
-    public async getItems(): Promise<ItemEntity[]> {
-        const items = await this.itemService.getItems();
+    @GetItemsDocumentation()
+    public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
+        const items = await this.itemService.getItems(params);
         return items.map((item) => new ItemEntity(item));
     }
 
     @Get(":id")
+    @GetItemDocumentation()
     public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
         const item = await this.itemService.findItemById(params.id);
 

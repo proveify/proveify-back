@@ -28,7 +28,7 @@ export function GetProvidersDocumentation(): MethodDecorator & ClassDecorator {
     );
 }
 
-export function UpadteProviderDocumentation(): MethodDecorator & ClassDecorator {
+export function UpdateProviderDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({
             summary: "Update provider logued",
