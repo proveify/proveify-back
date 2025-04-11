@@ -17,7 +17,7 @@ import { ProvidersParamsDto } from "./dto/params.dto";
 import {
     GetProviderDocumention,
     GetProvidersDocumentation,
-    UpadteProviderDocumentation,
+    UpdateProviderDocumentation,
 } from "./decorators/documentations/provider.documentation";
 import { ProviderEntity } from "./entities/provider.entity";
 import { ProviderUpdateDto } from "./dto/provider.dto";
@@ -55,7 +55,7 @@ export class ProviderController {
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(JwtAuthGuard)
     @FormDataRequest()
-    @UpadteProviderDocumentation()
+    @UpdateProviderDocumentation()
     @Put("self")
     public async updateProvider(
         @Req() request: Request & { user: TokenPayload },

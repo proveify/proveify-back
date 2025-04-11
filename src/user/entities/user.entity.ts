@@ -1,38 +1,28 @@
+import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { ApiHideProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
-export class ProviderEntity {
+export class UserEntity {
     public id: string;
-    public name: string;
     public email: string;
+    public name: string;
+    public user_type: string;
     public identification: string;
     public identification_type: string;
 
-    @ApiHideProperty()
-    @Exclude()
-    public rut: string;
-
-    @ApiHideProperty()
-    @Exclude()
-    public chamber_commerce: string;
-
-    @ApiHideProperty()
-    @Exclude()
+    public Providers: ProviderEntity[] | null;
     public created_at: Date;
-
-    @ApiHideProperty()
-    @Exclude()
     public updated_at: Date;
 
     @ApiHideProperty()
     @Exclude()
-    public plan_id: string;
+    public password: string;
 
     @ApiHideProperty()
     @Exclude()
-    public user_id: string;
+    public refreshed_token: string | null;
 
-    public constructor(partial: Partial<ProviderEntity>) {
+    public constructor(partial: Partial<UserEntity>) {
         Object.assign(this, partial);
     }
 }

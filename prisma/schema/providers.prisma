@@ -15,5 +15,7 @@ model Providers {
   // Add a relation to the Users model
   user                Users    @relation(fields: [user_id], references: [id])
   user_id             String
+  Items               Items[]
+
   @@index([email, created_at(sort: Desc)])
 }

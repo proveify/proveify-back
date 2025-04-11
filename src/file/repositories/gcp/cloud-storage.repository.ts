@@ -3,7 +3,7 @@ import {
     FileManagerInterface,
     GoogleFileConfigs,
 } from "@app/file/interfaces/file-manager.interface";
-import { Storage } from "@google-cloud/storage";
+import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { ConfigService } from "@nestjs/config";
 import { appConfig } from "@app/configs/base.config";
@@ -25,14 +25,14 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
 
     public async upload(
         file: MemoryStoredFile,
-        route: string | null = null,
-        configs: GoogleFileConfigs | null = null,
+        route: string,
+        configs?: GoogleFileConfigs,
     ): Promise<string> {
         const client = this.client;
         const bucket = client.bucket(
             configs?.bucketName ?? this.configService.get<string>("app.bucket", { infer: true }),
         );
-        const path = route ? `${route}/${file.originalName}` : file.originalName;
+        const path = `${route}/${file.originalName}`;
         const bucketFile = bucket.file(path);
         await bucketFile.save(file.buffer);
 
@@ -41,19 +41,37 @@ export class CloudStorageRepository implements FileManagerInterface<GoogleFileCo
 
     public async update(
         file: MemoryStoredFile,
-        route: string,
-        configs: GoogleFileConfigs | null = null,
+        path: string,
+        configs?: GoogleFileConfigs,
     ): Promise<boolean> {
         const client = this.client;
-        const bucket = client.bucket(configs?.bucketName ?? "proveify-bucket");
+        const bucket = client.bucket(
+            configs?.bucketName ?? this.configService.get<string>("app.bucket", { infer: true }),
+        );
 
         try {
-            const object = bucket.file(route);
+            const object = bucket.file(path);
             await object.save(file.buffer);
         } catch {
             return false;
         }
 
         return true;
+    }
+
+    public async generateReadSignedUrl(path: string, bucketName?: string): Promise<string> {
+        const client = this.client;
+        const config: GetSignedUrlConfig = {
+            version: "v4",
+            action: "read",
+            expires: Date.now() + 15 * 60 * 1000,
+        };
+
+        const [url] = await client
+            .bucket(bucketName ?? this.configService.get<string>("app.bucket", { infer: true }))
+            .file(path)
+            .getSignedUrl(config);
+
+        return url;
     }
 }
