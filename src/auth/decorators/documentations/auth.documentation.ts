@@ -1,5 +1,5 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBody, ApiConsumes, ApiOperation, ApiBearerAuth, ApiOkResponse } from "@nestjs/swagger";
 import { UserAuthenticate } from "@app/auth/interfaces/auth.interface";
 import { LoginDto } from "@app/auth/dto/auth.dto";
 import { BasicResponseEntity } from "@app/configs/entities/response.entity";
@@ -7,7 +7,7 @@ import { BasicResponseEntity } from "@app/configs/entities/response.entity";
 export function RegisterDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({ summary: "Register new user" }),
-        ApiResponse({ status: 201, type: BasicResponseEntity }),
+        ApiOkResponse({ type: BasicResponseEntity }),
     );
 }
 
@@ -15,15 +15,12 @@ export function RegisterProviderDocumentation(): MethodDecorator & ClassDecorato
     return applyDecorators(
         ApiOperation({ summary: "Register new provider" }),
         ApiConsumes("multipart/form-data"),
-        ApiResponse({ status: 201, type: BasicResponseEntity }),
+        ApiOkResponse({ type: BasicResponseEntity }),
     );
 }
 
 export function LoginDocumentation(): MethodDecorator & ClassDecorator {
-    return applyDecorators(
-        ApiBody({ type: LoginDto }),
-        ApiResponse({ status: 201, type: UserAuthenticate }),
-    );
+    return applyDecorators(ApiBody({ type: LoginDto }), ApiOkResponse({ type: UserAuthenticate }));
 }
 
 export function RefreshTokenDocumentation(): MethodDecorator & ClassDecorator {
@@ -31,8 +28,5 @@ export function RefreshTokenDocumentation(): MethodDecorator & ClassDecorator {
 }
 
 export function LogOutDocumentation(): MethodDecorator & ClassDecorator {
-    return applyDecorators(
-        ApiResponse({ status: 201, type: BasicResponseEntity }),
-        ApiBearerAuth(),
-    );
+    return applyDecorators(ApiOkResponse({ type: BasicResponseEntity }), ApiBearerAuth());
 }
