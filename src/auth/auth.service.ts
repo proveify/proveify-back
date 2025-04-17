@@ -173,7 +173,7 @@ export class AuthService {
     public async setUserDataRequest(tokenPayload: TokenPayload): Promise<void> {
         const user = await this.userService.findUserOneById({
             where: { id: tokenPayload.id },
-            include: { Providers: true },
+            include: { Provider: true },
         });
 
         if (!user) {

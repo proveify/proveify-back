@@ -11,7 +11,7 @@ model Users {
   refreshed_token     String?
   created_at          DateTime    @default(now())
   updated_at          DateTime    @default(now()) @updatedAt
-  Providers           Providers[]
+  Provider           Providers?
 
   Files Files[]
 }
