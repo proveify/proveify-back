@@ -1,0 +1,36 @@
+// Model quotes
+
+model Quotes {
+  id                  String   @id @default(uuid())
+  user_id             String?
+  identification_type String
+  name                String
+  email               String
+  identification      String
+  total               Decimal  @default(0.00) @db.Decimal(10, 2)
+  file_id             String? // los proveedores podrar cargar al sistema su propia cotizacion
+  description         String?
+  provider_id         String
+  created_at          DateTime @default(now())
+  updated_at          DateTime @default(now()) @updatedAt
+  status              String   @default("pending")
+
+  Provider Providers      @relation(fields: [provider_id], references: [id])
+  Items    Quotes_items[]
+}
+
+model Quotes_items {
+  id          String   @id @default(uuid())
+  quote_id    String
+  item_id     String
+  name        String
+  price       Decimal  @default(0.00) @db.Decimal(10, 2)
+  quantity    Int
+  discount    Int      @default(0)
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  quote Quotes @relation(fields: [quote_id], references: [id])
+  item  Items  @relation(fields: [item_id], references: [id])
+}

@@ -45,4 +45,9 @@ export class AuthContextService {
 
         return providers[0];
     }
+
+    public getUserId(): string {
+        const user = this.getUser();
+        return user.id;
+    }
 }

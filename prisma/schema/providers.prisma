@@ -16,6 +16,7 @@ model Providers {
   user                Users    @relation(fields: [user_id], references: [id])
   user_id             String
   Items               Items[]
+  Quotes              Quotes[]
 
   @@index([email, created_at(sort: Desc)])
 }

@@ -10,4 +10,6 @@ model Items {
   updated_at  DateTime  @default(now()) @updatedAt
   provider_id String
   provider    Providers @relation(fields: [provider_id], references: [id])
+
+  Quotes_items Quotes_items[]
 }

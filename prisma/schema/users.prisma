@@ -12,6 +12,5 @@ model Users {
   created_at          DateTime    @default(now())
   updated_at          DateTime    @default(now()) @updatedAt
   Providers           Providers[]
-
-  Files Files[]
+  Files               Files[]
 }

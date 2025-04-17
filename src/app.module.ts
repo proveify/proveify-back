@@ -11,6 +11,7 @@ import { ItemModule } from "./item/item.module";
 import { ConfigModule } from "@nestjs/config";
 import validationSchemaConfig from "./configs/validation-schema.config";
 import { appConfig, enviromentsConfig } from "./configs/base.config";
+import { QuoteModule } from "./quote/quote.module";
 import jwtConfig from "./configs/jwt.config";
 import refreshJwtConfig from "./configs/refresh-jwt-config";
 @Module({
@@ -34,6 +35,7 @@ import refreshJwtConfig from "./configs/refresh-jwt-config";
             },
             load: [appConfig, enviromentsConfig, jwtConfig, refreshJwtConfig],
         }),
+        QuoteModule,
     ],
     providers: [],
 })
