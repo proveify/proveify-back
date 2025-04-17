@@ -3,6 +3,8 @@
 /node_modules
 /build
 /prisma/migrations/*
+/prisma/schema/migrations
+
 
 # Logs
 logs

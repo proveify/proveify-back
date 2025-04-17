@@ -14,7 +14,7 @@ model Providers {
   plan_id             String
   // Add a relation to the Users model
   user                Users    @relation(fields: [user_id], references: [id])
-  user_id             String
+  user_id             String   @unique
   Items               Items[]
   Quotes              Quotes[]
 

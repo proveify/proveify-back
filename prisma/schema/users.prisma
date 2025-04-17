@@ -1,16 +1,17 @@
 //Model Users
 
 model Users {
-  id                  String      @id @default(uuid())
+  id                  String     @id @default(uuid())
   name                String
-  email               String      @unique
+  email               String     @unique
   password            String
   user_type           String
   identification      String
   identification_type String
   refreshed_token     String?
-  created_at          DateTime    @default(now())
-  updated_at          DateTime    @default(now()) @updatedAt
-  Providers           Providers[]
-  Files               Files[]
+  created_at          DateTime   @default(now())
+  updated_at          DateTime   @default(now()) @updatedAt
+  Provider            Providers?
+
+  Files Files[]
 }
