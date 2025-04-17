@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { seedCategories } from "./categories-seed";
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,9 @@ async function main() {
     });
 
     console.log(planNone);
+    
+    // Seed de categorías
+    await seedCategories(prisma);
 }
 
 main()
