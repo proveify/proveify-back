@@ -2,9 +2,10 @@ import { Body, Controller, Get, HttpException, Param, Post, Req, UseGuards } fro
 import { QuoteService } from "./quote.service";
 import { QuoteEntity } from "./entities/quote.entity";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
-import { QuoteDto } from "./dto/quote.dto";
+import { QuoteDto, QuoteUploadFileDto } from "./dto/quote.dto";
 import { JwtOptionalGuard } from "@app/auth/guards/jwt-optional-guard";
 import { TokenPayload } from "@app/auth/interfaces/auth.interface";
+import { FormDataRequest } from "nestjs-form-data";
 
 @Controller("quotes")
 export class QuoteController {
@@ -49,6 +50,18 @@ export class QuoteController {
         @Req() req: Request & { user?: TokenPayload },
     ): Promise<QuoteEntity> {
         const quote = await this.quoteService.createQuote(data, req.user?.id);
+        return new QuoteEntity(quote);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @FormDataRequest()
+    @Post(":id/upload")
+    public async uploadQuoteFile(
+        @Body() data: QuoteUploadFileDto,
+        @Param() params: { id: string },
+    ): Promise<QuoteEntity> {
+        const quote = await this.quoteService.uploadQuoteFile(params.id, data.file);
+
         return new QuoteEntity(quote);
     }
 }

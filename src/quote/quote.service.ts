@@ -3,12 +3,16 @@ import { PrismaService } from "@app/prisma/prisma.service";
 import { HttpException, Injectable } from "@nestjs/common";
 import { Prisma, Quotes as QuoteModel } from "@prisma/client";
 import { QuoteDto } from "./dto/quote.dto";
+import { MemoryStoredFile } from "nestjs-form-data";
+import { FileService } from "@app/file/file.service";
+import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 
 @Injectable()
 export class QuoteService {
     public constructor(
         private prisma: PrismaService,
         private readonly authContext: AuthContextService,
+        private fileService: FileService,
     ) {}
 
     public async getClientQuotes(): Promise<QuoteModel[]> {
@@ -93,6 +97,7 @@ export class QuoteService {
                             name: item.name,
                             price: item.price,
                             description: item.description,
+                            discount: item.discount,
                         };
                     }),
                 },
@@ -112,5 +117,21 @@ export class QuoteService {
         return this.prisma.quotes.create({
             data: input,
         });
+    }
+
+    public async updateQuote(id: string, input: Prisma.QuotesUpdateInput): Promise<QuoteModel> {
+        return this.prisma.quotes.update({
+            where: { id },
+            data: input,
+        });
+    }
+
+    public async uploadQuoteFile(id: string, file: MemoryStoredFile): Promise<QuoteModel> {
+        const fielModel = await this.fileService.save(file, ResourceType.QUOTE);
+        const data: Prisma.QuotesUpdateInput = {
+            file_id: fielModel.id,
+        };
+
+        return this.updateQuote(id, data);
     }
 }

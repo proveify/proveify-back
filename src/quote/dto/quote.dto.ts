@@ -3,10 +3,12 @@ import {
     ArrayMinSize,
     IsDecimal,
     IsInt,
+    IsNumber,
     IsOptional,
     IsString,
     ValidateNested,
 } from "class-validator";
+import { IsFile, MemoryStoredFile } from "nestjs-form-data";
 
 export class QuoteDto {
     @IsString()
@@ -50,4 +52,12 @@ export class QuoteItemDto {
     @IsString()
     @IsOptional()
     public description: string;
+
+    @IsNumber()
+    public discount: number;
+}
+
+export class QuoteUploadFileDto {
+    @IsFile()
+    public file: MemoryStoredFile;
 }
