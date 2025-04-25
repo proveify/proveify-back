@@ -10,87 +10,97 @@ export async function seedSubcategories(prisma: PrismaClient): Promise<void> {
     const subcategoriesByCategory: Record<string, { name: string; description: string }[]> = {
         "Electrónica": [
             { name: "Smartphones", description: "Teléfonos inteligentes y accesorios" },
-            { name: "Computadoras", description: "Laptops, PCs de escritorio y componentes" },
-            { name: "Audio", description: "Audífonos, altavoces y equipos de sonido" },
-            { name: "Videojuegos", description: "Consolas, juegos y accesorios para gaming" }
+            { name: "Laptops y computadoras", description: "Equipos informáticos y accesorios" },
+            { name: "Accesorios electrónicos", description: "Complementos para dispositivos electrónicos" },
+            { name: "Audio y video", description: "Equipos de sonido y visualización" },
+            { name: "Cámaras y fotografía", description: "Equipos fotográficos y accesorios" }
         ],
         "Ropa y moda": [
-            { name: "Ropa para hombre", description: "Camisas, pantalones y otros para hombres" },
-            { name: "Ropa para mujer", description: "Blusas, faldas y otros para mujeres" },
-            { name: "Calzado", description: "Zapatos, tenis y botas" },
-            { name: "Accesorios", description: "Bolsos, billeteras, cinturones y joyería" }
+            { name: "Ropa de hombre", description: "Prendas y conjuntos para hombres" },
+            { name: "Ropa de mujer", description: "Prendas y conjuntos para mujeres" },
+            { name: "Ropa de mujer Calzado", description: "Zapatos, tenis y todo tipo de calzado" },
+            { name: "Bolsos y mochilas", description: "Bolsas, mochilas y equipaje de mano" },
+            { name: "Joyería y relojes", description: "Accesorios decorativos personales" }
         ],
         "Hogar y muebles": [
-            { name: "Muebles", description: "Sofás, mesas, sillas y camas" },
-            { name: "Decoración", description: "Artículos decorativos para el hogar" },
-            { name: "Electrodomésticos", description: "Aparatos y utensilios para el hogar" },
-            { name: "Cocina", description: "Utensilios, vajillas y accesorios de cocina" }
+            { name: "Muebles", description: "Mobiliario para el hogar" },
+            { name: "Decoración", description: "Artículos decorativos y ornamentales" },
+            { name: "Electrodomésticos", description: "Aparatos eléctricos para el hogar" },
+            { name: "Iluminación", description: "Lámparas y sistemas de iluminación" },
+            { name: "Herramientas y bricolaje", description: "Equipos para reparaciones y proyectos DIY" }
         ],
         "Deportes y fitness": [
-            { name: "Equipo deportivo", description: "Artículos para diferentes deportes" },
-            { name: "Ropa deportiva", description: "Prendas especializadas para actividades físicas" },
-            { name: "Suplementos", description: "Productos para nutrición deportiva" },
-            { name: "Accesorios fitness", description: "Artículos para entrenamiento y ejercicio" }
+            { name: "Equipos deportivos", description: "Material para diferentes disciplinas deportivas" },
+            { name: "Ropa deportiva", description: "Indumentaria especializada para actividades físicas" },
+            { name: "Accesorios de fitness", description: "Complementos para entrenamiento y ejercicio" },
+            { name: "Bicicletas y accesorios", description: "Equipos de ciclismo y complementos" },
+            { name: "Camping y outdoor", description: "Artículos para actividades al aire libre" }
         ],
         "Juguetes y juegos": [
-            { name: "Juguetes para niños", description: "Artículos recreativos para niños" },
+            { name: "Juguetes educativos", description: "Juguetes para el aprendizaje y desarrollo" },
+            { name: "Juguetes de acción y figuras", description: "Muñecos y figuras coleccionables" },
             { name: "Juegos de mesa", description: "Juegos de tablero y cartas" },
-            { name: "Rompecabezas", description: "Puzzles y juegos de ingenio" },
-            { name: "Juguetes educativos", description: "Artículos para aprendizaje y desarrollo" }
+            { name: "Videojuegos", description: "Juegos digitales y consolas" },
+            { name: "Puzzles y rompecabezas", description: "Juegos de lógica e ingenio" }
         ],
         "Salud y belleza": [
-            { name: "Cuidado personal", description: "Productos para higiene y cuidado diario" },
+            { name: "Cuidado de la piel", description: "Productos para el cuidado dermatológico" },
             { name: "Maquillaje", description: "Cosméticos y productos de belleza" },
-            { name: "Cuidado del cabello", description: "Productos para el cuidado capilar" },
-            { name: "Suplementos y vitaminas", description: "Productos para la salud y bienestar" }
+            { name: "Perfumes", description: "Fragancias y aromas personales" },
+            { name: "Suplementos y vitaminas", description: "Complementos para la salud y bienestar" },
+            { name: "Productos para el cabello", description: "Artículos para el cuidado capilar" }
         ],
         "Alimentos y bebidas": [
-            { name: "Alimentos no perecederos", description: "Alimentos con larga vida útil" },
-            { name: "Bebidas", description: "Refrescos, jugos, café y otras bebidas" },
-            { name: "Snacks", description: "Aperitivos y alimentos para picar" },
-            { name: "Productos gourmet", description: "Especialidades culinarias y delicatessen" }
+            { name: "Comida orgánica", description: "Alimentos de producción ecológica" },
+            { name: "Bebidas alcohólicas", description: "Vinos, cervezas y licores" },
+            { name: "Snacks y golosinas", description: "Aperitivos y dulces" },
+            { name: "Productos gourmet", description: "Alimentos de alta calidad y especialidades" },
+            { name: "Suplementos dietéticos", description: "Complementos alimenticios especializados" }
         ],
         "Libros, música y películas": [
-            { name: "Libros", description: "Literatura, ficción y no ficción" },
-            { name: "Música", description: "CDs, vinilos y accesorios musicales" },
-            { name: "Películas y series", description: "DVDs, Blu-rays y contenido digital" },
-            { name: "Instrumentos musicales", description: "Equipos para creación musical" }
+            { name: "Libros", description: "Obras literarias de todos los géneros" },
+            { name: "Películas", description: "Largometrajes y cortometrajes" },
+            { name: "Música", description: "Álbumes y composiciones musicales" },
+            { name: "Instrumentos musicales", description: "Herramientas para la creación musical" },
+            { name: "Revistas y cómics", description: "Publicaciones periódicas e historietas" }
         ],
         "Tecnología para el hogar inteligente": [
-            { name: "Asistentes virtuales", description: "Dispositivos con asistentes de voz" },
-            { name: "Iluminación inteligente", description: "Sistemas de iluminación automatizados" },
-            { name: "Seguridad", description: "Cámaras, sensores y sistemas de seguridad" },
-            { name: "Electrodomésticos inteligentes", description: "Aparatos conectados para el hogar" }
+            { name: "Dispositivos inteligentes", description: "Gadgets conectados para el hogar" },
+            { name: "Seguridad y cámaras", description: "Sistemas de vigilancia y protección" },
+            { name: "Automación del hogar", description: "Sistemas para automatizar procesos domésticos" },
+            { name: "Gadgets tecnológicos", description: "Dispositivos innovadores y accesorios tech" }
         ],
         "Servicios": [
-            { name: "Servicios profesionales", description: "Consultoría, asesoramiento y otros" },
-            { name: "Servicios domésticos", description: "Limpieza, mantenimiento y reparaciones" },
-            { name: "Servicios digitales", description: "Diseño web, marketing digital y más" },
-            { name: "Servicios educativos", description: "Cursos, tutorías y formación" }
+            { name: "Servicios de envío", description: "Transporte y entrega de mercancías" },
+            { name: "Reparaciones y mantenimiento", description: "Servicios de arreglo y conservación" },
+            { name: "Cursos y clases", description: "Formación y enseñanza" },
+            { name: "Diseño y desarrollo", description: "Servicios creativos y de programación" },
+            { name: "Servicios de belleza y salud", description: "Tratamientos de bienestar y estética" }
         ],
         "Automóviles y vehículos": [
-            { name: "Repuestos", description: "Piezas y componentes para vehículos" },
-            { name: "Accesorios", description: "Artículos para personalizar vehículos" },
-            { name: "Herramientas", description: "Equipos para mantenimiento y reparación" },
-            { name: "Productos de limpieza", description: "Artículos para el cuidado de vehículos" }
+            { name: "Autos", description: "Vehículos de cuatro ruedas" },
+            { name: "Motocicletas", description: "Vehículos de dos ruedas" },
+            { name: "Accesorios para autos", description: "Complementos para vehículos" },
+            { name: "Repuestos automotrices", description: "Piezas de recambio para vehículos" },
+            { name: "Herramientas y equipos para vehículos", description: "Instrumentos para mantenimiento vehicular" }
         ],
         "Arte y coleccionables": [
-            { name: "Pintura y dibujo", description: "Obras y materiales artísticos" },
-            { name: "Escultura", description: "Piezas tridimensionales artísticas" },
-            { name: "Artesanías", description: "Productos hechos a mano" },
-            { name: "Coleccionables", description: "Artículos de colección y antigüedades" }
+            { name: "Arte y pinturas", description: "Obras artísticas visuales" },
+            { name: "Antigüedades", description: "Objetos de épocas pasadas con valor" },
+            { name: "Coleccionables y ediciones limitadas", description: "Artículos de valor para coleccionistas" },
+            { name: "Materiales para artistas", description: "Suministros para creación artística" }
         ],
         "Viajes y turismo": [
-            { name: "Equipaje", description: "Maletas, mochilas y accesorios de viaje" },
-            { name: "Accesorios de viaje", description: "Artículos para comodidad al viajar" },
-            { name: "Guías y mapas", description: "Materiales informativos para viajeros" },
-            { name: "Souvenirs", description: "Recuerdos y artículos representativos" }
+            { name: "Boletos de avión", description: "Pasajes para transporte aéreo" },
+            { name: "Paquetes turísticos", description: "Conjuntos de servicios para viajeros" },
+            { name: "Alojamientos y hospedaje", description: "Estancias y hospedajes temporales" },
+            { name: "Accesorios de viaje", description: "Artículos para facilitar los desplazamientos" }
         ],
         "Tecnología y software": [
-            { name: "Aplicaciones", description: "Software y apps para diversos usos" },
-            { name: "Servicios cloud", description: "Almacenamiento y servicios en la nube" },
-            { name: "Seguridad informática", description: "Protección digital y ciberseguridad" },
-            { name: "Desarrollo", description: "Herramientas para desarrollo de software" }
+            { name: "Programas y aplicaciones", description: "Software para diversos usos" },
+            { name: "Licencias de software", description: "Permisos de uso para programas" },
+            { name: "Herramientas de productividad", description: "Aplicaciones para mejorar eficiencia" },
+            { name: "Juegos y entretenimiento digital", description: "Software para ocio digital" }
         ]
     };
     
