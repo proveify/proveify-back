@@ -10,4 +10,7 @@ model Items {
   updated_at  DateTime  @default(now()) @updatedAt
   provider_id String
   provider    Providers @relation(fields: [provider_id], references: [id])
+
+  id_subcategory  String?
+  subcategory     Subcategories? @relation(fields: [id_subcategory], references: [id])
 }

@@ -13,7 +13,7 @@ export class AuthContextService {
     public async generateAuthContext(id: string): Promise<void> {
         const user = await this.userService.findUserOneById({
             where: { id },
-            include: { Providers: true },
+            include: { Provider: true },
         });
 
         if (!user) {
@@ -37,12 +37,8 @@ export class AuthContextService {
 
     public getProvider(): ProviderEntity | null {
         const user = this.getUser();
-        const providers = user.Providers;
+        const provider = user.Provider;
 
-        if (!providers) {
-            return null;
-        }
-
-        return providers[0];
+        return provider;
     }
 }
