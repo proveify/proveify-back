@@ -1,8 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { seedCategories } from "./categories-seed";
+import { seedSubcategories } from "./subcategories-seed";
 
 const prisma = new PrismaClient();
 
 async function main() {
+    // Seed del plan por defecto
     const planNone = await prisma.plans.upsert({
         where: { plan_key: "PLAN_NONE" },
         update: {},
@@ -15,6 +18,12 @@ async function main() {
     });
 
     console.log(planNone);
+
+    // Seed de categorías
+    await seedCategories(prisma);
+
+    // Seed de subcategorías
+    await seedSubcategories(prisma);
 }
 
 main()

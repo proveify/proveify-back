@@ -14,6 +14,9 @@ import { appConfig, enviromentsConfig } from "./configs/base.config";
 import { QuoteModule } from "./quote/quote.module";
 import jwtConfig from "./configs/jwt.config";
 import refreshJwtConfig from "./configs/refresh-jwt-config";
+import { CategoryModule } from "./category/category.module";
+import { SubcategoryModule } from "./subcategory/subcategory.module";
+
 @Module({
     imports: [
         UserModule,
@@ -27,6 +30,8 @@ import refreshJwtConfig from "./configs/refresh-jwt-config";
         }),
         PlanModule,
         ItemModule,
+        CategoryModule,
+        SubcategoryModule,
         ConfigModule.forRoot({
             isGlobal: true,
             validationSchema: validationSchemaConfig,
