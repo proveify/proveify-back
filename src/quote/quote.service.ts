@@ -1,7 +1,7 @@
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { PrismaService } from "@app/prisma/prisma.service";
 import { HttpException, Injectable } from "@nestjs/common";
-import { Prisma, Quotes as QuoteModel } from "@prisma/client";
+import { Prisma, Quotes as QuoteModel, Quotes_group as QuoteGroupModel } from "@prisma/client";
 import { QuoteDto } from "./dto/quote.dto";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { FileService } from "@app/file/file.service";
@@ -15,14 +15,27 @@ export class QuoteService {
         private fileService: FileService,
     ) {}
 
-    public async getClientQuotes(): Promise<QuoteModel[]> {
+    public async getClientQuoteGroups(): Promise<QuoteGroupModel[]> {
         const userId = this.authContext.getUserId();
-        const params: Prisma.QuotesWhereInput = {
+        const params: Prisma.Quotes_groupWhereInput = {
             user_id: userId,
         };
 
-        const quotes = await this.getQuotes(params);
-        return quotes;
+        const quoteGroups = await this.getQuoteGroups(params);
+        return quoteGroups;
+    }
+
+    public async getQuoteGroups(
+        params?: Prisma.Quotes_groupWhereInput,
+    ): Promise<QuoteGroupModel[]> {
+        const quoteGroups = await this.prisma.quotes_group.findMany({
+            where: params,
+            include: {
+                Quotes: true,
+            },
+        });
+
+        return quoteGroups;
     }
 
     public async getQuotes(params?: Prisma.QuotesWhereInput): Promise<QuoteModel[]> {
@@ -64,53 +77,41 @@ export class QuoteService {
         return quotes;
     }
 
-    /**
-     *
-     * @param quote QuoteModel
-     * @returns boolean
-     * @description Validates if the client or provider is part of the quote
-     */
-    public validateQuoteUserAndProvider(quote: QuoteModel): boolean {
-        const user = this.authContext.getUser();
-        const provider = this.authContext.getProvider();
-
-        if (user.id === quote.user_id || provider?.id === quote.provider_id) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public async createQuote(data: QuoteDto, userId?: string): Promise<QuoteModel> {
-        const quoteData: Prisma.QuotesCreateInput = {
-            Provider: {
-                connect: {
-                    id: data.provider_id,
-                },
-            },
-            Items: {
-                createMany: {
-                    data: data.items.map((item) => {
-                        return {
-                            item_id: item.item_id,
-                            quantity: item.quantity,
-                            name: item.name,
-                            price: item.price,
-                            description: item.description,
-                            discount: item.discount,
-                        };
-                    }),
-                },
-            },
+    public async createQuoteGroup(data: QuoteDto, userId?: string): Promise<QuoteGroupModel> {
+        const quoteGroup: Prisma.Quotes_groupCreateInput = {
+            user_id: userId,
             identification_type: data.identification_type,
             identification: data.identification,
             name: data.name,
             email: data.email,
-            description: data.description,
-            user_id: userId ?? null,
+            Quotes: {
+                createMany: {
+                    data: data.quotes.map((quote) => ({
+                        provider_id: quote.provider_id,
+                        description: quote.description,
+                        Items: {
+                            createMany: {
+                                data: quote.quotes.map((item) => ({
+                                    item_id: item.item_id,
+                                    quantity: item.quantity,
+                                    price: item.price,
+                                    name: item.name,
+                                    description: item.description,
+                                })),
+                            },
+                        },
+                    })),
+                },
+            },
         };
 
-        return this.saveQuote(quoteData);
+        return this.saveQuoteGroup(quoteGroup);
+    }
+
+    public async saveQuoteGroup(input: Prisma.Quotes_groupCreateInput): Promise<QuoteGroupModel> {
+        return this.prisma.quotes_group.create({
+            data: input,
+        });
     }
 
     public async saveQuote(input: Prisma.QuotesCreateInput): Promise<QuoteModel> {

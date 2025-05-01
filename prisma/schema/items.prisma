@@ -11,8 +11,8 @@ model Items {
   provider_id String
   provider    Providers @relation(fields: [provider_id], references: [id])
 
-  id_subcategory  String?
-  subcategory     Subcategories? @relation(fields: [id_subcategory], references: [id])
+  id_subcategory String?
+  subcategory    Subcategories? @relation(fields: [id_subcategory], references: [id])
 
   Quotes_items Quotes_items[]
 }

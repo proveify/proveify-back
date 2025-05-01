@@ -1,22 +1,33 @@
 // Model quotes
 
-model Quotes {
+model Quotes_group {
   id                  String   @id @default(uuid())
   user_id             String?
   identification_type String
   name                String
   email               String
   identification      String
-  total               Decimal  @default(0.00) @db.Decimal(10, 2)
-  file_id             String? // los proveedores podrar cargar al sistema su propia cotizacion
-  description         String?
-  provider_id         String
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
-  status              String   @default("pending")
 
-  Provider Providers      @relation(fields: [provider_id], references: [id])
-  Items    Quotes_items[]
+  Quotes Quotes[]
+}
+
+model Quotes {
+  id          String    @id @default(uuid())
+  group_id    String
+  total       Decimal   @default(0.00) @db.Decimal(10, 2)
+  file_id     String? // los proveedores podrar cargar al sistema su propia cotizacion
+  description String?
+  provider_id String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+  send_at     DateTime?
+  status      String    @default("pending")
+
+  Provider     Providers      @relation(fields: [provider_id], references: [id])
+  Quotes_Group Quotes_group   @relation(fields: [group_id], references: [id])
+  Items        Quotes_items[]
 }
 
 model Quotes_items {

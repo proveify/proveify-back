@@ -1,14 +1,14 @@
 // Model Subcategories
 
 model Subcategories {
-  id            String      @id @default(uuid())
-  name          String
-  description   String?
-  id_category   String
-  category      Categories  @relation(fields: [id_category], references: [id])
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @default(now()) @updatedAt
-  
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  id_category String
+  category    Categories @relation(fields: [id_category], references: [id])
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @default(now()) @updatedAt
+
   // Relación con items
   Items Items[]
 }

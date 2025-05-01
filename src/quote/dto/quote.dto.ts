@@ -24,16 +24,26 @@ export class QuoteDto {
     public email: string;
 
     @IsString()
-    @IsOptional()
-    public description: string;
-
-    @IsString()
     public provider_id: string;
 
     @ValidateNested({ each: true })
     @ArrayMinSize(1)
+    @Type(() => QuoteProviderDto)
+    public quotes: QuoteProviderDto[];
+}
+
+export class QuoteProviderDto {
+    @IsString()
+    public provider_id: string;
+
+    @IsString()
+    @IsOptional()
+    public description: string;
+
+    @ValidateNested({ each: true })
+    @ArrayMinSize(1)
     @Type(() => QuoteItemDto)
-    public items: QuoteItemDto[];
+    public quotes: QuoteItemDto[];
 }
 
 export class QuoteItemDto {
@@ -44,17 +54,19 @@ export class QuoteItemDto {
     public quantity: number;
 
     @IsDecimal({ decimal_digits: "2" })
-    public price: number;
+    @IsOptional()
+    public price: number | undefined;
 
     @IsString()
     public name: string;
 
     @IsString()
     @IsOptional()
-    public description: string;
+    public description: string | undefined;
 
     @IsNumber()
-    public discount: number;
+    @IsOptional()
+    public discount: number | undefined;
 }
 
 export class QuoteUploadFileDto {

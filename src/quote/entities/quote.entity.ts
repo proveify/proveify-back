@@ -3,16 +3,28 @@ import type { UserEntity } from "@app/user/entities/user.entity";
 import { Prisma } from "@prisma/client";
 import { Exclude } from "class-transformer";
 
-export class QuoteEntity {
+export class QuoteGroupEntity {
     public id: string;
     public User: UserEntity | null;
     public name: string;
     public identification_type: string;
     public identificaiton: string;
-    public description: string | null;
+    public craeted_at: Date;
+    public updated_at: Date;
+    public Quotes: QuoteEntity[];
+
+    public constructor(partial: Partial<QuoteGroupEntity>) {
+        Object.assign(this, partial);
+    }
+}
+
+export class QuoteEntity {
+    public id: string;
     public status: string;
     public created_at: Date;
+    public send_at: Date | null;
     public total: Prisma.Decimal;
+    public description: string | null;
 
     @Exclude()
     public updated_at: Date | null;
