@@ -14,7 +14,8 @@ export class ItemCreateDto {
     public description?: string;
 
     @IsDecimal({ decimal_digits: "2" })
-    public price: number;
+    @IsOptional()
+    public price?: string;
 
     @IsOptional()
     @IsFile()
