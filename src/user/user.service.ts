@@ -34,7 +34,7 @@ export class UserService {
     public async getUserProfile(id: string): Promise<UserEntity> {
         const user = await this.findUserOneById({
             where: { id },
-            include: { Provider: true },
+            include: { Providers: true },
         });
 
         if (!user) {

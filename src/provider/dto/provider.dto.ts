@@ -25,7 +25,7 @@ export class ProviderCreateDto {
 
     @IsOptional()
     @IsObject()
-    public user: Prisma.UsersCreateNestedOneWithoutProviderInput;
+    public user: Prisma.UsersCreateNestedOneWithoutProvidersInput;
 
     @IsOptional()
     @IsObject()
