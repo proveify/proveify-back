@@ -12,8 +12,16 @@ import {
 import { SubcategoryService } from "./subcategory.service";
 import { CreateSubcategoryDto } from "./dto/create-subcategory.dto";
 import { UpdateSubcategoryDto } from "./dto/update-subcategory.dto";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger";
 import { SubcategoryEntity } from "./entities/subcategory.entity";
+import {
+    CreateSubcategoryDocumentation,
+    DeleteSubcategoryDocumentation,
+    GetSubcategoriesByCategoryDocumentation,
+    GetSubcategoriesDocumentation,
+    GetSubcategoryDocumentation,
+    UpdateSubcategoryDocumentation,
+} from "./decorators/documentations/subcategory.documentation";
 
 @ApiTags("Subcategories")
 @Controller("subcategories")
@@ -21,12 +29,7 @@ export class SubcategoryController {
     public constructor(private readonly subcategoryService: SubcategoryService) {}
 
     @Post()
-    @ApiOperation({ summary: "Create a new subcategory" })
-    @ApiResponse({
-        status: 201,
-        description: "Subcategory created successfully",
-        type: SubcategoryEntity,
-    })
+    @CreateSubcategoryDocumentation()
     public async create(
         @Body() createSubcategoryDto: CreateSubcategoryDto,
     ): Promise<SubcategoryEntity> {
@@ -35,25 +38,14 @@ export class SubcategoryController {
     }
 
     @Get()
-    @ApiOperation({ summary: "Get all subcategories" })
-    @ApiResponse({
-        status: 200,
-        description: "List of subcategories",
-        type: [SubcategoryEntity],
-    })
+    @GetSubcategoriesDocumentation()
     public async findAll(): Promise<SubcategoryEntity[]> {
         const subcategories = await this.subcategoryService.findAll();
         return subcategories.map((subcategory) => new SubcategoryEntity(subcategory));
     }
 
     @Get(":id")
-    @ApiOperation({ summary: "Get a subcategory by ID" })
-    @ApiResponse({
-        status: 200,
-        description: "Subcategory found",
-        type: SubcategoryEntity,
-    })
-    @ApiResponse({ status: 404, description: "Subcategory not found" })
+    @GetSubcategoryDocumentation()
     public async findOne(@Param("id") id: string): Promise<SubcategoryEntity> {
         const subcategory = await this.subcategoryService.findOne(id);
 
@@ -65,12 +57,7 @@ export class SubcategoryController {
     }
 
     @Get("category/:categoryId")
-    @ApiOperation({ summary: "Get subcategories by category ID" })
-    @ApiResponse({
-        status: 200,
-        description: "List of subcategories for the category",
-        type: [SubcategoryEntity],
-    })
+    @GetSubcategoriesByCategoryDocumentation()
     public async findByCategoryId(
         @Param("categoryId") categoryId: string,
     ): Promise<SubcategoryEntity[]> {
@@ -79,13 +66,7 @@ export class SubcategoryController {
     }
 
     @Patch(":id")
-    @ApiOperation({ summary: "Update a subcategory" })
-    @ApiResponse({
-        status: 200,
-        description: "Subcategory updated successfully",
-        type: SubcategoryEntity,
-    })
-    @ApiResponse({ status: 404, description: "Subcategory not found" })
+    @UpdateSubcategoryDocumentation()
     public async update(
         @Param("id") id: string,
         @Body() updateSubcategoryDto: UpdateSubcategoryDto,
@@ -95,13 +76,7 @@ export class SubcategoryController {
     }
 
     @Delete(":id")
-    @ApiOperation({ summary: "Delete a subcategory" })
-    @ApiResponse({
-        status: 200,
-        description: "Subcategory deleted successfully",
-        type: SubcategoryEntity,
-    })
-    @ApiResponse({ status: 404, description: "Subcategory not found" })
+    @DeleteSubcategoryDocumentation()
     public async remove(@Param("id") id: string): Promise<SubcategoryEntity> {
         const deletedSubcategory = await this.subcategoryService.remove(id);
         return new SubcategoryEntity(deletedSubcategory);
