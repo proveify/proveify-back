@@ -13,4 +13,6 @@ model Items {
 
   id_subcategory  String?
   subcategory     Subcategories? @relation(fields: [id_subcategory], references: [id])
+
+  Favorites Favorites[]
 }
