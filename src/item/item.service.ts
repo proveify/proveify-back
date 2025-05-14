@@ -6,6 +6,7 @@ import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
+import { FavoriteService } from "@app/favorite/favorite.service";
 
 @Injectable()
 export class ItemService {
@@ -13,6 +14,7 @@ export class ItemService {
         private prisma: PrismaService,
         private authContextService: AuthContextService,
         private fileService: FileService,
+        private favoriteService: FavoriteService,
     ) {}
 
     public async prepareCreate(data: ItemCreateDto): Promise<Prisma.ItemsCreateInput> {
@@ -90,6 +92,45 @@ export class ItemService {
                 id: params?.order_by ?? "desc",
             },
         });
+    }
+
+    public async getItemsWithFavoriteInfo(
+        params?: ItemParamDto,
+        userId?: string,
+    ): Promise<(ItemModel & { isFavorite?: boolean })[]> {
+        const items = await this.getItems(params);
+
+        if (!userId) {
+            return items.map((item) => ({ ...item, isFavorite: false }));
+        }
+
+        // Obtener todas las relaciones de favoritos del usuario para estos items
+        const favorites = await this.favoriteService.getFavorites(userId, { limit: 1000 });
+        const favoriteItemIds = new Set(favorites.map((fav: { item_id: string }) => fav.item_id));
+
+        // Mapear los items con la información de favoritos
+        return items.map((item) => ({
+            ...item,
+            isFavorite: favoriteItemIds.has(item.id),
+        }));
+    }
+
+    public async findItemByIdWithFavoriteInfo(
+        id: string,
+        userId?: string,
+    ): Promise<(ItemModel & { isFavorite?: boolean }) | null> {
+        const item = await this.findItemById(id);
+
+        if (!item) {
+            return null;
+        }
+
+        if (!userId) {
+            return { ...item, isFavorite: false };
+        }
+
+        const isFavorite = await this.favoriteService.isFavorite(userId, id);
+        return { ...item, isFavorite };
     }
 
     private async uploadImage(image: MemoryStoredFile, fileId?: string): Promise<FileModel> {

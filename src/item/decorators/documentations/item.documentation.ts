@@ -12,14 +12,22 @@ export function PostCreateItemDocumentation(): MethodDecorator & ClassDecorator 
 
 export function GetItemDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Get item for user loged" }),
+        ApiOperation({
+            summary: "Get item by ID",
+            description:
+                "Retrieves item details. If user is authenticated, includes favorite status.",
+        }),
         ApiOkResponse({ type: ItemEntity }),
     );
 }
 
 export function GetItemsDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Get items for user loged" }),
+        ApiOperation({
+            summary: "Get all items",
+            description:
+                "Retrieves paginated list of items. If user is authenticated, includes favorite status for each item.",
+        }),
         ApiParam({
             name: "limit",
             required: false,
