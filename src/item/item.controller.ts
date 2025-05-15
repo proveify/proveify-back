@@ -9,6 +9,7 @@ import {
     Put,
     Query,
     UseGuards,
+    Req,
 } from "@nestjs/common";
 import { ItemService } from "./item.service";
 import { FormDataRequest } from "nestjs-form-data";
@@ -22,6 +23,8 @@ import {
     PostCreateItemDocumentation,
     PutSelfItemDocumentation,
 } from "./decorators/documentations/item.documentation";
+import { TokenPayload } from "@app/auth/interfaces/auth.interface";
+import { Request } from "express";
 
 @Controller("items")
 export class ItemController {
@@ -60,17 +63,27 @@ export class ItemController {
         return new ItemEntity(item);
     }
 
-    @Get()
+    @UseGuards(JwtAuthGuard)
     @GetItemsDocumentation()
-    public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
-        const items = await this.itemService.getItems(params);
+    @Get()
+    public async getItems(
+        @Query() params: ItemParamDto,
+        @Req() req: Request & { user: TokenPayload },
+    ): Promise<ItemEntity[]> {
+        const userId = req.user.id;
+        const items = await this.itemService.getItemsWithFavoriteInfo(params, userId);
         return items.map((item) => new ItemEntity(item));
     }
 
-    @Get(":id")
+    @UseGuards(JwtAuthGuard)
     @GetItemDocumentation()
-    public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
-        const item = await this.itemService.findItemById(params.id);
+    @Get(":id")
+    public async getItemById(
+        @Param() params: { id: string },
+        @Req() req: Request & { user: TokenPayload },
+    ): Promise<ItemEntity> {
+        const userId = req.user.id;
+        const item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, userId);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
