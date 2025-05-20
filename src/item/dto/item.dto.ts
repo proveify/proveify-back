@@ -1,6 +1,6 @@
 import { ParamsDto } from "@app/configs/dtos/params.dto";
-import { IntersectionType, PartialType } from "@nestjs/swagger";
-import { IsOptional, IsString, IsDecimal } from "class-validator";
+import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
+import { IsOptional, IsString, IsDecimal, IsUUID } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
 
 export class ItemParamDto extends IntersectionType(ParamsDto) {}
@@ -24,3 +24,11 @@ export class ItemCreateDto {
 }
 
 export class ItemUpdateDto extends PartialType(ItemCreateDto) {}
+
+export class FavoriteCreateDto {
+    @ApiProperty({ description: "ID del ítem a marcar como favorito" })
+    @IsUUID()
+    public item_id: string;
+}
+
+export class FavoriteParamsDto extends IntersectionType(ParamsDto) {}

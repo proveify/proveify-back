@@ -10,21 +10,27 @@ import {
     Query,
     UseGuards,
     Req,
+    ClassSerializerInterceptor,
+    UseInterceptors,
 } from "@nestjs/common";
 import { ItemService } from "./item.service";
 import { FormDataRequest } from "nestjs-form-data";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
-import { ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
+import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { ItemEntity } from "./entities/item.entity";
+import { FavoriteEntity } from "./entities/favorite.entity";
+import { Request } from "express";
+import { TokenPayload } from "@app/auth/interfaces/auth.interface";
 import {
+    AddFavoriteDocumentation,
     DeleteSelfItemDocumentation,
+    GetFavoritesDocumentation,
     GetItemDocumentation,
     GetItemsDocumentation,
     PostCreateItemDocumentation,
     PutSelfItemDocumentation,
+    RemoveFavoriteDocumentation,
 } from "./decorators/documentations/item.documentation";
-import { TokenPayload } from "@app/auth/interfaces/auth.interface";
-import { Request } from "express";
 
 @Controller("items")
 export class ItemController {
@@ -90,5 +96,55 @@ export class ItemController {
         }
 
         return new ItemEntity(item);
+    }
+
+    @Post("favorite/:itemId")
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(ClassSerializerInterceptor)
+    @AddFavoriteDocumentation()
+    public async addFavorite(
+        @Req() req: Request & { user: TokenPayload },
+        @Param("itemId") itemId: string,
+    ): Promise<FavoriteEntity> {
+        try {
+            const favorite = await this.itemService.addFavorite(req.user.id, itemId);
+            return new FavoriteEntity(favorite);
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException("Failed to add item to favorites", 400);
+        }
+    }
+
+    @Delete("favorite/:itemId")
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(ClassSerializerInterceptor)
+    @RemoveFavoriteDocumentation()
+    public async removeFavorite(
+        @Req() req: Request & { user: TokenPayload },
+        @Param("itemId") itemId: string,
+    ): Promise<FavoriteEntity> {
+        try {
+            const favorite = await this.itemService.removeFavorite(req.user.id, itemId);
+            return new FavoriteEntity(favorite);
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException("Failed to remove item from favorites", 400);
+        }
+    }
+
+    @Get("favorites")
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(ClassSerializerInterceptor)
+    @GetFavoritesDocumentation()
+    public async getFavorites(
+        @Req() req: Request & { user: TokenPayload },
+        @Query() params: FavoriteParamsDto,
+    ): Promise<FavoriteEntity[]> {
+        const favorites = await this.itemService.getFavorites(req.user.id, params);
+        return favorites.map((favorite) => new FavoriteEntity(favorite));
     }
 }

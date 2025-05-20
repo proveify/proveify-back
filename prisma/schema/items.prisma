@@ -16,3 +16,18 @@ model Items {
 
   Favorites Favorites[]
 }
+
+// Model Favorites
+
+model Favorites {
+  id         String   @id @default(uuid())
+  user       Users    @relation(fields: [user_id], references: [id])
+  user_id    String
+  item       Items    @relation(fields: [item_id], references: [id])
+  item_id    String
+  created_at DateTime @default(now())
+
+  @@unique([user_id, item_id])
+  @@index([user_id])
+  @@index([item_id])
+}

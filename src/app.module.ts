@@ -15,7 +15,6 @@ import jwtConfig from "./configs/jwt.config";
 import refreshJwtConfig from "./configs/refresh-jwt-config";
 import { CategoryModule } from "./category/category.module";
 import { SubcategoryModule } from "./subcategory/subcategory.module";
-import { FavoriteModule } from "./favorite/favorite.module";
 
 @Module({
     imports: [
@@ -32,7 +31,6 @@ import { FavoriteModule } from "./favorite/favorite.module";
         ItemModule,
         CategoryModule,
         SubcategoryModule,
-        FavoriteModule,
         ConfigModule.forRoot({
             isGlobal: true,
             validationSchema: validationSchemaConfig,
