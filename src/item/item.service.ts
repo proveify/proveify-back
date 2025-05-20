@@ -107,11 +107,9 @@ export class ItemService {
             return items.map((item) => ({ ...item, isFavorite: false }));
         }
 
-        // Obtener todas las relaciones de favoritos del usuario para estos items
         const favorites = await this.getFavorites(userId, { limit: 1000 });
         const favoriteItemIds = new Set(favorites.map((fav: { item_id: string }) => fav.item_id));
 
-        // Mapear los items con la información de favoritos
         return items.map((item) => ({
             ...item,
             isFavorite: favoriteItemIds.has(item.id),

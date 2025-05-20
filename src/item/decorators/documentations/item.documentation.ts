@@ -1,7 +1,6 @@
 import { ItemEntity } from "@app/item/entities/item.entity";
 import { applyDecorators } from "@nestjs/common";
 import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiParam } from "@nestjs/swagger";
-// Importaremos FavoriteEntity cuando se mueva en pasos posteriores
 import { FavoriteEntity } from "@app/item/entities/favorite.entity";
 
 export function PostCreateItemDocumentation(): MethodDecorator & ClassDecorator {
