@@ -47,7 +47,7 @@ describe("UserService", () => {
                 password: "hashed_password",
                 refreshed_token: "token123",
                 user_type: "CLIENT",
-                Providers: [],
+                Provider: null,
                 created_at: new Date(),
                 updated_at: new Date(),
             };
@@ -69,7 +69,7 @@ describe("UserService", () => {
             expect(serialized).not.toHaveProperty("refreshed_token");
             expect(service.findUserOneById).toHaveBeenCalledWith({
                 where: { id: "test-user-id" },
-                include: { Providers: true }
+                include: { Provider: true }
             });
         });
 
