@@ -3,7 +3,7 @@ import { PrismaService } from "@app/prisma/prisma.service";
 import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
 
 @Injectable()
-export class TransactionPrismaService {
+export class PublicRequestPrismaRepository {
     public constructor(private prisma: PrismaService) {}
 
     public async createPublicRequest(

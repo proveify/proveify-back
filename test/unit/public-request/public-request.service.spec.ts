@@ -1,10 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { PublicRequestService } from "../../../src/public-request/public-request.service";
-import { TransactionPrismaService } from "../../../src/public-request/repositories/public-request-prisma.repository";
+import { PublicRequestPrismaRepository } from "../../../src/public-request/repositories/public-request-prisma.repository";
 import { AuthContextService } from "../../../src/auth/auth-context.service";
 
-const mockTransactionPrismaService = {
+const mockPublicRequestPrismaRepository = {
     createPublicRequest: jest.fn(),
     findManyPublicRequests: jest.fn(),
     findUniquePublicRequest: jest.fn(),
@@ -19,7 +19,7 @@ const mockAuthContextService = {
 
 describe("PublicRequestService", () => {
     let service: PublicRequestService;
-    let transactionPrismaService: TransactionPrismaService;
+    let publicRequestPrismaRepository: PublicRequestPrismaRepository;
     let authContextService: AuthContextService;
 
     beforeEach(async () => {
@@ -27,8 +27,8 @@ describe("PublicRequestService", () => {
             providers: [
                 PublicRequestService,
                 {
-                    provide: TransactionPrismaService,
-                    useValue: mockTransactionPrismaService,
+                    provide: PublicRequestPrismaRepository,
+                    useValue: mockPublicRequestPrismaRepository,
                 },
                 {
                     provide: AuthContextService,
@@ -38,7 +38,9 @@ describe("PublicRequestService", () => {
         }).compile();
 
         service = module.get<PublicRequestService>(PublicRequestService);
-        transactionPrismaService = module.get<TransactionPrismaService>(TransactionPrismaService);
+        publicRequestPrismaRepository = module.get<PublicRequestPrismaRepository>(
+            PublicRequestPrismaRepository,
+        );
         authContextService = module.get<AuthContextService>(AuthContextService);
 
         jest.clearAllMocks();
@@ -64,13 +66,13 @@ describe("PublicRequestService", () => {
             };
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.createPublicRequest.mockResolvedValue(createdRequest);
+            mockPublicRequestPrismaRepository.createPublicRequest.mockResolvedValue(createdRequest);
 
             const result = await service.create(createDto);
 
             expect(result).toEqual(createdRequest);
             expect(authContextService.getUser).toHaveBeenCalled();
-            expect(transactionPrismaService.createPublicRequest).toHaveBeenCalledWith({
+            expect(publicRequestPrismaRepository.createPublicRequest).toHaveBeenCalledWith({
                 title: createDto.title,
                 description: createDto.description,
                 user: { connect: { id: mockUser.id } },
@@ -85,12 +87,14 @@ describe("PublicRequestService", () => {
                 { id: "request-2", title: "Request 2", created_at: new Date() },
             ];
 
-            mockTransactionPrismaService.findManyPublicRequests.mockResolvedValue(mockRequests);
+            mockPublicRequestPrismaRepository.findManyPublicRequests.mockResolvedValue(
+                mockRequests,
+            );
 
             const result = await service.findAll();
 
             expect(result).toEqual(mockRequests);
-            expect(transactionPrismaService.findManyPublicRequests).toHaveBeenCalledWith(
+            expect(publicRequestPrismaRepository.findManyPublicRequests).toHaveBeenCalledWith(
                 {},
                 30,
                 undefined,
@@ -103,12 +107,14 @@ describe("PublicRequestService", () => {
             const params = { user_id: userId };
             const mockRequests = [{ id: "request-1", title: "Request 1", user_id: userId }];
 
-            mockTransactionPrismaService.findManyPublicRequests.mockResolvedValue(mockRequests);
+            mockPublicRequestPrismaRepository.findManyPublicRequests.mockResolvedValue(
+                mockRequests,
+            );
 
             const result = await service.findAll(params);
 
             expect(result).toEqual(mockRequests);
-            expect(transactionPrismaService.findManyPublicRequests).toHaveBeenCalledWith(
+            expect(publicRequestPrismaRepository.findManyPublicRequests).toHaveBeenCalledWith(
                 { user_id: userId },
                 30,
                 undefined,
@@ -122,12 +128,14 @@ describe("PublicRequestService", () => {
                 { id: "request-1", title: "Design Request", description: "Need design services" },
             ];
 
-            mockTransactionPrismaService.findManyPublicRequests.mockResolvedValue(mockRequests);
+            mockPublicRequestPrismaRepository.findManyPublicRequests.mockResolvedValue(
+                mockRequests,
+            );
 
             const result = await service.findAll(params);
 
             expect(result).toEqual(mockRequests);
-            expect(transactionPrismaService.findManyPublicRequests).toHaveBeenCalledWith(
+            expect(publicRequestPrismaRepository.findManyPublicRequests).toHaveBeenCalledWith(
                 {
                     OR: [
                         { title: { contains: "design" } },
@@ -150,12 +158,14 @@ describe("PublicRequestService", () => {
                 description: "Test description",
             };
 
-            mockTransactionPrismaService.findUniquePublicRequest.mockResolvedValue(mockRequest);
+            mockPublicRequestPrismaRepository.findUniquePublicRequest.mockResolvedValue(
+                mockRequest,
+            );
 
             const result = await service.findOne(requestId);
 
             expect(result).toEqual(mockRequest);
-            expect(transactionPrismaService.findUniquePublicRequest).toHaveBeenCalledWith(
+            expect(publicRequestPrismaRepository.findUniquePublicRequest).toHaveBeenCalledWith(
                 requestId,
             );
         });
@@ -163,7 +173,7 @@ describe("PublicRequestService", () => {
         it("should return null when request not found", async () => {
             const requestId = "non-existent";
 
-            mockTransactionPrismaService.findUniquePublicRequest.mockResolvedValue(null);
+            mockPublicRequestPrismaRepository.findUniquePublicRequest.mockResolvedValue(null);
 
             const result = await service.findOne(requestId);
 
@@ -177,12 +187,14 @@ describe("PublicRequestService", () => {
             const mockRequests = [{ id: "request-1", title: "My Request", user_id: mockUser.id }];
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findManyPublicRequests.mockResolvedValue(mockRequests);
+            mockPublicRequestPrismaRepository.findManyPublicRequests.mockResolvedValue(
+                mockRequests,
+            );
 
             const result = await service.findMyRequests();
 
             expect(result).toEqual(mockRequests);
-            expect(transactionPrismaService.findManyPublicRequests).toHaveBeenCalledWith(
+            expect(publicRequestPrismaRepository.findManyPublicRequests).toHaveBeenCalledWith(
                 { user_id: mockUser.id },
                 30,
                 undefined,
@@ -200,15 +212,15 @@ describe("PublicRequestService", () => {
             const updatedRequest = { ...existingRequest, ...updateDto };
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findPublicRequestByIdOnly.mockResolvedValue(
+            mockPublicRequestPrismaRepository.findPublicRequestByIdOnly.mockResolvedValue(
                 existingRequest,
             );
-            mockTransactionPrismaService.updatePublicRequest.mockResolvedValue(updatedRequest);
+            mockPublicRequestPrismaRepository.updatePublicRequest.mockResolvedValue(updatedRequest);
 
             const result = await service.update(requestId, updateDto);
 
             expect(result).toEqual(updatedRequest);
-            expect(transactionPrismaService.updatePublicRequest).toHaveBeenCalledWith(
+            expect(publicRequestPrismaRepository.updatePublicRequest).toHaveBeenCalledWith(
                 requestId,
                 updateDto,
             );
@@ -220,7 +232,7 @@ describe("PublicRequestService", () => {
             const updateDto = { title: "Updated Title" };
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findPublicRequestByIdOnly.mockResolvedValue(null);
+            mockPublicRequestPrismaRepository.findPublicRequestByIdOnly.mockResolvedValue(null);
 
             await expect(service.update(requestId, updateDto)).rejects.toThrow(
                 new HttpException("Public request not found", HttpStatus.NOT_FOUND),
@@ -234,7 +246,7 @@ describe("PublicRequestService", () => {
             const existingRequest = { id: requestId, user_id: "different-user" };
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findPublicRequestByIdOnly.mockResolvedValue(
+            mockPublicRequestPrismaRepository.findPublicRequestByIdOnly.mockResolvedValue(
                 existingRequest,
             );
 
@@ -254,15 +266,19 @@ describe("PublicRequestService", () => {
             const existingRequest = { id: requestId, user_id: mockUser.id };
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findPublicRequestByIdOnly.mockResolvedValue(
+            mockPublicRequestPrismaRepository.findPublicRequestByIdOnly.mockResolvedValue(
                 existingRequest,
             );
-            mockTransactionPrismaService.deletePublicRequest.mockResolvedValue(existingRequest);
+            mockPublicRequestPrismaRepository.deletePublicRequest.mockResolvedValue(
+                existingRequest,
+            );
 
             const result = await service.remove(requestId);
 
             expect(result).toEqual(existingRequest);
-            expect(transactionPrismaService.deletePublicRequest).toHaveBeenCalledWith(requestId);
+            expect(publicRequestPrismaRepository.deletePublicRequest).toHaveBeenCalledWith(
+                requestId,
+            );
         });
 
         it("should throw NOT_FOUND when request does not exist", async () => {
@@ -270,7 +286,7 @@ describe("PublicRequestService", () => {
             const requestId = "non-existent";
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findPublicRequestByIdOnly.mockResolvedValue(null);
+            mockPublicRequestPrismaRepository.findPublicRequestByIdOnly.mockResolvedValue(null);
 
             await expect(service.remove(requestId)).rejects.toThrow(
                 new HttpException("Public request not found", HttpStatus.NOT_FOUND),
@@ -283,7 +299,7 @@ describe("PublicRequestService", () => {
             const existingRequest = { id: requestId, user_id: "different-user" };
 
             mockAuthContextService.getUser.mockReturnValue(mockUser);
-            mockTransactionPrismaService.findPublicRequestByIdOnly.mockResolvedValue(
+            mockPublicRequestPrismaRepository.findPublicRequestByIdOnly.mockResolvedValue(
                 existingRequest,
             );
 

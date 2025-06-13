@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { AuthContextService } from "@app/auth/auth-context.service";
-import { TransactionPrismaService } from "./repositories/public-request-prisma.repository";
+import { PublicRequestPrismaRepository } from "./repositories/public-request-prisma.repository";
 import {
     CreatePublicRequestDto,
     UpdatePublicRequestDto,
@@ -12,7 +12,7 @@ import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/clien
 @Injectable()
 export class PublicRequestService {
     public constructor(
-        private transactionPrismaService: TransactionPrismaService,
+        private publicRequestPrismaRepository: PublicRequestPrismaRepository,
         private authContextService: AuthContextService,
     ) {}
 
@@ -29,7 +29,7 @@ export class PublicRequestService {
             },
         };
 
-        return this.transactionPrismaService.createPublicRequest(publicRequestData);
+        return this.publicRequestPrismaRepository.createPublicRequest(publicRequestData);
     }
 
     public async findAll(params?: PublicRequestFilterDto): Promise<PublicRequestModel[]> {
@@ -54,7 +54,7 @@ export class PublicRequestService {
             ];
         }
 
-        return this.transactionPrismaService.findManyPublicRequests(
+        return this.publicRequestPrismaRepository.findManyPublicRequests(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -65,7 +65,7 @@ export class PublicRequestService {
     }
 
     public async findOne(id: string): Promise<PublicRequestModel | null> {
-        return this.transactionPrismaService.findUniquePublicRequest(id);
+        return this.publicRequestPrismaRepository.findUniquePublicRequest(id);
     }
 
     public async findMyRequests(params?: PublicRequestParamsDto): Promise<PublicRequestModel[]> {
@@ -75,7 +75,7 @@ export class PublicRequestService {
             user_id: user.id,
         };
 
-        return this.transactionPrismaService.findManyPublicRequests(
+        return this.publicRequestPrismaRepository.findManyPublicRequests(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -91,7 +91,8 @@ export class PublicRequestService {
     ): Promise<PublicRequestModel> {
         const user = this.authContextService.getUser();
 
-        const existingRequest = await this.transactionPrismaService.findPublicRequestByIdOnly(id);
+        const existingRequest =
+            await this.publicRequestPrismaRepository.findPublicRequestByIdOnly(id);
 
         if (!existingRequest) {
             throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
@@ -104,13 +105,14 @@ export class PublicRequestService {
             );
         }
 
-        return this.transactionPrismaService.updatePublicRequest(id, updateDto);
+        return this.publicRequestPrismaRepository.updatePublicRequest(id, updateDto);
     }
 
     public async remove(id: string): Promise<PublicRequestModel> {
         const user = this.authContextService.getUser();
 
-        const existingRequest = await this.transactionPrismaService.findPublicRequestByIdOnly(id);
+        const existingRequest =
+            await this.publicRequestPrismaRepository.findPublicRequestByIdOnly(id);
 
         if (!existingRequest) {
             throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
@@ -123,6 +125,6 @@ export class PublicRequestService {
             );
         }
 
-        return this.transactionPrismaService.deletePublicRequest(id);
+        return this.publicRequestPrismaRepository.deletePublicRequest(id);
     }
 }
