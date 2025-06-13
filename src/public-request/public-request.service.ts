@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { AuthContextService } from "@app/auth/auth-context.service";
-import { TransactionPrismaService } from "./transaction-prisma.service";
+import { TransactionPrismaService } from "./repositories/public-request-prisma.repository";
 import {
     CreatePublicRequestDto,
     UpdatePublicRequestDto,
