@@ -1,0 +1,14 @@
+// Model PublicRequests
+
+model PublicRequests {
+  id          String   @id @default(uuid())
+  title       String
+  user        Users    @relation(fields: [user_id], references: [id])
+  user_id     String
+  description String   @db.Text
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  @@index([user_id])
+  @@index([created_at(sort: Desc)])
+}
