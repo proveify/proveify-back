@@ -31,10 +31,14 @@ import {
     PutSelfItemDocumentation,
     RemoveFavoriteDocumentation,
 } from "./decorators/documentations/item.documentation";
+import { FileService } from "@app/file/file.service";
 
 @Controller("items")
 export class ItemController {
-    public constructor(private itemService: ItemService) {}
+    public constructor(
+        private itemService: ItemService,
+        private fileService: FileService,
+    ) {}
 
     @FormDataRequest()
     @UseGuards(JwtAuthGuard)
@@ -78,7 +82,16 @@ export class ItemController {
     ): Promise<ItemEntity[]> {
         const userId = req.user.id;
         const items = await this.itemService.getItemsWithFavoriteInfo(params, userId);
-        return items.map((item) => new ItemEntity(item));
+        const itemsImageUrlSigned = await Promise.all(
+            items.map(async (item) => {
+                if (item.image) {
+                    const imageUrl = await this.fileService.getFileUrlById(item.image);
+                    return { ...item, imageUrl };
+                }
+                return item;
+            }),
+        );
+        return itemsImageUrlSigned.map((item) => new ItemEntity(item));
     }
 
     @UseGuards(JwtAuthGuard)
@@ -95,7 +108,13 @@ export class ItemController {
             throw new HttpException("Item not found", 404);
         }
 
-        return new ItemEntity(item);
+        const itemImageUrlSigned = item.image
+            ? await this.fileService.getFileUrlById(item.image)
+            : null;
+
+        const itemWithImageUrl = { ...item, imageUrl: itemImageUrlSigned };
+
+        return new ItemEntity(itemWithImageUrl);
     }
 
     @Post("favorite/:itemId")

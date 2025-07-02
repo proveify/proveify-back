@@ -7,14 +7,12 @@ export class ItemEntity {
     public name: string;
     public description: string | null;
     public price: Prisma.Decimal;
-
     @Exclude()
     public image: string | null;
-
-    public imageUrl: string | null;
     public created_at: Date;
     public updated_at: Date;
     public provider_id: string;
+    public imageUrl: string | null;
 
     @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",
