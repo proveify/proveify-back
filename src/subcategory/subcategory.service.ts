@@ -1,57 +1,50 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "@app/prisma/prisma.service";
+import { SubcategoryPrismaRepository } from "./repositories/subcategory-prisma.repository";
 import { CreateSubcategoryDto } from "./dto/create-subcategory.dto";
 import { UpdateSubcategoryDto } from "./dto/update-subcategory.dto";
 import { Subcategories as SubcategoryModel } from "@prisma/client";
 
 @Injectable()
 export class SubcategoryService {
-    public constructor(private prisma: PrismaService) {}
+    public constructor(private subcategoryPrismaRepository: SubcategoryPrismaRepository) { }
 
     public async create(createSubcategoryDto: CreateSubcategoryDto): Promise<SubcategoryModel> {
-        return this.prisma.subcategories.create({
-            data: createSubcategoryDto,
-        });
+        const data = {
+            name: createSubcategoryDto.name,
+            description: createSubcategoryDto.description,
+            category: {
+                connect: { id: createSubcategoryDto.id_category }
+            }
+        };
+        return this.subcategoryPrismaRepository.createSubcategory(data);
     }
 
     public async findAll(): Promise<SubcategoryModel[]> {
-        return this.prisma.subcategories.findMany({
-            include: {
-                category: true,
-            },
-        });
+        return this.subcategoryPrismaRepository.findManySubcategories();
     }
 
     public async findOne(id: string): Promise<SubcategoryModel | null> {
-        return this.prisma.subcategories.findUnique({
-            where: { id },
-            include: {
-                category: true,
-            },
-        });
+        return this.subcategoryPrismaRepository.findUniqueSubcategory(id);
     }
 
     public async findByCategoryId(categoryId: string): Promise<SubcategoryModel[]> {
-        return this.prisma.subcategories.findMany({
-            where: {
-                id_category: categoryId,
-            },
-        });
+        return this.subcategoryPrismaRepository.findSubcategoriesByCategory(categoryId);
     }
 
-    public async update(
-        id: string,
-        updateSubcategoryDto: UpdateSubcategoryDto,
-    ): Promise<SubcategoryModel> {
-        return this.prisma.subcategories.update({
-            where: { id },
-            data: updateSubcategoryDto,
-        });
+    public async update(id: string, updateSubcategoryDto: UpdateSubcategoryDto): Promise<SubcategoryModel> {
+        const data: any = {
+            name: updateSubcategoryDto.name,
+            description: updateSubcategoryDto.description,
+        };
+
+        if (updateSubcategoryDto.id_category) {
+            data.category = { connect: { id: updateSubcategoryDto.id_category } };
+        }
+
+        return this.subcategoryPrismaRepository.updateSubcategory(id, data);
     }
 
     public async remove(id: string): Promise<SubcategoryModel> {
-        return this.prisma.subcategories.delete({
-            where: { id },
-        });
+        return this.subcategoryPrismaRepository.deleteSubcategory(id);
     }
 }

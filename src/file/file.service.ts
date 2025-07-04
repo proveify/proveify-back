@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { v4 as uuidv4 } from "uuid";
-
-import { Prisma, Files as FileModel } from "@prisma/client";
+import { Files as FileModel } from "@prisma/client";
 import { CreateFileDto } from "@app/file/dto/file.dto";
-import { PrismaService } from "@app/prisma/prisma.service";
+import { FilePrismaRepository } from "./repositories/file-prisma.repository";
 import { CloudStorageRepository } from "@app/file/repositories/gcp/cloud-storage.repository";
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { ResourceType, ResourceTypePath } from "./interfaces/file-manager.interface";
@@ -16,19 +15,12 @@ export class FileService {
     public constructor(
         private cloudStorageRepository: CloudStorageRepository,
         private authContextService: AuthContextService,
-        private prisma: PrismaService,
+        private filePrismaRepository: FilePrismaRepository,
         private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
-    public async save(
-        file: MemoryStoredFile,
-        resourceType: ResourceType,
-        route?: string,
-    ): Promise<FileModel> {
-        const enviroment = this.configService.get<string>("enviroments.enviroment", {
-            infer: true,
-        });
-
+    public async save(file: MemoryStoredFile, resourceType: ResourceType, route?: string): Promise<FileModel> {
+        const enviroment = this.configService.get<string>("enviroments.enviroment", { infer: true });
         const user = this.authContextService.getUser();
         const name = this.generateUniqueFileName(file.extension);
         const originalName = file.originalName;
@@ -48,52 +40,37 @@ export class FileService {
             },
         };
 
-        return this.saveFile(fileDto);
+        return this.filePrismaRepository.createFile(fileDto);
     }
 
-    private async saveFile(data: Prisma.FilesCreateInput): Promise<FileModel> {
-        return this.prisma.files.create({ data });
-    }
-
-    private generateUniqueFileName(extension: string): string {
-        const uniqueId = uuidv4();
-        const timestamp = Date.now().toString();
-
-        return `${uniqueId}_${timestamp}.${extension}`;
-    }
-
-    public async update(
-        file: FileModel,
-        memoryFile: MemoryStoredFile,
-        path?: string,
-    ): Promise<{ updated: boolean; file: FileModel }> {
+    public async update(file: FileModel, memoryFile: MemoryStoredFile, path?: string): Promise<{ updated: boolean; file: FileModel }> {
         const hasUpdated = await this.cloudStorageRepository.update(memoryFile, path ?? file.path);
 
         if (hasUpdated) {
-            const data: Prisma.FilesUpdateInput = {
+            const data = {
                 original_name: memoryFile.originalName,
                 path: path ?? file.path,
             };
-
-            file = await this.updateFile(file.id, data);
-            return { updated: true, file };
+            
+            const updatedFile = await this.filePrismaRepository.updateFile(file.id, data);
+            return { updated: true, file: updatedFile };
         }
 
         return { updated: false, file };
     }
 
-    private async updateFile(id: string, data: Prisma.FilesUpdateInput): Promise<FileModel> {
-        return this.prisma.files.update({ where: { id }, data });
+    public async getFileById(id: string): Promise<FileModel | null> {
+        return this.filePrismaRepository.findUniqueFile(id);
     }
 
-    public async getFileById(id: string): Promise<FileModel | null> {
-        return this.prisma.files.findUnique({ where: { id } });
+    private generateUniqueFileName(extension: string): string {
+        const uniqueId = uuidv4();
+        const timestamp = Date.now().toString();
+        return `${uniqueId}_${timestamp}.${extension}`;
     }
 
     public getAbsolutePathByResourceType(resourceType: ResourceType): string {
-        const enviroment = this.configService.get<string>("enviroments.enviroment", {
-            infer: true,
-        });
+        const enviroment = this.configService.get<string>("enviroments.enviroment", { infer: true });
         return `${enviroment}/${ResourceTypePath[resourceType]}`;
     }
 

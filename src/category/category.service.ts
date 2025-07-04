@@ -1,34 +1,23 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { PrismaService } from "@app/prisma/prisma.service";
+import { CategoryPrismaRepository } from "./repositories/category-prisma.repository";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 import type { Categories } from "@prisma/client";
 
 @Injectable()
 export class CategoryService {
-    public constructor(private prisma: PrismaService) {}
+    public constructor(private categoryPrismaRepository: CategoryPrismaRepository) {}
 
     public async create(createCategoryDto: CreateCategoryDto): Promise<Categories> {
-        return await this.prisma.categories.create({
-            data: createCategoryDto,
-        });
+        return await this.categoryPrismaRepository.createCategory(createCategoryDto);
     }
 
     public async findAll(): Promise<Categories[]> {
-        return await this.prisma.categories.findMany({
-            include: {
-                Subcategories: true,
-            },
-        });
+        return await this.categoryPrismaRepository.findManyCategories();
     }
 
     public async findOne(id: string): Promise<Categories | null> {
-        return await this.prisma.categories.findUnique({
-            where: { id },
-            include: {
-                Subcategories: true,
-            },
-        });
+        return await this.categoryPrismaRepository.findUniqueCategory(id);
     }
 
     public async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Categories> {
@@ -38,10 +27,7 @@ export class CategoryService {
             throw new HttpException("Category not found", HttpStatus.NOT_FOUND);
         }
 
-        return await this.prisma.categories.update({
-            where: { id },
-            data: updateCategoryDto,
-        });
+        return await this.categoryPrismaRepository.updateCategory(id, updateCategoryDto);
     }
 
     public async remove(id: string): Promise<Categories> {
@@ -51,8 +37,6 @@ export class CategoryService {
             throw new HttpException("Category not found", HttpStatus.NOT_FOUND);
         }
 
-        return await this.prisma.categories.delete({
-            where: { id },
-        });
+        return await this.categoryPrismaRepository.deleteCategory(id);
     }
 }
