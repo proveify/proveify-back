@@ -33,6 +33,10 @@ import {
 } from "./decorators/documentations/item.documentation";
 import { FileService } from "@app/file/file.service";
 
+
+/**
+ * TODO: crear un endpoint que obtenga solamente los productos del proveedor si está logueado
+ */
 @Controller("items")
 export class ItemController {
     public constructor(
@@ -73,6 +77,10 @@ export class ItemController {
         return new ItemEntity(item);
     }
 
+
+    /**
+     * TODO: Quitar el guard de Authentication
+     */
     @UseGuards(JwtAuthGuard)
     @GetItemsDocumentation()
     @Get()
@@ -81,6 +89,9 @@ export class ItemController {
         @Req() req: Request & { user: TokenPayload },
     ): Promise<ItemEntity[]> {
         const userId = req.user.id;
+        /**
+         * TODO: no puede obtener a favoritos porque es un endpoint publico
+         */
         const items = await this.itemService.getItemsWithFavoriteInfo(params, userId);
         const itemsImageUrlSigned = await Promise.all(
             items.map(async (item) => {
@@ -94,6 +105,9 @@ export class ItemController {
         return itemsImageUrlSigned.map((item) => new ItemEntity(item));
     }
 
+    /**
+     * TODO: Quitar el guard de Authentication
+     */
     @UseGuards(JwtAuthGuard)
     @GetItemDocumentation()
     @Get(":id")
@@ -102,6 +116,9 @@ export class ItemController {
         @Req() req: Request & { user: TokenPayload },
     ): Promise<ItemEntity> {
         const userId = req.user.id;
+        /**
+         * TODO: Este endpoint no puede obtener a favoritos porque es publico
+         */
         const item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, userId);
 
         if (!item) {

@@ -13,6 +13,9 @@ import { MemoryStoredFile } from "nestjs-form-data";
 import { ItemPrismaRepository } from "./repositories/item-prisma.repository";
 import { FavoritePrismaRepository } from "./repositories/favorite-prisma.repository";
 
+/**
+ * TODO: las funcionas que devuelven un modelo ahora deben devolver una entity
+ */
 @Injectable()
 export class ItemService {
     public constructor(
