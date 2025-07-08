@@ -2,19 +2,19 @@ import { Injectable } from "@nestjs/common";
 import { SubcategoryPrismaRepository } from "./repositories/subcategory-prisma.repository";
 import { CreateSubcategoryDto } from "./dto/create-subcategory.dto";
 import { UpdateSubcategoryDto } from "./dto/update-subcategory.dto";
-import { Subcategories as SubcategoryModel } from "@prisma/client";
+import { Prisma, Subcategories as SubcategoryModel } from "@prisma/client";
 
 @Injectable()
 export class SubcategoryService {
-    public constructor(private subcategoryPrismaRepository: SubcategoryPrismaRepository) { }
+    public constructor(private subcategoryPrismaRepository: SubcategoryPrismaRepository) {}
 
     public async create(createSubcategoryDto: CreateSubcategoryDto): Promise<SubcategoryModel> {
         const data = {
             name: createSubcategoryDto.name,
             description: createSubcategoryDto.description,
             category: {
-                connect: { id: createSubcategoryDto.id_category }
-            }
+                connect: { id: createSubcategoryDto.id_category },
+            },
         };
         return this.subcategoryPrismaRepository.createSubcategory(data);
     }
@@ -31,8 +31,11 @@ export class SubcategoryService {
         return this.subcategoryPrismaRepository.findSubcategoriesByCategory(categoryId);
     }
 
-    public async update(id: string, updateSubcategoryDto: UpdateSubcategoryDto): Promise<SubcategoryModel> {
-        const data: any = {
+    public async update(
+        id: string,
+        updateSubcategoryDto: UpdateSubcategoryDto,
+    ): Promise<SubcategoryModel> {
+        const data: Prisma.SubcategoriesUpdateInput = {
             name: updateSubcategoryDto.name,
             description: updateSubcategoryDto.description,
         };

@@ -4,7 +4,7 @@ import type { Subcategories as SubcategoryModel, Prisma } from "@prisma/client";
 
 @Injectable()
 export class SubcategoryPrismaRepository {
-    public constructor(private prisma: PrismaService) { }
+    public constructor(private prisma: PrismaService) {}
 
     public async createSubcategory(
         data: Prisma.SubcategoriesCreateInput,

@@ -4,7 +4,7 @@ import type { Favorites as FavoriteModel, Prisma } from "@prisma/client";
 
 @Injectable()
 export class FavoritePrismaRepository {
-    public constructor(private prisma: PrismaService) { }
+    public constructor(private prisma: PrismaService) {}
 
     public async upsert(args: Prisma.FavoritesUpsertArgs): Promise<FavoriteModel> {
         return this.prisma.favorites.upsert(args);
