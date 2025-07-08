@@ -228,4 +228,19 @@ export class ItemService {
 
         return favorite ? true : false;
     }
+
+    public async getProviderItems(params?: ItemParamDto): Promise<ItemModel[]> {
+        const provider = this.authContextService.getProvider();
+
+        if (!provider) {
+            throw new HttpException("User does not have a provider account", 400);
+        }
+
+        return this.itemPrismaRepository.findMany({
+            where: { provider_id: provider.id },
+            take: params?.limit ?? 30,
+            skip: params?.offset,
+            orderBy: { created_at: params?.order_by ?? "desc" },
+        });
+    }
 }
