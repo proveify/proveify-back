@@ -19,8 +19,14 @@ export class FileService {
         private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
-    public async save(file: MemoryStoredFile, resourceType: ResourceType, route?: string): Promise<FileModel> {
-        const enviroment = this.configService.get<string>("enviroments.enviroment", { infer: true });
+    public async save(
+        file: MemoryStoredFile,
+        resourceType: ResourceType,
+        route?: string,
+    ): Promise<FileModel> {
+        const enviroment = this.configService.get<string>("enviroments.enviroment", {
+            infer: true,
+        });
         const user = this.authContextService.getUser();
         const name = this.generateUniqueFileName(file.extension);
         const originalName = file.originalName;
@@ -43,7 +49,11 @@ export class FileService {
         return this.filePrismaRepository.createFile(fileDto);
     }
 
-    public async update(file: FileModel, memoryFile: MemoryStoredFile, path?: string): Promise<{ updated: boolean; file: FileModel }> {
+    public async update(
+        file: FileModel,
+        memoryFile: MemoryStoredFile,
+        path?: string,
+    ): Promise<{ updated: boolean; file: FileModel }> {
         const hasUpdated = await this.cloudStorageRepository.update(memoryFile, path ?? file.path);
 
         if (hasUpdated) {
@@ -51,7 +61,7 @@ export class FileService {
                 original_name: memoryFile.originalName,
                 path: path ?? file.path,
             };
-            
+
             const updatedFile = await this.filePrismaRepository.updateFile(file.id, data);
             return { updated: true, file: updatedFile };
         }
@@ -70,7 +80,9 @@ export class FileService {
     }
 
     public getAbsolutePathByResourceType(resourceType: ResourceType): string {
-        const enviroment = this.configService.get<string>("enviroments.enviroment", { infer: true });
+        const enviroment = this.configService.get<string>("enviroments.enviroment", {
+            infer: true,
+        });
         return `${enviroment}/${ResourceTypePath[resourceType]}`;
     }
 

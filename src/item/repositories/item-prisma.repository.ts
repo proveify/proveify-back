@@ -4,7 +4,7 @@ import type { Items as ItemModel, Prisma } from "@prisma/client";
 
 @Injectable()
 export class ItemPrismaRepository {
-    public constructor(private prisma: PrismaService) { }
+    public constructor(private prisma: PrismaService) {}
 
     public async create(args: Prisma.ItemsCreateArgs): Promise<ItemModel> {
         return this.prisma.items.create(args);

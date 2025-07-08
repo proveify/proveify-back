@@ -7,7 +7,7 @@ export class FilePrismaRepository {
     public constructor(private prisma: PrismaService) {}
 
     public async createFile(data: Prisma.FilesCreateInput): Promise<FileModel> {
-        return this.prisma.files.create({ 
+        return this.prisma.files.create({
             data,
             include: {
                 user: true,

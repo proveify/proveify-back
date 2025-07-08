@@ -14,7 +14,7 @@ export class ProviderService {
         private providerPrismaRepository: ProviderPrismaRepository,
         private fileService: FileService,
         private configService: ConfigService<typeof enviromentsConfig, true>,
-    ) { }
+    ) {}
 
     public async saveProvider(provider: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
         return this.providerPrismaRepository.createProvider(provider);
@@ -25,7 +25,7 @@ export class ProviderService {
             undefined,
             params?.limit ?? 30,
             params?.offset,
-            { id: params?.order_by ?? "desc" }
+            { id: params?.order_by ?? "desc" },
         );
     }
 
@@ -33,7 +33,10 @@ export class ProviderService {
         return this.providerPrismaRepository.findUniqueProvider(id);
     }
 
-    public async updateProvider(provider: ProviderModel, data: ProviderUpdateDto): Promise<ProviderModel> {
+    public async updateProvider(
+        provider: ProviderModel,
+        data: ProviderUpdateDto,
+    ): Promise<ProviderModel> {
         const providerData: Prisma.ProvidersUpdateInput = {};
 
         if (data.name) providerData.name = data.name;

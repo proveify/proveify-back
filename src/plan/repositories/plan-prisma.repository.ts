@@ -7,7 +7,7 @@ export class PlanPrismaRepository {
     public constructor(private prisma: PrismaService) {}
 
     public async createPlan(data: Prisma.PlansCreateInput): Promise<PlanModel> {
-        return this.prisma.plans.create({ 
+        return this.prisma.plans.create({
             data,
             include: {
                 Providers: true,

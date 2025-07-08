@@ -7,7 +7,7 @@ export class ProviderPrismaRepository {
     public constructor(private prisma: PrismaService) {}
 
     public async createProvider(data: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
-        return this.prisma.providers.create({ 
+        return this.prisma.providers.create({
             data,
             include: {
                 plan: true,
@@ -35,7 +35,7 @@ export class ProviderPrismaRepository {
     }
 
     public async findUniqueProvider(id: string): Promise<ProviderModel | null> {
-        return this.prisma.providers.findUnique({ 
+        return this.prisma.providers.findUnique({
             where: { id },
             include: {
                 plan: true,
@@ -45,7 +45,7 @@ export class ProviderPrismaRepository {
     }
 
     public async findProvidersByUserId(userId: string): Promise<ProviderModel[]> {
-        return this.prisma.providers.findMany({ 
+        return this.prisma.providers.findMany({
             where: { user_id: userId },
             include: {
                 plan: true,
@@ -54,7 +54,10 @@ export class ProviderPrismaRepository {
         });
     }
 
-    public async updateProvider(id: string, data: Prisma.ProvidersUpdateInput): Promise<ProviderModel> {
+    public async updateProvider(
+        id: string,
+        data: Prisma.ProvidersUpdateInput,
+    ): Promise<ProviderModel> {
         return this.prisma.providers.update({
             where: { id },
             data,

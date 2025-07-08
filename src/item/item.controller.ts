@@ -33,7 +33,6 @@ import {
 } from "./decorators/documentations/item.documentation";
 import { FileService } from "@app/file/file.service";
 
-
 /**
  * TODO: crear un endpoint que obtenga solamente los productos del proveedor si está logueado
  */
@@ -76,7 +75,6 @@ export class ItemController {
         const item = await this.itemService.deleteItem(params.id);
         return new ItemEntity(item);
     }
-
 
     /**
      * TODO: Quitar el guard de Authentication
