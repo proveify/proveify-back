@@ -1,18 +1,16 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "@app/prisma/prisma.service";
+import { PlanPrismaRepository } from "./repositories/plan-prisma.repository";
 import { Plans as PlanModel } from "@prisma/client";
 
 @Injectable()
 export class PlanService {
-    public constructor(private prisma: PrismaService) {}
+    public constructor(private planPrismaRepository: PlanPrismaRepository) {}
 
     public async getPlans(): Promise<PlanModel[]> {
-        return this.prisma.plans.findMany();
+        return this.planPrismaRepository.findManyPlans();
     }
 
     public async getPlanByKey(key: string): Promise<PlanModel> {
-        return this.prisma.plans.findUniqueOrThrow({
-            where: { plan_key: key },
-        });
+        return this.planPrismaRepository.findUniquePlanByKey(key);
     }
 }

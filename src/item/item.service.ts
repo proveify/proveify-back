@@ -1,4 +1,3 @@
-import { PrismaService } from "@app/prisma/prisma.service";
 import { HttpException, Injectable } from "@nestjs/common";
 import {
     Prisma,
@@ -11,11 +10,17 @@ import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
+import { ItemPrismaRepository } from "./repositories/item-prisma.repository";
+import { FavoritePrismaRepository } from "./repositories/favorite-prisma.repository";
 
+/**
+ * TODO: las funcionas que devuelven un modelo ahora deben devolver una entity
+ */
 @Injectable()
 export class ItemService {
     public constructor(
-        private prisma: PrismaService,
+        private itemPrismaRepository: ItemPrismaRepository,
+        private favoritePrismaRepository: FavoritePrismaRepository,
         private authContextService: AuthContextService,
         private fileService: FileService,
     ) {}
@@ -72,23 +77,23 @@ export class ItemService {
     }
 
     public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemModel> {
-        return this.prisma.items.create({ data: item });
+        return this.itemPrismaRepository.create({ data: item });
     }
 
     public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemModel> {
-        return this.prisma.items.update({ where: { id }, data: item });
+        return this.itemPrismaRepository.update({ where: { id }, data: item });
     }
 
     public async deleteItem(id: string): Promise<ItemModel> {
-        return this.prisma.items.delete({ where: { id } });
+        return this.itemPrismaRepository.delete({ where: { id } });
     }
 
     public async findItemById(id: string): Promise<ItemModel | null> {
-        return this.prisma.items.findUnique({ where: { id } });
+        return this.itemPrismaRepository.findUnique({ where: { id } });
     }
 
     public async getItems(params?: ItemParamDto): Promise<ItemModel[]> {
-        return this.prisma.items.findMany({
+        return this.itemPrismaRepository.findMany({
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: {
@@ -154,7 +159,7 @@ export class ItemService {
 
     public async addFavorite(userId: string, itemId: string): Promise<FavoriteModel> {
         try {
-            return await this.prisma.favorites.upsert({
+            return await this.favoritePrismaRepository.upsert({
                 where: {
                     user_id_item_id: {
                         user_id: userId,
@@ -182,7 +187,7 @@ export class ItemService {
 
     public async removeFavorite(userId: string, itemId: string): Promise<FavoriteModel> {
         try {
-            return await this.prisma.favorites.delete({
+            return await this.favoritePrismaRepository.delete({
                 where: {
                     user_id_item_id: {
                         user_id: userId,
@@ -204,7 +209,7 @@ export class ItemService {
         userId: string,
         params?: FavoriteParamsDto,
     ): Promise<FavoriteModel[]> {
-        return await this.prisma.favorites.findMany({
+        return await this.favoritePrismaRepository.findMany({
             where: { user_id: userId },
             include: { item: true },
             take: params?.limit ?? 30,
@@ -214,12 +219,28 @@ export class ItemService {
     }
 
     public async isFavorite(userId: string, itemId: string): Promise<boolean> {
-        const count = await this.prisma.favorites.count({
+        const favorite = await this.favoritePrismaRepository.findFirst({
             where: {
                 user_id: userId,
                 item_id: itemId,
             },
         });
-        return count > 0;
+
+        return favorite ? true : false;
+    }
+
+    public async getProviderItems(params?: ItemParamDto): Promise<ItemModel[]> {
+        const provider = this.authContextService.getProvider();
+
+        if (!provider) {
+            throw new HttpException("User does not have a provider account", 400);
+        }
+
+        return this.itemPrismaRepository.findMany({
+            where: { provider_id: provider.id },
+            take: params?.limit ?? 30,
+            skip: params?.offset,
+            orderBy: { created_at: params?.order_by ?? "desc" },
+        });
     }
 }

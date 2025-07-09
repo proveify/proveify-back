@@ -32,7 +32,9 @@ import {
     RemoveFavoriteDocumentation,
 } from "./decorators/documentations/item.documentation";
 import { FileService } from "@app/file/file.service";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Items")
 @Controller("items")
 export class ItemController {
     public constructor(
@@ -74,9 +76,40 @@ export class ItemController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get("provider/self")
+    public async getProviderItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
+        const items = await this.itemService.getProviderItems(params);
+        const itemsImageUrlSigned = await Promise.all(
+            items.map(async (item) => {
+                if (item.image) {
+                    const imageUrl = await this.fileService.getFileUrlById(item.image);
+                    return { ...item, imageUrl };
+                }
+                return item;
+            }),
+        );
+        return itemsImageUrlSigned.map((item) => new ItemEntity(item));
+    }
+
     @GetItemsDocumentation()
     @Get()
-    public async getItems(
+    public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
+        const items = await this.itemService.getItems(params);
+        const itemsImageUrlSigned = await Promise.all(
+            items.map(async (item) => {
+                if (item.image) {
+                    const imageUrl = await this.fileService.getFileUrlById(item.image);
+                    return { ...item, imageUrl };
+                }
+                return item;
+            }),
+        );
+        return itemsImageUrlSigned.map((item) => new ItemEntity(item));
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get("authenticated")
+    public async getItemsAuthenticated(
         @Query() params: ItemParamDto,
         @Req() req: Request & { user: TokenPayload },
     ): Promise<ItemEntity[]> {
@@ -94,10 +127,27 @@ export class ItemController {
         return itemsImageUrlSigned.map((item) => new ItemEntity(item));
     }
 
-    @UseGuards(JwtAuthGuard)
     @GetItemDocumentation()
     @Get(":id")
-    public async getItemById(
+    public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
+        const item = await this.itemService.findItemById(params.id);
+
+        if (!item) {
+            throw new HttpException("Item not found", 404);
+        }
+
+        const itemImageUrlSigned = item.image
+            ? await this.fileService.getFileUrlById(item.image)
+            : null;
+
+        const itemWithImageUrl = { ...item, imageUrl: itemImageUrlSigned };
+
+        return new ItemEntity(itemWithImageUrl);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get(":id/authenticated")
+    public async getItemByIdAuthenticated(
         @Param() params: { id: string },
         @Req() req: Request & { user: TokenPayload },
     ): Promise<ItemEntity> {

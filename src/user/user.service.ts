@@ -1,38 +1,34 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma, Users as UserModel } from "@prisma/client";
-import { PrismaService } from "@app/prisma/prisma.service";
+import { UserPrismaRepository } from "./repositories/user-prisma.repository";
 import { UserUpdateDto } from "./dto/user.dto";
 import { UserNotFoundException } from "./exceptions/user-not-found.exception/user-not-found.exception";
 import { UserEntity } from "./entities/user.entity";
 
 @Injectable()
 export class UserService {
-    public constructor(private prisma: PrismaService) {}
+    public constructor(private userPrismaRepository: UserPrismaRepository) {}
 
     public async saveUser(data: Prisma.UsersCreateInput): Promise<UserModel> {
-        return this.prisma.users.create({ data });
+        return this.userPrismaRepository.createUser(data);
     }
 
     public async findUserOneByEmail(email: string): Promise<UserModel | null> {
-        return this.prisma.users.findUnique({ where: { email } });
+        return this.userPrismaRepository.findUniqueUserByEmail(email);
     }
 
     public async findUserOneById(
         args: { id: string } | Prisma.UsersFindUniqueArgs,
     ): Promise<UserModel | null> {
-        if ("id" in args) {
-            return this.prisma.users.findUnique({ where: { id: args.id } });
-        }
-
-        return this.prisma.users.findUnique(args);
+        return this.userPrismaRepository.findUniqueUserById(args);
     }
 
     public async update(id: string, userData: UserUpdateDto): Promise<UserModel> {
-        return this.prisma.users.update({ where: { id }, data: userData });
+        return this.userPrismaRepository.updateUser(id, userData);
     }
 
     public async getUserProfile(id: string): Promise<UserEntity> {
-        const user = await this.findUserOneById({
+        const user = await this.userPrismaRepository.findUniqueUserById({
             where: { id },
             include: { Provider: true },
         });
