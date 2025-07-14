@@ -31,16 +31,12 @@ import {
     PutSelfItemDocumentation,
     RemoveFavoriteDocumentation,
 } from "./decorators/documentations/item.documentation";
-import { FileService } from "@app/file/file.service";
 import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Items")
 @Controller("items")
 export class ItemController {
-    public constructor(
-        private itemService: ItemService,
-        private fileService: FileService,
-    ) {}
+    public constructor(private itemService: ItemService) {}
 
     @FormDataRequest()
     @UseGuards(JwtAuthGuard)
@@ -48,10 +44,7 @@ export class ItemController {
     @Post("self")
     public async createItem(@Body() data: ItemCreateDto): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareCreate(data);
-        const itemModel = await this.itemService.createItem(itemDataInput);
-        const item = new ItemEntity(itemModel);
-
-        return item;
+        return await this.itemService.createItem(itemDataInput);
     }
 
     @FormDataRequest()
@@ -63,48 +56,26 @@ export class ItemController {
         @Param() params: { id: string },
     ): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareUpdate(data, params.id);
-        const item = await this.itemService.updateItem(itemDataInput, params.id);
-        return new ItemEntity(item);
+        return await this.itemService.updateItem(itemDataInput, params.id);
     }
 
     @UseGuards(JwtAuthGuard)
     @DeleteSelfItemDocumentation()
     @Delete("self/:id")
     public async deleteItem(@Param() params: { id: string }): Promise<ItemEntity> {
-        const item = await this.itemService.deleteItem(params.id);
-        return new ItemEntity(item);
+        return await this.itemService.deleteItem(params.id);
     }
 
     @UseGuards(JwtAuthGuard)
     @Get("provider/self")
     public async getProviderItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
-        const items = await this.itemService.getProviderItems(params);
-        const itemsImageUrlSigned = await Promise.all(
-            items.map(async (item) => {
-                if (item.image) {
-                    const imageUrl = await this.fileService.getFileUrlById(item.image);
-                    return { ...item, imageUrl };
-                }
-                return item;
-            }),
-        );
-        return itemsImageUrlSigned.map((item) => new ItemEntity(item));
+        return await this.itemService.getProviderItems(params);
     }
 
     @GetItemsDocumentation()
     @Get()
     public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
-        const items = await this.itemService.getItems(params);
-        const itemsImageUrlSigned = await Promise.all(
-            items.map(async (item) => {
-                if (item.image) {
-                    const imageUrl = await this.fileService.getFileUrlById(item.image);
-                    return { ...item, imageUrl };
-                }
-                return item;
-            }),
-        );
-        return itemsImageUrlSigned.map((item) => new ItemEntity(item));
+        return await this.itemService.getItemsPublic(params);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -113,36 +84,19 @@ export class ItemController {
         @Query() params: ItemParamDto,
         @Req() req: Request & { user: TokenPayload },
     ): Promise<ItemEntity[]> {
-        const userId = req.user.id;
-        const items = await this.itemService.getItemsWithFavoriteInfo(params, userId);
-        const itemsImageUrlSigned = await Promise.all(
-            items.map(async (item) => {
-                if (item.image) {
-                    const imageUrl = await this.fileService.getFileUrlById(item.image);
-                    return { ...item, imageUrl };
-                }
-                return item;
-            }),
-        );
-        return itemsImageUrlSigned.map((item) => new ItemEntity(item));
+        return await this.itemService.getItemsWithFavoriteInfo(params, req.user.id);
     }
 
     @GetItemDocumentation()
     @Get(":id")
     public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
-        const item = await this.itemService.findItemById(params.id);
+        const item = await this.itemService.findItemByIdPublic(params.id);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
         }
 
-        const itemImageUrlSigned = item.image
-            ? await this.fileService.getFileUrlById(item.image)
-            : null;
-
-        const itemWithImageUrl = { ...item, imageUrl: itemImageUrlSigned };
-
-        return new ItemEntity(itemWithImageUrl);
+        return item;
     }
 
     @UseGuards(JwtAuthGuard)
@@ -151,20 +105,13 @@ export class ItemController {
         @Param() params: { id: string },
         @Req() req: Request & { user: TokenPayload },
     ): Promise<ItemEntity> {
-        const userId = req.user.id;
-        const item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, userId);
+        const item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, req.user.id);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
         }
 
-        const itemImageUrlSigned = item.image
-            ? await this.fileService.getFileUrlById(item.image)
-            : null;
-
-        const itemWithImageUrl = { ...item, imageUrl: itemImageUrlSigned };
-
-        return new ItemEntity(itemWithImageUrl);
+        return item;
     }
 
     @Post("favorite/:itemId")
@@ -175,15 +122,7 @@ export class ItemController {
         @Req() req: Request & { user: TokenPayload },
         @Param("itemId") itemId: string,
     ): Promise<FavoriteEntity> {
-        try {
-            const favorite = await this.itemService.addFavorite(req.user.id, itemId);
-            return new FavoriteEntity(favorite);
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new HttpException("Failed to add item to favorites", 400);
-        }
+        return await this.itemService.addFavorite(req.user.id, itemId);
     }
 
     @Delete("favorite/:itemId")
@@ -194,15 +133,7 @@ export class ItemController {
         @Req() req: Request & { user: TokenPayload },
         @Param("itemId") itemId: string,
     ): Promise<FavoriteEntity> {
-        try {
-            const favorite = await this.itemService.removeFavorite(req.user.id, itemId);
-            return new FavoriteEntity(favorite);
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new HttpException("Failed to remove item from favorites", 400);
-        }
+        return await this.itemService.removeFavorite(req.user.id, itemId);
     }
 
     @Get("favorites")
@@ -213,7 +144,6 @@ export class ItemController {
         @Req() req: Request & { user: TokenPayload },
         @Query() params: FavoriteParamsDto,
     ): Promise<FavoriteEntity[]> {
-        const favorites = await this.itemService.getFavorites(req.user.id, params);
-        return favorites.map((favorite) => new FavoriteEntity(favorite));
+        return await this.itemService.getFavorites(req.user.id, params);
     }
 }

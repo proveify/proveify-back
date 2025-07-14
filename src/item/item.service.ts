@@ -1,10 +1,5 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import {
-    Prisma,
-    Items as ItemModel,
-    Files as FileModel,
-    Favorites as FavoriteModel,
-} from "@prisma/client";
+import { Prisma, Files as FileModel } from "@prisma/client";
 import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
@@ -12,10 +7,9 @@ import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { ItemPrismaRepository } from "./repositories/item-prisma.repository";
 import { FavoritePrismaRepository } from "./repositories/favorite-prisma.repository";
+import { ItemEntity } from "./entities/item.entity";
+import { FavoriteEntity } from "./entities/favorite.entity";
 
-/**
- * TODO: las funcionas que devuelven un modelo ahora deben devolver una entity
- */
 @Injectable()
 export class ItemService {
     public constructor(
@@ -59,6 +53,10 @@ export class ItemService {
             throw new HttpException("User not has provider", 400);
         }
 
+        if (item.provider_id !== provider.id) {
+            throw new HttpException("You can only update your own items", 403);
+        }
+
         const itemUpdateInput: Prisma.ItemsUpdateInput = {
             name: data.name,
             description: data.description,
@@ -76,73 +74,134 @@ export class ItemService {
         return itemUpdateInput;
     }
 
-    public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemModel> {
-        return this.itemPrismaRepository.create({ data: item });
+    public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemEntity> {
+        const result = await this.itemPrismaRepository.create({ data: item });
+        return new ItemEntity(result);
     }
 
-    public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemModel> {
-        return this.itemPrismaRepository.update({ where: { id }, data: item });
+    public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemEntity> {
+        const result = await this.itemPrismaRepository.update({ where: { id }, data: item });
+        return new ItemEntity(result);
     }
 
-    public async deleteItem(id: string): Promise<ItemModel> {
-        return this.itemPrismaRepository.delete({ where: { id } });
+    public async deleteItem(id: string): Promise<ItemEntity> {
+        const provider = this.authContextService.getProvider();
+
+        if (!provider) {
+            throw new HttpException("User not has provider", 400);
+        }
+
+        const item = await this.findItemById(id);
+
+        if (!item) {
+            throw new HttpException("Item not found", 404);
+        }
+
+        if (item.provider_id !== provider.id) {
+            throw new HttpException("You can only delete your own items", 403);
+        }
+
+        const result = await this.itemPrismaRepository.delete({ where: { id } });
+        return new ItemEntity(result);
     }
 
-    public async findItemById(id: string): Promise<ItemModel | null> {
-        return this.itemPrismaRepository.findUnique({ where: { id } });
+    public async findItemById(id: string): Promise<ItemEntity | null> {
+        const result = await this.itemPrismaRepository.findUnique({ where: { id } });
+        return result ? new ItemEntity(result) : null;
     }
 
-    public async getItems(params?: ItemParamDto): Promise<ItemModel[]> {
-        return this.itemPrismaRepository.findMany({
+    public async getItems(params?: ItemParamDto): Promise<ItemEntity[]> {
+        const results = await this.itemPrismaRepository.findMany({
             take: params?.limit ?? 30,
             skip: params?.offset,
-            orderBy: {
-                id: params?.order_by ?? "desc",
-            },
+            orderBy: { id: params?.order_by ?? "desc" },
         });
+        return results.map((item) => new ItemEntity(item));
+    }
+
+    private async createItemEntityWithExtras(
+        item: ItemEntity,
+        options: { isFavorite?: boolean; includeImageUrl?: boolean } = {},
+    ): Promise<ItemEntity> {
+        let imageUrl = null;
+
+        if (options.includeImageUrl && item.image) {
+            imageUrl = await this.fileService.getFileUrlById(item.image);
+        }
+
+        const itemData = {
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            image: item.image,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            provider_id: item.provider_id,
+            imageUrl,
+            isFavorite: options.isFavorite ?? false,
+        };
+
+        return new ItemEntity(itemData);
     }
 
     public async getItemsWithFavoriteInfo(
         params?: ItemParamDto,
         userId?: string,
-    ): Promise<(ItemModel & { isFavorite?: boolean })[]> {
+    ): Promise<ItemEntity[]> {
         const items = await this.getItems(params);
 
         if (!userId) {
-            return items.map((item) => ({ ...item, isFavorite: false }));
+            const itemsWithImages = await Promise.all(
+                items.map(async (item) => {
+                    return await this.createItemEntityWithExtras(item, {
+                        isFavorite: false,
+                        includeImageUrl: true,
+                    });
+                }),
+            );
+            return itemsWithImages;
         }
 
         const favorites = await this.getFavorites(userId, { limit: 1000 });
-        const favoriteItemIds = new Set(favorites.map((fav: { item_id: string }) => fav.item_id));
+        const favoriteItemIds = new Set(favorites.map((fav) => fav.item_id));
 
-        return items.map((item) => ({
-            ...item,
-            isFavorite: favoriteItemIds.has(item.id),
-        }));
+        const itemsWithFavoritesAndImages = await Promise.all(
+            items.map(async (item) => {
+                const isFavorite = favoriteItemIds.has(item.id);
+                return await this.createItemEntityWithExtras(item, {
+                    isFavorite,
+                    includeImageUrl: true,
+                });
+            }),
+        );
+
+        return itemsWithFavoritesAndImages;
     }
 
     public async findItemByIdWithFavoriteInfo(
         id: string,
         userId?: string,
-    ): Promise<(ItemModel & { isFavorite?: boolean }) | null> {
+    ): Promise<ItemEntity | null> {
         const item = await this.findItemById(id);
 
         if (!item) {
             return null;
         }
 
-        if (!userId) {
-            return { ...item, isFavorite: false };
+        let isFavorite = false;
+
+        if (userId) {
+            isFavorite = await this.isFavorite(userId, id);
         }
 
-        const isFavorite = await this.isFavorite(userId, id);
-        return { ...item, isFavorite };
+        return await this.createItemEntityWithExtras(item, {
+            isFavorite,
+            includeImageUrl: true,
+        });
     }
 
     private async uploadImage(image: MemoryStoredFile, fileId?: string): Promise<FileModel> {
-        /**
-         * Si existe un fileId, entonces hay que actualizar la imagen
-         */
         if (fileId) {
             const file = await this.fileService.getFileById(fileId);
 
@@ -153,25 +212,17 @@ export class ItemService {
         }
 
         const file = await this.fileService.save(image, ResourceType.ITEM_IMAGE);
-
         return file;
     }
 
-    public async addFavorite(userId: string, itemId: string): Promise<FavoriteModel> {
+    public async addFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
         try {
-            return await this.favoritePrismaRepository.upsert({
-                where: {
-                    user_id_item_id: {
-                        user_id: userId,
-                        item_id: itemId,
-                    },
-                },
+            const result = await this.favoritePrismaRepository.upsert({
+                where: { user_id_item_id: { user_id: userId, item_id: itemId } },
                 update: {},
-                create: {
-                    user: { connect: { id: userId } },
-                    item: { connect: { id: itemId } },
-                },
+                create: { user: { connect: { id: userId } }, item: { connect: { id: itemId } } },
             });
+            return new FavoriteEntity(result);
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
                 if (error.code === "P2025") {
@@ -185,16 +236,12 @@ export class ItemService {
         }
     }
 
-    public async removeFavorite(userId: string, itemId: string): Promise<FavoriteModel> {
+    public async removeFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
         try {
-            return await this.favoritePrismaRepository.delete({
-                where: {
-                    user_id_item_id: {
-                        user_id: userId,
-                        item_id: itemId,
-                    },
-                },
+            const result = await this.favoritePrismaRepository.delete({
+                where: { user_id_item_id: { user_id: userId, item_id: itemId } },
             });
+            return new FavoriteEntity(result);
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
                 if (error.code === "P2025") {
@@ -208,14 +255,15 @@ export class ItemService {
     public async getFavorites(
         userId: string,
         params?: FavoriteParamsDto,
-    ): Promise<FavoriteModel[]> {
-        return await this.favoritePrismaRepository.findMany({
+    ): Promise<FavoriteEntity[]> {
+        const results = await this.favoritePrismaRepository.findMany({
             where: { user_id: userId },
             include: { item: true },
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },
         });
+        return results.map((favorite) => new FavoriteEntity(favorite));
     }
 
     public async isFavorite(userId: string, itemId: string): Promise<boolean> {
@@ -229,18 +277,57 @@ export class ItemService {
         return favorite ? true : false;
     }
 
-    public async getProviderItems(params?: ItemParamDto): Promise<ItemModel[]> {
+    public async getProviderItems(params?: ItemParamDto): Promise<ItemEntity[]> {
         const provider = this.authContextService.getProvider();
 
         if (!provider) {
             throw new HttpException("User does not have a provider account", 400);
         }
 
-        return this.itemPrismaRepository.findMany({
+        const results = await this.itemPrismaRepository.findMany({
             where: { provider_id: provider.id },
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },
+        });
+
+        const itemsWithImages = await Promise.all(
+            results.map(async (item) => {
+                const itemEntity = new ItemEntity(item);
+                return await this.createItemEntityWithExtras(itemEntity, {
+                    includeImageUrl: true,
+                });
+            }),
+        );
+
+        return itemsWithImages;
+    }
+
+    public async getItemsPublic(params?: ItemParamDto): Promise<ItemEntity[]> {
+        const items = await this.getItems(params);
+
+        const itemsWithImages = await Promise.all(
+            items.map(async (item) => {
+                return await this.createItemEntityWithExtras(item, {
+                    isFavorite: false,
+                    includeImageUrl: true,
+                });
+            }),
+        );
+
+        return itemsWithImages;
+    }
+
+    public async findItemByIdPublic(id: string): Promise<ItemEntity | null> {
+        const item = await this.findItemById(id);
+
+        if (!item) {
+            return null;
+        }
+
+        return await this.createItemEntityWithExtras(item, {
+            isFavorite: false,
+            includeImageUrl: true,
         });
     }
 }
