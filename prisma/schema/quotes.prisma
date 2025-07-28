@@ -1,0 +1,40 @@
+// Model Quotes
+
+model Quotes {
+  id                  String       @id @default(uuid())
+  provider_id         String
+  name                String       
+  email               String       
+  identification      String       
+  identification_type String       
+  user_id             String?
+  description         String       @db.Text
+  status              String       @default("PENDING")
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @default(now()) @updatedAt
+  
+  provider            Providers    @relation(fields: [provider_id], references: [id])
+  quote_items         QuoteItems[]
+  
+  @@index([provider_id])
+  @@index([email])
+  @@index([status])
+}
+
+// Model QuoteItems
+
+model QuoteItems {
+  id          String   @id @default(uuid())
+  quote_id    String
+  item_id     String?
+  name        String   
+  description String?  
+  quantity    Int      @default(1)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+  
+  quote       Quotes   @relation(fields: [quote_id], references: [id], onDelete: Cascade)
+  item        Items?   @relation(fields: [item_id], references: [id])
+  
+  @@index([quote_id])
+}

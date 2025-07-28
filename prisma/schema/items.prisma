@@ -15,6 +15,7 @@ model Items {
   subcategory     Subcategories? @relation(fields: [id_subcategory], references: [id])
 
   Favorites Favorites[]
+  QuoteItems QuoteItems[]
 }
 
 // Model Favorites
