@@ -16,6 +16,7 @@ import refreshJwtConfig from "./configs/refresh-jwt-config";
 import { CategoryModule } from "./category/category.module";
 import { SubcategoryModule } from "./subcategory/subcategory.module";
 import { PublicRequestModule } from "./public-request/public-request.module";
+import { QuoteModule } from "./quote/quote.module";
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { PublicRequestModule } from "./public-request/public-request.module";
         CategoryModule,
         SubcategoryModule,
         PublicRequestModule,
+        QuoteModule,
         ConfigModule.forRoot({
             isGlobal: true,
             validationSchema: validationSchemaConfig,
