@@ -1,7 +1,8 @@
 import { ParamsDto } from "@app/configs/dtos/params.dto";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { IsOptional, IsString, IsDecimal, IsUUID } from "class-validator";
+import { IsOptional, IsString, IsDecimal, IsUUID, IsEnum } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
+import { ItemType } from "@app/item/interfaces/item.interface";
 
 export class ItemParamDto extends IntersectionType(ParamsDto) {}
 
@@ -12,6 +13,9 @@ export class ItemCreateDto {
     @IsOptional()
     @IsString()
     public description?: string;
+
+    @IsEnum(ItemType)
+    public type: number;
 
     @IsDecimal({ decimal_digits: "2" })
     @IsOptional()
