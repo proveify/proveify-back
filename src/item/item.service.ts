@@ -29,6 +29,7 @@ export class ItemService {
         const item: Prisma.ItemsCreateInput = {
             name: data.name,
             description: data.description,
+            type: data.type,
             price: data.price,
             provider: { connect: { id: provider.id } },
         };

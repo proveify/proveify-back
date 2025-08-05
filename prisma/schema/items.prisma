@@ -4,6 +4,7 @@ model Items {
   id          String    @id @default(uuid())
   name        String
   description String?
+  type        Int       @default(1)
   price       Decimal   @default(0.00) @db.Decimal(10, 2)
   image       String?
   created_at  DateTime  @default(now())
@@ -11,8 +12,8 @@ model Items {
   provider_id String
   provider    Providers @relation(fields: [provider_id], references: [id])
 
-  id_subcategory  String?
-  subcategory     Subcategories? @relation(fields: [id_subcategory], references: [id])
+  id_subcategory String?
+  subcategory    Subcategories? @relation(fields: [id_subcategory], references: [id])
 
   Favorites Favorites[]
 }
