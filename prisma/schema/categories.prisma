@@ -1,12 +1,12 @@
 // Model Categories
 
 model Categories {
-  id          String          @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String?
-  created_at  DateTime        @default(now())
-  updated_at  DateTime        @default(now()) @updatedAt
-  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
   // Relación con subcategorías
   Subcategories Subcategories[]
 }
