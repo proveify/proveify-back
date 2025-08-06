@@ -62,6 +62,7 @@ export class ItemService {
             name: data.name,
             description: data.description,
             price: data.price,
+            type: data.type,
         };
 
         if (data.image && item.image) {
