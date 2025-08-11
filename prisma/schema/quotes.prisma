@@ -29,7 +29,7 @@ model QuoteItems {
   item_id     String?
   name        String   
   description String?  
-  quantity    Int      @default(1)
+  quantity    Int
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now()) @updatedAt
   
