@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import { Prisma, Files as FileModel } from "@prisma/client";
+import { Files as FileModel, Prisma } from "@prisma/client";
 import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
@@ -117,6 +117,9 @@ export class ItemService {
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { id: params?.order_by ?? "desc" },
+            where: {
+                type: params?.type,
+            },
         });
         return results.map((item) => new ItemEntity(item));
     }
@@ -154,7 +157,7 @@ export class ItemService {
         const items = await this.getItems(params);
 
         if (!userId) {
-            const itemsWithImages = await Promise.all(
+            return await Promise.all(
                 items.map(async (item) => {
                     return await this.createItemEntityWithExtras(item, {
                         isFavorite: false,
@@ -162,13 +165,12 @@ export class ItemService {
                     });
                 }),
             );
-            return itemsWithImages;
         }
 
         const favorites = await this.getFavorites(userId, { limit: 1000 });
         const favoriteItemIds = new Set(favorites.map((fav) => fav.item_id));
 
-        const itemsWithFavoritesAndImages = await Promise.all(
+        return await Promise.all(
             items.map(async (item) => {
                 const isFavorite = favoriteItemIds.has(item.id);
                 return await this.createItemEntityWithExtras(item, {
@@ -177,8 +179,6 @@ export class ItemService {
                 });
             }),
         );
-
-        return itemsWithFavoritesAndImages;
     }
 
     public async findItemByIdWithFavoriteInfo(
