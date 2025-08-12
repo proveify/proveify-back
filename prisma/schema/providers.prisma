@@ -8,6 +8,7 @@ model Providers {
   identification      String
   identification_type String
   chamber_commerce    String
+  phone               String?
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
   plan                Plans    @relation(fields: [plan_id], references: [id])

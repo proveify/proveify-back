@@ -8,6 +8,7 @@ model Users {
   user_type           String
   identification      String
   identification_type String
+  phone               String?
   refreshed_token     String?
   created_at          DateTime   @default(now())
   updated_at          DateTime   @default(now()) @updatedAt
