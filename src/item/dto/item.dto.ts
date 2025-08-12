@@ -4,7 +4,11 @@ import { IsOptional, IsString, IsDecimal, IsUUID, IsEnum } from "class-validator
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
 import { ItemType } from "@app/item/interfaces/item.interface";
 
-export class ItemParamDto extends IntersectionType(ParamsDto) {}
+export class ItemParamDto extends IntersectionType(ParamsDto) {
+    @IsOptional()
+    @IsEnum(ItemType)
+    public type?: number;
+}
 
 export class ItemCreateDto {
     @IsString()
