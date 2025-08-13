@@ -12,6 +12,7 @@ export enum ResourceType {
     RUT = "rut",
     CHAMBER_COMMERCE = "chamber_commerce",
     ITEM_IMAGE = "item_image",
+    PROVIDER_PROFILE_PICTURE = "provider_profile_picture",
 }
 
 // Si se agrega un nuevo tipo de recurso, se debe agregar el path correspondiente en el enum ResourceTypePath
@@ -20,4 +21,5 @@ export enum ResourceTypePath {
     "rut" = "providers/rut",
     "chamber_commerce" = "providers/chamber_commerce",
     "item_image" = "providers/item_image",
+    "provider_profile_picture" = "providers/profile_picture",
 }

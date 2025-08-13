@@ -1,9 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { UserService } from "../../../src/user/user.service";
-import { PrismaService } from "../../../src/prisma/prisma.service";
-import { UserNotFoundException } from "../../../src/user/exceptions/user-not-found.exception/user-not-found.exception";
+import { UserService } from "@app/user/user.service";
+import { PrismaService } from "@app/prisma/prisma.service";
+import { UserNotFoundException } from "@app/user/exceptions/user-not-found.exception/user-not-found.exception";
 import { plainToInstance } from "class-transformer";
-import { UserEntity } from "../../../src/user/entities/user.entity";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 const mockPrismaService = {
     users: {
@@ -50,16 +50,17 @@ describe("UserService", () => {
                 Provider: null,
                 created_at: new Date(),
                 updated_at: new Date(),
+                phone: "1234567890",
             };
 
             jest.spyOn(service, "findUserOneById").mockResolvedValue(mockUser);
 
             // Act
             const result = await service.getUserProfile("test-user-id");
-            
+
             // Simular la serialización que ocurriría en una petición real
-            const serialized = plainToInstance(UserEntity, result, { 
-                excludeExtraneousValues: false 
+            const serialized = plainToInstance(UserEntity, result, {
+                excludeExtraneousValues: false,
             });
 
             // Assert
@@ -69,7 +70,7 @@ describe("UserService", () => {
             expect(serialized).not.toHaveProperty("refreshed_token");
             expect(service.findUserOneById).toHaveBeenCalledWith({
                 where: { id: "test-user-id" },
-                include: { Provider: true }
+                include: { Provider: true },
             });
         });
 

@@ -2,24 +2,20 @@ import { UserCreateDto as UserCreateDto } from "@app/user/dto/user.dto";
 import { UserService } from "@app/user/user.service";
 import { HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Providers as ProviderModel, Users as UserModel } from "@prisma/client";
+import { Prisma, Providers as ProviderModel, Users as UserModel } from "@prisma/client";
 import { TokenPayload, UserAuthenticate } from "./interfaces/auth.interface";
-import { ConfigService, ConfigType } from "@nestjs/config";
+import { ConfigType } from "@nestjs/config";
 import { PlanService } from "@app/plan/plan.service";
 import { ProviderService } from "@app/provider/provider.service";
 import { FileService } from "@app/file/file.service";
 import { PlanTypes } from "@app/plan/interfaces/plan.interface";
 import { UserTypes } from "@app/user/interfaces/users";
 
-import {
-    ProviderCreateDto as ProviderCreateDto,
-    ProviderRegisterDto as ProviderRegisterDto,
-} from "@app/provider/dto/provider.dto";
+import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 
 import * as argon2 from "argon2";
 import refreshJwtConfig from "../configs/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
-import { enviromentsConfig } from "@app/configs/base.config";
 import { AuthContextService } from "./auth-context.service";
 
 @Injectable()
@@ -33,7 +29,6 @@ export class AuthService {
         private jwtService: JwtService,
         @Inject(refreshJwtConfig.KEY)
         private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
-        private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
     public async createUser(data: UserCreateDto): Promise<UserModel> {
@@ -50,7 +45,7 @@ export class AuthService {
         return newUser;
     }
 
-    public async createProvider(data: ProviderRegisterDto): Promise<ProviderModel> {
+    public async createProvider(data: ProviderCreateDto): Promise<ProviderModel> {
         const { rut, chamber_commerce, ...fields } = data;
         const userData = {
             ...fields,
@@ -65,7 +60,7 @@ export class AuthService {
             this.fileService.save(chamber_commerce, ResourceType.CHAMBER_COMMERCE),
         ]);
 
-        const providerData: ProviderCreateDto = {
+        const providerData: Prisma.ProvidersCreateInput = {
             name: user.name,
             identification: user.identification,
             identification_type: user.identification_type,
@@ -168,18 +163,5 @@ export class AuthService {
 
     public async singOut(id: string): Promise<void> {
         await this.userService.update(id, { refreshed_token: null });
-    }
-
-    public async setUserDataRequest(tokenPayload: TokenPayload): Promise<void> {
-        const user = await this.userService.findUserOneById({
-            where: { id: tokenPayload.id },
-            include: { Provider: true },
-        });
-
-        if (!user) {
-            throw new HttpException("User not found for store", 404);
-        }
-
-        this.authContextService.setUser(user);
     }
 }

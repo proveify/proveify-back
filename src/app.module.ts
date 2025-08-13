@@ -10,7 +10,7 @@ import { PlanModule } from "./plan/plan.module";
 import { ItemModule } from "./item/item.module";
 import { ConfigModule } from "@nestjs/config";
 import validationSchemaConfig from "./configs/validation-schema.config";
-import { appConfig, enviromentsConfig } from "./configs/base.config";
+import { appConfig, environmentsConfig } from "./configs/base.config";
 import jwtConfig from "./configs/jwt.config";
 import refreshJwtConfig from "./configs/refresh-jwt-config";
 import { CategoryModule } from "./category/category.module";
@@ -39,7 +39,7 @@ import { PublicRequestModule } from "./public-request/public-request.module";
             validationOptions: {
                 allowUnknown: true,
             },
-            load: [appConfig, enviromentsConfig, jwtConfig, refreshJwtConfig],
+            load: [appConfig, environmentsConfig, jwtConfig, refreshJwtConfig],
         }),
     ],
     providers: [],
