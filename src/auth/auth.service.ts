@@ -164,17 +164,4 @@ export class AuthService {
     public async singOut(id: string): Promise<void> {
         await this.userService.update(id, { refreshed_token: null });
     }
-
-    public async setUserDataRequest(tokenPayload: TokenPayload): Promise<void> {
-        const user = await this.userService.findUserOneById({
-            where: { id: tokenPayload.id },
-            include: { Provider: true },
-        });
-
-        if (!user) {
-            throw new HttpException("User not found for store", 404);
-        }
-
-        this.authContextService.setUser(user);
-    }
 }
