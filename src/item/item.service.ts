@@ -213,8 +213,7 @@ export class ItemService {
             }
         }
 
-        const file = await this.fileService.save(image, ResourceType.ITEM_IMAGE);
-        return file;
+        return await this.fileService.save(image, ResourceType.ITEM_IMAGE);
     }
 
     public async addFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
@@ -276,7 +275,7 @@ export class ItemService {
             },
         });
 
-        return favorite ? true : false;
+        return !!favorite;
     }
 
     public async getProviderItems(params?: ItemParamDto): Promise<ItemEntity[]> {
@@ -293,7 +292,7 @@ export class ItemService {
             orderBy: { created_at: params?.order_by ?? "desc" },
         });
 
-        const itemsWithImages = await Promise.all(
+        return await Promise.all(
             results.map(async (item) => {
                 const itemEntity = new ItemEntity(item);
                 return await this.createItemEntityWithExtras(itemEntity, {
@@ -301,14 +300,12 @@ export class ItemService {
                 });
             }),
         );
-
-        return itemsWithImages;
     }
 
     public async getItemsPublic(params?: ItemParamDto): Promise<ItemEntity[]> {
         const items = await this.getItems(params);
 
-        const itemsWithImages = await Promise.all(
+        return await Promise.all(
             items.map(async (item) => {
                 return await this.createItemEntityWithExtras(item, {
                     isFavorite: false,
@@ -316,8 +313,6 @@ export class ItemService {
                 });
             }),
         );
-
-        return itemsWithImages;
     }
 
     public async findItemByIdPublic(id: string): Promise<ItemEntity | null> {

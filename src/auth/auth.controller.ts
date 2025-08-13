@@ -10,7 +10,7 @@ import {
     UserRegisterDto as UserRegisterDto,
     UserCreateDto as UserCreateDto,
 } from "@app/user/dto/user.dto";
-import { ProviderRegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
+import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 import { UserTypes } from "@app/user/interfaces/users";
 import { ApiTags } from "@nestjs/swagger";
 import {
@@ -42,7 +42,7 @@ export class AuthController {
     @RegisterProviderDocumentation()
     @Post("register/provider")
     @FormDataRequest()
-    public async registerProvider(@Body() data: ProviderRegisterDto): Promise<BasicResponseEntity> {
+    public async registerProvider(@Body() data: ProviderCreateDto): Promise<BasicResponseEntity> {
         await this.authService.createProvider(data);
 
         return {

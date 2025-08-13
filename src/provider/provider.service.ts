@@ -5,15 +5,12 @@ import { Providers as ProviderModel, Prisma } from "@prisma/client";
 import { ProviderUpdateDto } from "./dto/provider.dto";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
-import { ConfigService } from "@nestjs/config";
-import { enviromentsConfig } from "@app/configs/base.config";
 
 @Injectable()
 export class ProviderService {
     public constructor(
         private providerPrismaRepository: ProviderPrismaRepository,
         private fileService: FileService,
-        private configService: ConfigService<typeof enviromentsConfig, true>,
     ) {}
 
     public async saveProvider(provider: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
@@ -68,8 +65,29 @@ export class ProviderService {
 
             if (!rut) {
                 rut = await this.fileService.save(data.rut, ResourceType.RUT);
+                providerData.rut = rut.id;
             } else {
                 await this.fileService.update(rut, data.rut, rut.path);
+            }
+        }
+
+        if (data.profile_picture) {
+            let profilePicture = provider.profile_picture
+                ? await this.fileService.getFileById(provider.profile_picture)
+                : null;
+
+            if (!profilePicture) {
+                profilePicture = await this.fileService.save(
+                    data.profile_picture,
+                    ResourceType.PROVIDER_PROFILE_PICTURE,
+                );
+                providerData.profile_picture = profilePicture.id;
+            } else {
+                await this.fileService.update(
+                    profilePicture,
+                    data.profile_picture,
+                    profilePicture.path,
+                );
             }
         }
 
