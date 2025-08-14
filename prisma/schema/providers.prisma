@@ -20,4 +20,5 @@ model Providers {
   Items               Items[]
 
   @@index([email, created_at(sort: Desc)])
+  Quotes Quotes[]
 }
