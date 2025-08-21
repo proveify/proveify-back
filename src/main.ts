@@ -30,12 +30,12 @@ async function bootstrap(): Promise<void> {
     );
 
     const configService = app.get(ConfigService);
-    const appIsprod = configService.get<boolean>("app.isProd")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const isProduction = configService.get<boolean>("app.isProd")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const corsUrlList = configService.get<string[]>("app.corsUrlList")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const port = configService.get<number>("app.port")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
     app.enableCors({
-        origin: appIsprod ? corsUrlList : "*",
+        origin: isProduction ? corsUrlList : "*",
     });
     await app.listen(port);
 }
