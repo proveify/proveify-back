@@ -14,7 +14,7 @@ import { UserTypes } from "@app/user/interfaces/users";
 import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 
 import * as argon2 from "argon2";
-import refreshJwtConfig from "../configs/refresh-jwt-config";
+import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { AuthContextService } from "./auth-context.service";
 

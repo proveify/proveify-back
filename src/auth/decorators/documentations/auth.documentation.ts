@@ -2,7 +2,7 @@ import { applyDecorators } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiBearerAuth, ApiOkResponse } from "@nestjs/swagger";
 import { UserAuthenticate } from "@app/auth/interfaces/auth.interface";
 import { LoginDto } from "@app/auth/dto/auth.dto";
-import { BasicResponseEntity } from "@app/configs/entities/response.entity";
+import { BasicResponseEntity } from "@app/common/entities/response.entity";
 
 export function RegisterDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(

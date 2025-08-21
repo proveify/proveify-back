@@ -1,7 +1,7 @@
 import { applyDecorators } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { QuoteEntity } from "../../entities/quote.entity";
-import { BasicResponseEntity } from "@app/configs/entities/response.entity";
+import { BasicResponseEntity } from "@app/common/entities/response.entity";
 
 export function CreateQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(

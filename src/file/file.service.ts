@@ -8,7 +8,7 @@ import { CloudStorageRepository } from "@app/file/repositories/gcp/cloud-storage
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { ResourceType, ResourceTypePath } from "./interfaces/file-manager.interface";
 import { ConfigService } from "@nestjs/config";
-import { environmentsConfig } from "@app/configs/base.config";
+import { environmentsConfig } from "@app/common/base.config";
 
 @Injectable()
 export class FileService {

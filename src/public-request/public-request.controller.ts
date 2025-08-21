@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
-import { BasicResponseEntity } from "@app/configs/entities/response.entity";
+import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { PublicRequestService } from "./public-request.service";
 import {
     CreatePublicRequestDto,
