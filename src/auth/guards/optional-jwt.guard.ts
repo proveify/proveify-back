@@ -1,8 +1,9 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { TokenPayload } from "../interfaces/auth.interface";
 
 @Injectable()
-export class OptionalJwtAuthGuard extends AuthGuard("jwt") {
+export class OptionalJwtAuthGuard extends AuthGuard("optional-jwt") {
     public canActivate(context: ExecutionContext): boolean {
         try {
             return super.canActivate(context) as boolean;
@@ -11,10 +12,12 @@ export class OptionalJwtAuthGuard extends AuthGuard("jwt") {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public handleRequest(err: any, user: any): any {
+    public handleRequest<TUser = TokenPayload | null>(
+        err: Error | null,
+        user: TUser,
+    ): TUser | null {
         if (err || !user) {
-            return null;
+            return null as TUser | null;
         }
         return user;
     }
