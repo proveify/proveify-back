@@ -5,6 +5,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { AuthController } from "./auth.controller";
 import { PassportModule } from "@nestjs/passport";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { OptionalJwtStrategy } from "./strategies/optional-jwt.strategy";
 import { LocalStrategy } from "./strategies/local.strategy";
 import { RefreshJwtStrategy } from "./strategies/refresh-jwt.strategy";
 import { ParameterModule } from "@app/parameter/parameter.module";
@@ -16,7 +17,14 @@ import { AuthContextService } from "./auth-context.service";
 
 @Global()
 @Module({
-    providers: [AuthService, JwtStrategy, LocalStrategy, RefreshJwtStrategy, AuthContextService],
+    providers: [
+        AuthService,
+        JwtStrategy,
+        OptionalJwtStrategy,
+        LocalStrategy,
+        RefreshJwtStrategy,
+        AuthContextService,
+    ],
     imports: [
         UserModule,
         ParameterModule,

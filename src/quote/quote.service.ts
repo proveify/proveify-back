@@ -11,7 +11,10 @@ export class QuoteService {
         private authContextService: AuthContextService,
     ) {}
 
-    public async create(createDto: CreateQuoteDto): Promise<QuoteModel> {
+    public async create(
+        createDto: CreateQuoteDto,
+        authenticatedUserId?: string,
+    ): Promise<QuoteModel> {
         const providerExists = await this.quotePrismaRepository.findProviderById(
             createDto.provider_id,
         );
@@ -19,12 +22,15 @@ export class QuoteService {
             throw new HttpException("Provider not found", HttpStatus.NOT_FOUND);
         }
 
-        let userId: string | null = null;
-        try {
-            const user = this.authContextService.getUser();
-            userId = user.id;
-        } catch {
-            console.log("Anonymous user creating quote");
+        let userId: string | null = authenticatedUserId ?? null;
+
+        if (!userId) {
+            try {
+                const user = this.authContextService.getUser();
+                userId = user.id;
+            } catch {
+                console.log("Anonymous user creating quote");
+            }
         }
 
         const quoteData: Prisma.QuotesCreateInput = {
