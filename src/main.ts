@@ -16,7 +16,41 @@ async function bootstrap(): Promise<void> {
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("docs", app, document);
+    SwaggerModule.setup("docs", app, document, {
+        swaggerOptions: {
+            docExpansion: "none",
+            filter: true,
+            showRequestDuration: true,
+            showCommonExtensions: true,
+            displayOperationId: true,
+            displayRequestDuration: true,
+            deepLinking: true,
+            defaultModelsExpandDepth: 1,
+            defaultModelRendering: "example",
+            tryItOutEnabled: true,
+            persistAuthorization: true,
+            tagsSorter: "alpha",
+            operationsSorter: "alpha",
+            syntaxHighlight: {
+                activate: true,
+                theme: "agate",
+            },
+        },
+        customCss: `
+        .swagger-ui .topbar { display: none }
+        .swagger-ui { 
+            background-color: #fafafa; 
+        }
+        .swagger-ui .info .title { 
+            color: #3b4151; 
+            font-size: 36px; 
+        }
+        .swagger-ui .scheme-container { 
+            background: #fff; 
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.15); 
+        }
+        `,
+    });
 
     app.useGlobalPipes(
         new ValidationPipe({
