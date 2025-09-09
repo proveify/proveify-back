@@ -51,7 +51,4 @@ export class UserCreateDto {
     public phone?: string;
 }
 
-export class UserUpdateDto extends PartialType(UserCreateDto) {
-    @IsString()
-    public refreshed_token?: string | null;
-}
+export class UserUpdateDto extends PartialType(UserCreateDto) {}

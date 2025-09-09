@@ -1,5 +1,4 @@
-import { IsObject, IsOptional } from "class-validator";
-import { Prisma } from "@prisma/client";
+import { IsOptional } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
 import { ApiProperty, ApiSchema, IntersectionType, PartialType } from "@nestjs/swagger";
 import { UserCreateDto } from "@app/user/dto/user.dto";
@@ -23,14 +22,6 @@ export class ProviderCreateDto extends IntersectionType(UserCreateDto) {
     @IsFile()
     @HasMimeType(["application/pdf"])
     public chamber_commerce: MemoryStoredFile;
-
-    @IsOptional()
-    @IsObject()
-    public user: Prisma.UsersCreateNestedOneWithoutProviderInput;
-
-    @IsOptional()
-    @IsObject()
-    public plan: Prisma.PlansCreateNestedOneWithoutProvidersInput;
 
     @ApiProperty({
         description: "Debe ser un archivo en formato JPEG o PNG.",
