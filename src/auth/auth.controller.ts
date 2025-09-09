@@ -1,17 +1,12 @@
-import { Controller, Post, Body, UseGuards, Req } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Req, HttpCode, HttpStatus } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { TokenPayload, UserAuthenticate } from "./interfaces/auth.interface";
+import { RequestAuthenticated, UserAuthenticate } from "./interfaces/auth.interface";
 import { LocalAuthGuard } from "./guards/local.guard";
-import { Request } from "express";
 import { RefreshJwtAuthGuard } from "./guards/refresh-jwt.guard";
 import { JwtAuthGuard } from "./guards/jwt.guard";
 import { FormDataRequest } from "nestjs-form-data";
-import {
-    UserRegisterDto as UserRegisterDto,
-    UserCreateDto as UserCreateDto,
-} from "@app/user/dto/user.dto";
-import { ProviderRegisterDto as ProviderRegisterDto } from "@app/provider/dto/provider.dto";
-import { UserTypes } from "@app/user/interfaces/users";
+import { UserCreateDto as UserCreateDto } from "@app/user/dto/user.dto";
+import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 import { ApiTags } from "@nestjs/swagger";
 import {
     LoginDocumentation,
@@ -20,7 +15,7 @@ import {
     RegisterDocumentation,
     RegisterProviderDocumentation,
 } from "@app/auth/decorators/documentations/auth.documentation";
-import { BasicResponseEntity } from "@app/configs/entities/response.entity";
+import { BasicResponseEntity } from "@app/common/entities/response.entity";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -29,12 +24,11 @@ export class AuthController {
 
     @RegisterDocumentation()
     @Post("register")
-    public async register(@Body() data: UserRegisterDto): Promise<BasicResponseEntity> {
-        const userDto: UserCreateDto = Object.assign({}, data, { user_type: UserTypes.CLIENT });
-        await this.authService.createUser(userDto);
+    public async register(@Body() data: UserCreateDto): Promise<BasicResponseEntity> {
+        await this.authService.createClient(data);
 
         return {
-            code: 200,
+            code: HttpStatus.CREATED,
             message: "Register successfully",
         };
     }
@@ -42,35 +36,36 @@ export class AuthController {
     @RegisterProviderDocumentation()
     @Post("register/provider")
     @FormDataRequest()
-    public async registerProvider(@Body() data: ProviderRegisterDto): Promise<BasicResponseEntity> {
+    public async registerProvider(@Body() data: ProviderCreateDto): Promise<BasicResponseEntity> {
         await this.authService.createProvider(data);
 
         return {
-            code: 200,
+            code: HttpStatus.CREATED,
             message: "Register successfully",
         };
     }
 
     @LoginDocumentation()
     @UseGuards(LocalAuthGuard)
+    @HttpCode(HttpStatus.OK)
     @Post("login")
-    public async login(@Req() req: Request & { user: TokenPayload }): Promise<UserAuthenticate> {
+    public async login(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
         return this.authService.singIn(req.user.id);
     }
 
     @RefreshTokenDocumentation()
     @UseGuards(RefreshJwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
     @Post("refresh")
-    public async refresh(@Req() req: Request & { user: TokenPayload }): Promise<UserAuthenticate> {
+    public async refresh(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
         return this.authService.refreshToken(req.user.id);
     }
 
     @LogOutDocumentation()
     @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
     @Post("logout")
-    public async logout(
-        @Req() req: Request & { user: TokenPayload },
-    ): Promise<BasicResponseEntity> {
+    public async logout(@Req() req: RequestAuthenticated): Promise<BasicResponseEntity> {
         await this.authService.singOut(req.user.id);
 
         return {

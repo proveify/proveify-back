@@ -9,13 +9,14 @@ import { NestjsFormDataModule } from "nestjs-form-data";
 import { PlanModule } from "./plan/plan.module";
 import { ItemModule } from "./item/item.module";
 import { ConfigModule } from "@nestjs/config";
-import validationSchemaConfig from "./configs/validation-schema.config";
-import { appConfig, enviromentsConfig } from "./configs/base.config";
-import jwtConfig from "./configs/jwt.config";
-import refreshJwtConfig from "./configs/refresh-jwt-config";
+import validationSchemaConfig from "@app/common/validation-schema.config";
+import { appConfig, environmentsConfig } from "@app/common/base.config";
+import jwtConfig from "@app/common/jwt.config";
+import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { CategoryModule } from "./category/category.module";
 import { SubcategoryModule } from "./subcategory/subcategory.module";
 import { PublicRequestModule } from "./public-request/public-request.module";
+import { QuoteModule } from "./quote/quote.module";
 
 @Module({
     imports: [
@@ -33,13 +34,14 @@ import { PublicRequestModule } from "./public-request/public-request.module";
         CategoryModule,
         SubcategoryModule,
         PublicRequestModule,
+        QuoteModule,
         ConfigModule.forRoot({
             isGlobal: true,
             validationSchema: validationSchemaConfig,
             validationOptions: {
                 allowUnknown: true,
             },
-            load: [appConfig, enviromentsConfig, jwtConfig, refreshJwtConfig],
+            load: [appConfig, environmentsConfig, jwtConfig, refreshJwtConfig],
         }),
     ],
     providers: [],

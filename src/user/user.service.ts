@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma, Users as UserModel } from "@prisma/client";
 import { UserPrismaRepository } from "./repositories/user-prisma.repository";
-import { UserUpdateDto } from "./dto/user.dto";
 import { UserNotFoundException } from "./exceptions/user-not-found.exception/user-not-found.exception";
 import { UserEntity } from "./entities/user.entity";
 
@@ -23,8 +22,9 @@ export class UserService {
         return this.userPrismaRepository.findUniqueUserById(args);
     }
 
-    public async update(id: string, userData: UserUpdateDto): Promise<UserModel> {
-        return this.userPrismaRepository.updateUser(id, userData);
+    public async update(id: string, userData: Prisma.UsersUpdateInput): Promise<UserEntity> {
+        const user = await this.userPrismaRepository.updateUser(id, userData);
+        return new UserEntity(user);
     }
 
     public async getUserProfile(id: string): Promise<UserEntity> {

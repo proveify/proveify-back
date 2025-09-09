@@ -1,38 +1,10 @@
-import { IsObject, IsOptional, IsString } from "class-validator";
-import { Prisma } from "@prisma/client";
+import { IsOptional } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
-import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { UserRegisterDto } from "@app/user/dto/user.dto";
+import { ApiProperty, ApiSchema, IntersectionType, PartialType } from "@nestjs/swagger";
+import { UserCreateDto } from "@app/user/dto/user.dto";
 
-export class ProviderCreateDto {
-    @IsString()
-    public name: string;
-
-    @IsString()
-    public email: string;
-
-    @IsString()
-    public rut: string;
-
-    @IsString()
-    public chamber_commerce: string;
-
-    @IsString()
-    public identification: string;
-
-    @IsString()
-    public identification_type: string;
-
-    @IsOptional()
-    @IsObject()
-    public user: Prisma.UsersCreateNestedOneWithoutProviderInput;
-
-    @IsOptional()
-    @IsObject()
-    public plan: Prisma.PlansCreateNestedOneWithoutProvidersInput;
-}
-
-export class ProviderRegisterDto extends IntersectionType(UserRegisterDto) {
+@ApiSchema({ name: "ProviderCreate" })
+export class ProviderCreateDto extends IntersectionType(UserCreateDto) {
     @ApiProperty({
         description: "Debe ser un archivo en formato PDF.",
         type: "string",
@@ -50,6 +22,16 @@ export class ProviderRegisterDto extends IntersectionType(UserRegisterDto) {
     @IsFile()
     @HasMimeType(["application/pdf"])
     public chamber_commerce: MemoryStoredFile;
+
+    @ApiProperty({
+        description: "Debe ser un archivo en formato JPEG o PNG.",
+        type: "string",
+        format: "binary",
+    })
+    @IsFile()
+    @IsOptional()
+    @HasMimeType(["image/jpeg", "image/png"])
+    public profile_picture?: MemoryStoredFile;
 }
 
-export class ProviderUpdateDto extends PartialType(ProviderRegisterDto) {}
+export class ProviderUpdateDto extends PartialType(ProviderCreateDto) {}

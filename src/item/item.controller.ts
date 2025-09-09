@@ -16,6 +16,7 @@ import {
 import { ItemService } from "./item.service";
 import { FormDataRequest } from "nestjs-form-data";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
+import { OptionalJwtAuthGuard } from "@app/auth/guards/optional-jwt.guard";
 import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { ItemEntity } from "./entities/item.entity";
 import { FavoriteEntity } from "./entities/favorite.entity";
@@ -72,40 +73,33 @@ export class ItemController {
         return await this.itemService.getProviderItems(params);
     }
 
+    @UseGuards(OptionalJwtAuthGuard)
     @GetItemsDocumentation()
     @Get()
-    public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
+    public async getItems(
+        @Query() params: ItemParamDto,
+        @Req() req: Request & { user?: TokenPayload },
+    ): Promise<ItemEntity[]> {
+        if (req.user) {
+            return await this.itemService.getItemsWithFavoriteInfo(params, req.user.id);
+        }
         return await this.itemService.getItemsPublic(params);
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Get("authenticated")
-    public async getItemsAuthenticated(
-        @Query() params: ItemParamDto,
-        @Req() req: Request & { user: TokenPayload },
-    ): Promise<ItemEntity[]> {
-        return await this.itemService.getItemsWithFavoriteInfo(params, req.user.id);
-    }
-
+    @UseGuards(OptionalJwtAuthGuard)
     @GetItemDocumentation()
     @Get(":id")
-    public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
-        const item = await this.itemService.findItemByIdPublic(params.id);
-
-        if (!item) {
-            throw new HttpException("Item not found", 404);
-        }
-
-        return item;
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @Get(":id/authenticated")
-    public async getItemByIdAuthenticated(
+    public async getItemById(
         @Param() params: { id: string },
-        @Req() req: Request & { user: TokenPayload },
+        @Req() req: Request & { user?: TokenPayload },
     ): Promise<ItemEntity> {
-        const item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, req.user.id);
+        let item: ItemEntity | null;
+
+        if (req.user) {
+            item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, req.user.id);
+        } else {
+            item = await this.itemService.findItemByIdPublic(params.id);
+        }
 
         if (!item) {
             throw new HttpException("Item not found", 404);

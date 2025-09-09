@@ -6,7 +6,7 @@ import {
 import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { MemoryStoredFile } from "nestjs-form-data";
 import { ConfigService } from "@nestjs/config";
-import { appConfig } from "@app/configs/base.config";
+import { appConfig } from "@app/common/base.config";
 
 @Injectable()
 export class CloudStorageRepository implements FileManagerInterface<GoogleFileConfigs> {

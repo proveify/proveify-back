@@ -10,7 +10,7 @@
         "gcp-build": "npm run build",
         "start": "nest start",
         "start:dev": "nest start --watch",
-        "start:debug": "nest start --debug --watch",
+        "start:debug": "nest start --debug 0.0.0.0:9229 --watch",
         "start:prod": "node dist/src/main",
         "lint": "eslint src/** --fix && prettier src/**/*.ts --write",
         "test": "jest",
@@ -25,8 +25,6 @@
         "compose:seed": "docker compose exec app npx prisma db seed"
     },
     "dependencies": {
-        "@azure/identity": "^4.7.0",
-        "@azure/storage-blob": "^12.26.0",
         "@google-cloud/storage": "^7.15.2",
         "@nestjs/common": "^11.0.1",
         "@nestjs/config": "^4.0.0",

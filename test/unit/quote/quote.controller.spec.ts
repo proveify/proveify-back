@@ -1,0 +1,423 @@
+import { Test, TestingModule } from "@nestjs/testing";
+import { HttpException, HttpStatus, ClassSerializerInterceptor } from "@nestjs/common";
+import { JwtAuthGuard } from "../../../src/auth/guards/jwt.guard";
+import { Reflector } from "@nestjs/core";
+import { QuoteController } from "../../../src/quote/quote.controller";
+import { QuoteService } from "../../../src/quote/quote.service";
+import { QuoteEntity } from "../../../src/quote/entities/quote.entity";
+import { plainToInstance } from "class-transformer";
+
+const mockJwtAuthGuard = {
+    canActivate: jest.fn().mockImplementation((context) => {
+        const req = context.switchToHttp().getRequest();
+        req.user = { id: "test-user-id" };
+        return true;
+    }),
+};
+
+const mockQuoteService = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    findMyQuotes: jest.fn(),
+    update: jest.fn(),
+    updateStatus: jest.fn(),
+    remove: jest.fn(),
+};
+
+describe("QuoteController", () => {
+    let controller: QuoteController;
+    let quoteService: QuoteService;
+
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [QuoteController],
+            providers: [
+                {
+                    provide: QuoteService,
+                    useValue: mockQuoteService,
+                },
+                {
+                    provide: Reflector,
+                    useValue: {
+                        getAllAndOverride: jest.fn(),
+                    },
+                },
+            ],
+        })
+            .overrideGuard(JwtAuthGuard)
+            .useValue(mockJwtAuthGuard)
+            .overrideInterceptor(ClassSerializerInterceptor)
+            .useValue({
+                intercept: jest.fn().mockImplementation((_, next) => next.handle()),
+            })
+            .compile();
+
+        controller = module.get<QuoteController>(QuoteController);
+        quoteService = module.get<QuoteService>(QuoteService);
+
+        jest.clearAllMocks();
+    });
+
+    it("should be defined", () => {
+        expect(controller).toBeDefined();
+    });
+
+    describe("create", () => {
+        it("should create a quote successfully", async () => {
+            const createDto = {
+                provider_id: "provider-1",
+                name: "John Doe",
+                email: "john@example.com",
+                identification: "12345678",
+                identification_type: "CC",
+                description: "Need web development services",
+                quote_items: [
+                    {
+                        name: "Website Development",
+                        description: "Corporate website",
+                        quantity: 1,
+                    },
+                ],
+            };
+
+            const createdQuote = {
+                id: "quote-1",
+                ...createDto,
+                status: "PENDING",
+                user_id: null,
+                created_at: new Date(),
+                updated_at: new Date(),
+                provider: {
+                    id: "provider-1",
+                    name: "Test Provider",
+                },
+                quote_items: [
+                    {
+                        id: "item-1",
+                        quote_id: "quote-1",
+                        item_id: null,
+                        name: "Website Development",
+                        description: "Corporate website",
+                        quantity: 1,
+                        created_at: new Date(),
+                        updated_at: new Date(),
+                    },
+                ],
+            };
+
+            mockQuoteService.create.mockResolvedValue(createdQuote);
+
+            const result = await controller.create(createDto);
+            const serialized = plainToInstance(QuoteEntity, result, {
+                excludeExtraneousValues: false,
+            });
+
+            expect(serialized).toBeDefined();
+            expect(serialized.id).toBe("quote-1");
+            expect(serialized.provider_id).toBe(createDto.provider_id);
+            expect(serialized.name).toBe(createDto.name);
+            expect(quoteService.create).toHaveBeenCalledWith(createDto);
+        });
+
+        it("should throw exception when provider not found", async () => {
+            const createDto = {
+                provider_id: "non-existent-provider",
+                name: "John Doe",
+                email: "john@example.com",
+                identification: "12345678",
+                identification_type: "CC",
+                description: "Need services",
+                quote_items: [
+                    {
+                        name: "Service",
+                        quantity: 1,
+                    },
+                ],
+            };
+
+            mockQuoteService.create.mockRejectedValue(
+                new HttpException("Provider not found", HttpStatus.NOT_FOUND),
+            );
+
+            await expect(controller.create(createDto)).rejects.toThrow(
+                new HttpException("Provider not found", HttpStatus.NOT_FOUND),
+            );
+        });
+    });
+
+    describe("findAll", () => {
+        it("should return an array of quotes", async () => {
+            const mockQuotes = [
+                {
+                    id: "quote-1",
+                    provider_id: "provider-1",
+                    name: "John Doe",
+                    email: "john@example.com",
+                    identification: "12345678",
+                    identification_type: "CC",
+                    description: "Need development",
+                    status: "PENDING",
+                    user_id: null,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    provider: { id: "provider-1", name: "Test Provider" },
+                    quote_items: [],
+                },
+                {
+                    id: "quote-2",
+                    provider_id: "provider-2",
+                    name: "Jane Smith",
+                    email: "jane@example.com",
+                    identification: "87654321",
+                    identification_type: "CC",
+                    description: "Need design",
+                    status: "QUOTED",
+                    user_id: "user-1",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    provider: { id: "provider-2", name: "Design Provider" },
+                    quote_items: [],
+                },
+            ];
+
+            mockQuoteService.findAll.mockResolvedValue(mockQuotes);
+
+            const result = await controller.findAll({});
+
+            expect(result).toHaveLength(2);
+            expect(result[0].id).toBe("quote-1");
+            expect(result[1].id).toBe("quote-2");
+            expect(quoteService.findAll).toHaveBeenCalledWith({});
+        });
+
+        it("should return filtered quotes by provider", async () => {
+            const params = { provider_id: "provider-1" };
+            const mockQuotes = [
+                {
+                    id: "quote-1",
+                    provider_id: "provider-1",
+                    name: "John Doe",
+                    email: "john@example.com",
+                    status: "PENDING",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    provider: { id: "provider-1", name: "Test Provider" },
+                    quote_items: [],
+                },
+            ];
+
+            mockQuoteService.findAll.mockResolvedValue(mockQuotes);
+
+            const result = await controller.findAll(params);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].provider_id).toBe("provider-1");
+            expect(quoteService.findAll).toHaveBeenCalledWith(params);
+        });
+    });
+
+    describe("findOne", () => {
+        it("should return a quote when it exists", async () => {
+            const mockQuote = {
+                id: "test-quote-id",
+                provider_id: "provider-1",
+                name: "John Doe",
+                email: "john@example.com",
+                identification: "12345678",
+                identification_type: "CC",
+                description: "Test description",
+                status: "PENDING",
+                user_id: null,
+                created_at: new Date(),
+                updated_at: new Date(),
+                provider: { id: "provider-1", name: "Test Provider" },
+                quote_items: [],
+            };
+
+            mockQuoteService.findOne.mockResolvedValue(mockQuote);
+
+            const result = await controller.findOne("test-quote-id");
+            const serialized = plainToInstance(QuoteEntity, result, {
+                excludeExtraneousValues: false,
+            });
+
+            expect(serialized).toBeDefined();
+            expect(serialized.id).toBe("test-quote-id");
+            expect(quoteService.findOne).toHaveBeenCalledWith("test-quote-id");
+        });
+
+        it("should throw exception when quote does not exist", async () => {
+            mockQuoteService.findOne.mockResolvedValue(null);
+
+            await expect(controller.findOne("non-existent-id")).rejects.toThrow(
+                new HttpException("Quote not found", HttpStatus.NOT_FOUND),
+            );
+        });
+    });
+
+    describe("findMyQuotes", () => {
+        it("should return provider's own quotes", async () => {
+            const mockQuotes = [
+                {
+                    id: "quote-1",
+                    provider_id: "provider-1",
+                    name: "Customer Request",
+                    email: "customer@example.com",
+                    status: "PENDING",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    provider: { id: "provider-1", name: "My Provider" },
+                    quote_items: [],
+                },
+            ];
+
+            mockQuoteService.findMyQuotes.mockResolvedValue(mockQuotes);
+
+            const result = await controller.findMyQuotes({});
+
+            expect(result).toHaveLength(1);
+            expect(result[0].id).toBe("quote-1");
+            expect(quoteService.findMyQuotes).toHaveBeenCalledWith({});
+        });
+
+        it("should throw exception when user has no provider profile", async () => {
+            mockQuoteService.findMyQuotes.mockRejectedValue(
+                new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN),
+            );
+
+            await expect(controller.findMyQuotes({})).rejects.toThrow(
+                new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN),
+            );
+        });
+    });
+
+    describe("update", () => {
+        it("should update and return a quote when user is owner", async () => {
+            const updateDto = {
+                status: "QUOTED",
+                quote_items: [
+                    {
+                        name: "Updated Service",
+                        description: "Updated description",
+                        quantity: 2,
+                    },
+                ],
+            };
+
+            const updatedQuote = {
+                id: "test-quote-id",
+                provider_id: "provider-1",
+                name: "John Doe",
+                email: "john@example.com",
+                status: "QUOTED",
+                created_at: new Date(),
+                updated_at: new Date(),
+                provider: { id: "provider-1", name: "Test Provider" },
+                quote_items: [
+                    {
+                        id: "item-1",
+                        quote_id: "test-quote-id",
+                        name: "Updated Service",
+                        description: "Updated description",
+                        quantity: 2,
+                        created_at: new Date(),
+                        updated_at: new Date(),
+                    },
+                ],
+            };
+
+            mockQuoteService.update.mockResolvedValue(updatedQuote);
+
+            const result = await controller.update("test-quote-id", updateDto);
+            const serialized = plainToInstance(QuoteEntity, result, {
+                excludeExtraneousValues: false,
+            });
+
+            expect(serialized).toBeDefined();
+            expect(serialized.id).toBe("test-quote-id");
+            expect(serialized.status).toBe("QUOTED");
+            expect(quoteService.update).toHaveBeenCalledWith("test-quote-id", updateDto);
+        });
+
+        it("should throw exception when user is not owner", async () => {
+            const updateDto = { status: "QUOTED" };
+
+            mockQuoteService.update.mockRejectedValue(
+                new HttpException("You can only update your own quotes", HttpStatus.FORBIDDEN),
+            );
+
+            await expect(controller.update("test-quote-id", updateDto)).rejects.toThrow(
+                HttpException,
+            );
+        });
+    });
+
+    describe("updateStatus", () => {
+        it("should update quote status successfully", async () => {
+            const status = "QUOTED";
+            const updatedQuote = {
+                id: "test-quote-id",
+                provider_id: "provider-1",
+                name: "John Doe",
+                email: "john@example.com",
+                status: "QUOTED",
+                created_at: new Date(),
+                updated_at: new Date(),
+                provider: { id: "provider-1", name: "Test Provider" },
+                quote_items: [],
+            };
+
+            mockQuoteService.updateStatus.mockResolvedValue(updatedQuote);
+
+            const result = await controller.updateStatus("test-quote-id", { status });
+
+            expect(result.status).toBe("QUOTED");
+            expect(quoteService.updateStatus).toHaveBeenCalledWith("test-quote-id", status);
+        });
+
+        it("should throw exception when quote not found", async () => {
+            mockQuoteService.updateStatus.mockRejectedValue(
+                new HttpException("Quote not found", HttpStatus.NOT_FOUND),
+            );
+
+            await expect(
+                controller.updateStatus("non-existent-id", { status: "QUOTED" }),
+            ).rejects.toThrow(HttpException);
+        });
+    });
+
+    describe("remove", () => {
+        it("should delete and return success message when user is owner", async () => {
+            const deletedQuote = {
+                id: "quote-to-delete",
+                provider_id: "provider-1",
+                name: "Quote",
+                email: "test@example.com",
+                status: "PENDING",
+                created_at: new Date(),
+                updated_at: new Date(),
+                provider: { id: "provider-1", name: "Test Provider" },
+                quote_items: [],
+            };
+
+            mockQuoteService.remove.mockResolvedValue(deletedQuote);
+
+            const result = await controller.remove("quote-to-delete");
+
+            expect(result).toEqual({
+                code: 200,
+                message: "Quote deleted successfully",
+            });
+            expect(quoteService.remove).toHaveBeenCalledWith("quote-to-delete");
+        });
+
+        it("should throw exception when user is not owner", async () => {
+            mockQuoteService.remove.mockRejectedValue(
+                new HttpException("You can only delete your own quotes", HttpStatus.FORBIDDEN),
+            );
+
+            await expect(controller.remove("test-quote-id")).rejects.toThrow(HttpException);
+        });
+    });
+});

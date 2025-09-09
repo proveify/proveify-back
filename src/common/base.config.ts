@@ -1,7 +1,7 @@
 import { registerAs } from "@nestjs/config";
 
-export const enviromentsConfig = registerAs("enviroments", () => ({
-    enviroment: process.env.APP_ENV,
+export const environmentsConfig = registerAs("environments", () => ({
+    environment: process.env.APP_ENV,
     appIsProd: process.env.APP_ENV === "production",
     appIsTesting: process.env.APP_ENV === "testing",
     AppIsDevelopment: process.env.APP_ENV === "development",
