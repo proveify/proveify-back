@@ -1,4 +1,4 @@
-import { ParamsDto } from "@app/configs/dtos/params.dto";
+import { ParamsDto } from "@app/common/dtos/params.dto";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import { IsOptional, IsString, IsDecimal, IsUUID, IsEnum } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";

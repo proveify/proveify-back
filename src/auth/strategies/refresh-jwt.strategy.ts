@@ -6,7 +6,7 @@ import { Request } from "express";
 import { RefreshTokenPayload, TokenPayload } from "../interfaces/auth.interface";
 import { AuthService } from "../auth.service";
 
-import refreshJwtConfig from "../../configs/refresh-jwt-config";
+import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { ContextIdFactory, ModuleRef } from "@nestjs/core";
 
 @Injectable()

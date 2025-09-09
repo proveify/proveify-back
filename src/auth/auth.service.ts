@@ -14,7 +14,7 @@ import { UserTypes } from "@app/user/interfaces/users";
 import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 
 import * as argon2 from "argon2";
-import refreshJwtConfig from "../configs/refresh-jwt-config";
+import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { AuthContextService } from "./auth-context.service";
 
@@ -31,15 +31,23 @@ export class AuthService {
         private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
     ) {}
 
-    public async createUser(data: UserCreateDto): Promise<UserModel> {
+    public async createUser(data: Prisma.UsersCreateInput): Promise<UserModel> {
+        data.password = await this.generatePasswordHash(data.password);
+        return await this.userService.saveUser(data);
+    }
+
+    public async createClient(data: UserCreateDto): Promise<UserModel> {
         const user = await this.userService.findUserOneByEmail(data.email);
 
         if (user) {
             throw new HttpException("Email already used", 400);
         }
 
-        data.password = await this.generatePasswordHash(data.password);
-        const newUser: UserModel = await this.userService.saveUser(data);
+        const userData: Prisma.UsersCreateInput = Object.assign({}, data, {
+            user_type: UserTypes.CLIENT,
+        });
+
+        const newUser: UserModel = await this.createUser(userData);
         this.authContextService.setUser(newUser);
 
         return newUser;
@@ -47,10 +55,9 @@ export class AuthService {
 
     public async createProvider(data: ProviderCreateDto): Promise<ProviderModel> {
         const { rut, chamber_commerce, ...fields } = data;
-        const userData = {
-            ...fields,
+        const userData: Prisma.UsersCreateInput = Object.assign({}, fields, {
             user_type: UserTypes.PROVIDER,
-        } as UserCreateDto;
+        });
 
         const user = await this.createUser(userData);
         const plan = await this.planService.getPlanByKey(PlanTypes.NONE);

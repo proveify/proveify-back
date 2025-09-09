@@ -7,6 +7,7 @@ services:
             - NODE_ENV=${APP_ENV}
         ports:
             - ${APP_PORT}:${APP_PORT}
+            - "9229:9229"
         volumes:
             - ./src:/var/app/src
             - ./test:/var/app/test
@@ -21,6 +22,10 @@ services:
             - database
         networks:
             - proveify-bridge
+        command:
+          - npm
+          - run
+          - start:debug
     database:
         image: mysql:8.0-debian
         env_file:

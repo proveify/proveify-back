@@ -1,4 +1,4 @@
-import { ParamsDto } from "@app/configs/dtos/params.dto";
+import { ParamsDto } from "@app/common/dtos/params.dto";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import {
     IsEmail,

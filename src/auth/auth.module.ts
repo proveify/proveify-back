@@ -12,7 +12,7 @@ import { ParameterModule } from "@app/parameter/parameter.module";
 
 import { PlanModule } from "@app/plan/plan.module";
 import { ProviderModule } from "@app/provider/provider.module";
-import jwtConfig from "@app/configs/jwt.config";
+import jwtConfig from "@app/common/jwt.config";
 import { AuthContextService } from "./auth-context.service";
 
 @Global()

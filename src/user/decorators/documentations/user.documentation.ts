@@ -11,3 +11,11 @@ export function GetUserProfileDocumentation(): MethodDecorator & ClassDecorator 
         ApiBearerAuth(),
     );
 }
+
+export function UpdateUserDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({ summary: "Update logged user information" }),
+        ApiResponse({ status: 200, type: UserEntity, description: "User profile data" }),
+        ApiResponse({ status: 401, description: "Unauthorized" }),
+    );
+}

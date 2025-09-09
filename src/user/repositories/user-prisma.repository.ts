@@ -47,4 +47,14 @@ export class UserPrismaRepository {
             },
         });
     }
+
+    public async createUserWithProvider(data: Prisma.UsersCreateInput): Promise<UserModel> {
+        return this.prisma.users.create({
+            data,
+            include: {
+                Provider: true,
+                Files: true,
+            },
+        });
+    }
 }

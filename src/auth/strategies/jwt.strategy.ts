@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { TokenPayload } from "../interfaces/auth.interface";
 import { ConfigService } from "@nestjs/config";
 
-import jwtConfig from "../../configs/jwt.config";
+import jwtConfig from "@app/common/jwt.config";
 import { AuthContextService } from "../auth-context.service";
 import { ContextIdFactory, ModuleRef } from "@nestjs/core";
 
