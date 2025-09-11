@@ -1,13 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
 import type { Providers as ProviderModel, Prisma } from "@prisma/client";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
+import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
 
 @Injectable()
-export class ProviderPrismaRepository {
-    public constructor(private prisma: PrismaService) {}
+export class ProviderPrismaRepository implements PrismaRepository {
+    public constructor(
+        private readonly prisma: PrismaService,
+        private readonly transactionContext: TransactionContextService,
+    ) {}
+
+    public getClient(): Prisma.TransactionClient {
+        return this.transactionContext.getTransaction() ?? this.prisma;
+    }
 
     public async createProvider(data: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
-        return this.prisma.providers.create({
+        const prisma = this.getClient();
+        return prisma.providers.create({
             data,
             include: {
                 plan: true,
@@ -22,7 +32,8 @@ export class ProviderPrismaRepository {
         skip?: number,
         orderBy?: Prisma.ProvidersOrderByWithRelationInput,
     ): Promise<ProviderModel[]> {
-        return this.prisma.providers.findMany({
+        const prisma = this.getClient();
+        return prisma.providers.findMany({
             where,
             take,
             skip,
@@ -35,7 +46,8 @@ export class ProviderPrismaRepository {
     }
 
     public async findUniqueProvider(id: string): Promise<ProviderModel | null> {
-        return this.prisma.providers.findUnique({
+        const prisma = this.getClient();
+        return prisma.providers.findUnique({
             where: { id },
             include: {
                 plan: true,
@@ -45,7 +57,8 @@ export class ProviderPrismaRepository {
     }
 
     public async findProvidersByUserId(userId: string): Promise<ProviderModel[]> {
-        return this.prisma.providers.findMany({
+        const prisma = this.getClient();
+        return prisma.providers.findMany({
             where: { user_id: userId },
             include: {
                 plan: true,
@@ -58,7 +71,8 @@ export class ProviderPrismaRepository {
         id: string,
         data: Prisma.ProvidersUpdateInput,
     ): Promise<ProviderModel> {
-        return this.prisma.providers.update({
+        const prisma = this.getClient();
+        return prisma.providers.update({
             where: { id },
             data,
             include: {

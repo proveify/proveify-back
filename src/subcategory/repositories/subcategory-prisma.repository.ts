@@ -1,15 +1,25 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
 import type { Subcategories as SubcategoryModel, Prisma } from "@prisma/client";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
+import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
 
 @Injectable()
-export class SubcategoryPrismaRepository {
-    public constructor(private prisma: PrismaService) {}
+export class SubcategoryPrismaRepository implements PrismaRepository {
+    public constructor(
+        private readonly prisma: PrismaService,
+        private readonly transactionContext: TransactionContextService,
+    ) {}
+
+    public getClient(): Prisma.TransactionClient {
+        return this.transactionContext.getTransaction() ?? this.prisma;
+    }
 
     public async createSubcategory(
         data: Prisma.SubcategoriesCreateInput,
     ): Promise<SubcategoryModel> {
-        return this.prisma.subcategories.create({
+        const prisma = this.getClient();
+        return prisma.subcategories.create({
             data,
             include: {
                 category: true,
@@ -21,7 +31,8 @@ export class SubcategoryPrismaRepository {
         where?: Prisma.SubcategoriesWhereInput,
         include?: Prisma.SubcategoriesInclude,
     ): Promise<SubcategoryModel[]> {
-        return this.prisma.subcategories.findMany({
+        const prisma = this.getClient();
+        return prisma.subcategories.findMany({
             where,
             include: include ?? {
                 category: true,
@@ -33,7 +44,8 @@ export class SubcategoryPrismaRepository {
         id: string,
         include?: Prisma.SubcategoriesInclude,
     ): Promise<SubcategoryModel | null> {
-        return this.prisma.subcategories.findUnique({
+        const prisma = this.getClient();
+        return prisma.subcategories.findUnique({
             where: { id },
             include: include ?? {
                 category: true,
@@ -45,7 +57,8 @@ export class SubcategoryPrismaRepository {
         categoryId: string,
         include?: Prisma.SubcategoriesInclude,
     ): Promise<SubcategoryModel[]> {
-        return this.prisma.subcategories.findMany({
+        const prisma = this.getClient();
+        return prisma.subcategories.findMany({
             where: {
                 id_category: categoryId,
             },
@@ -59,7 +72,8 @@ export class SubcategoryPrismaRepository {
         id: string,
         data: Prisma.SubcategoriesUpdateInput,
     ): Promise<SubcategoryModel> {
-        return this.prisma.subcategories.update({
+        const prisma = this.getClient();
+        return prisma.subcategories.update({
             where: { id },
             data,
             include: {
@@ -69,7 +83,8 @@ export class SubcategoryPrismaRepository {
     }
 
     public async deleteSubcategory(id: string): Promise<SubcategoryModel> {
-        return this.prisma.subcategories.delete({
+        const prisma = this.getClient();
+        return prisma.subcategories.delete({
             where: { id },
             include: {
                 category: true,
