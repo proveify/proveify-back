@@ -1,15 +1,25 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
 import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
+import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
 
 @Injectable()
-export class PublicRequestPrismaRepository {
-    public constructor(private prisma: PrismaService) {}
+export class PublicRequestPrismaRepository implements PrismaRepository {
+    public constructor(
+        private readonly prisma: PrismaService,
+        private readonly transactionContext: TransactionContextService,
+    ) {}
+
+    public getClient(): Prisma.TransactionClient {
+        return this.transactionContext.getTransaction() ?? this.prisma;
+    }
 
     public async createPublicRequest(
         data: Prisma.PublicRequestsCreateInput,
     ): Promise<PublicRequestModel> {
-        return this.prisma.publicRequests.create({
+        const prisma = this.getClient();
+        return prisma.publicRequests.create({
             data,
             include: {
                 user: {
@@ -33,7 +43,8 @@ export class PublicRequestPrismaRepository {
         skip?: number,
         orderBy?: Prisma.PublicRequestsOrderByWithRelationInput,
     ): Promise<PublicRequestModel[]> {
-        return this.prisma.publicRequests.findMany({
+        const prisma = this.getClient();
+        return prisma.publicRequests.findMany({
             where,
             include: {
                 user: {
@@ -55,7 +66,8 @@ export class PublicRequestPrismaRepository {
     }
 
     public async findUniquePublicRequest(id: string): Promise<PublicRequestModel | null> {
-        return this.prisma.publicRequests.findUnique({
+        const prisma = this.getClient();
+        return prisma.publicRequests.findUnique({
             where: { id },
             include: {
                 user: {
@@ -74,7 +86,8 @@ export class PublicRequestPrismaRepository {
     }
 
     public async findPublicRequestByIdOnly(id: string): Promise<PublicRequestModel | null> {
-        return this.prisma.publicRequests.findUnique({
+        const prisma = this.getClient();
+        return prisma.publicRequests.findUnique({
             where: { id },
         });
     }
@@ -83,7 +96,8 @@ export class PublicRequestPrismaRepository {
         id: string,
         data: Prisma.PublicRequestsUpdateInput,
     ): Promise<PublicRequestModel> {
-        return this.prisma.publicRequests.update({
+        const prisma = this.getClient();
+        return prisma.publicRequests.update({
             where: { id },
             data,
             include: {
@@ -103,7 +117,8 @@ export class PublicRequestPrismaRepository {
     }
 
     public async deletePublicRequest(id: string): Promise<PublicRequestModel> {
-        return this.prisma.publicRequests.delete({
+        const prisma = this.getClient();
+        return prisma.publicRequests.delete({
             where: { id },
         });
     }

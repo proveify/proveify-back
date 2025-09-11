@@ -1,13 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
 import type { Quotes as QuoteModel, Providers as ProviderModel, Prisma } from "@prisma/client";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
+import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
 
 @Injectable()
-export class QuotePrismaRepository {
-    public constructor(private prisma: PrismaService) {}
+export class QuotePrismaRepository implements PrismaRepository {
+    public constructor(
+        private readonly prisma: PrismaService,
+        private readonly transactionContext: TransactionContextService,
+    ) {}
+
+    public getClient(): Prisma.TransactionClient {
+        return this.transactionContext.getTransaction() ?? this.prisma;
+    }
 
     public async createQuote(data: Prisma.QuotesCreateInput): Promise<QuoteModel> {
-        return this.prisma.quotes.create({
+        const prisma = this.getClient();
+        return prisma.quotes.create({
             data,
             include: {
                 provider: true,
@@ -26,7 +36,8 @@ export class QuotePrismaRepository {
         skip?: number,
         orderBy?: Prisma.QuotesOrderByWithRelationInput,
     ): Promise<QuoteModel[]> {
-        return this.prisma.quotes.findMany({
+        const prisma = this.getClient();
+        return prisma.quotes.findMany({
             where,
             include: {
                 provider: true,
@@ -43,7 +54,8 @@ export class QuotePrismaRepository {
     }
 
     public async findUniqueQuote(id: string): Promise<QuoteModel | null> {
-        return this.prisma.quotes.findUnique({
+        const prisma = this.getClient();
+        return prisma.quotes.findUnique({
             where: { id },
             include: {
                 provider: true,
@@ -57,13 +69,15 @@ export class QuotePrismaRepository {
     }
 
     public async findQuoteByIdOnly(id: string): Promise<QuoteModel | null> {
-        return this.prisma.quotes.findUnique({
+        const prisma = this.getClient();
+        return prisma.quotes.findUnique({
             where: { id },
         });
     }
 
     public async updateQuote(id: string, data: Prisma.QuotesUpdateInput): Promise<QuoteModel> {
-        return this.prisma.quotes.update({
+        const prisma = this.getClient();
+        return prisma.quotes.update({
             where: { id },
             data,
             include: {
@@ -78,7 +92,8 @@ export class QuotePrismaRepository {
     }
 
     public async deleteQuote(id: string): Promise<QuoteModel> {
-        return this.prisma.quotes.delete({
+        const prisma = this.getClient();
+        return prisma.quotes.delete({
             where: { id },
             include: {
                 provider: true,
@@ -97,7 +112,8 @@ export class QuotePrismaRepository {
         skip?: number,
         orderBy?: Prisma.QuotesOrderByWithRelationInput,
     ): Promise<QuoteModel[]> {
-        return this.prisma.quotes.findMany({
+        const prisma = this.getClient();
+        return prisma.quotes.findMany({
             where: { provider_id: providerId },
             include: {
                 provider: true,
@@ -114,7 +130,8 @@ export class QuotePrismaRepository {
     }
 
     public async countQuotesByProvider(providerId: string): Promise<number> {
-        return this.prisma.quotes.count({
+        const prisma = this.getClient();
+        return prisma.quotes.count({
             where: { provider_id: providerId },
         });
     }
@@ -124,7 +141,8 @@ export class QuotePrismaRepository {
         take?: number,
         skip?: number,
     ): Promise<QuoteModel[]> {
-        return this.prisma.quotes.findMany({
+        const prisma = this.getClient();
+        return prisma.quotes.findMany({
             where: { status },
             include: {
                 provider: true,
@@ -141,7 +159,8 @@ export class QuotePrismaRepository {
     }
 
     public async findProviderById(id: string): Promise<ProviderModel | null> {
-        return this.prisma.providers.findUnique({
+        const prisma = this.getClient();
+        return prisma.providers.findUnique({
             where: { id },
         });
     }

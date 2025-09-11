@@ -1,13 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
 import type { Files as FileModel, Prisma } from "@prisma/client";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
+import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
 
 @Injectable()
-export class FilePrismaRepository {
-    public constructor(private prisma: PrismaService) {}
+export class FilePrismaRepository implements PrismaRepository {
+    public constructor(
+        private readonly prisma: PrismaService,
+        private readonly transactionContext: TransactionContextService,
+    ) {}
+
+    public getClient(): Prisma.TransactionClient {
+        return this.transactionContext.getTransaction() ?? this.prisma;
+    }
 
     public async createFile(data: Prisma.FilesCreateInput): Promise<FileModel> {
-        return this.prisma.files.create({
+        const prisma = this.getClient();
+        return prisma.files.create({
             data,
             include: {
                 user: true,
@@ -16,7 +26,8 @@ export class FilePrismaRepository {
     }
 
     public async findUniqueFile(id: string): Promise<FileModel | null> {
-        return this.prisma.files.findUnique({
+        const prisma = this.getClient();
+        return prisma.files.findUnique({
             where: { id },
             include: {
                 user: true,
@@ -25,7 +36,8 @@ export class FilePrismaRepository {
     }
 
     public async updateFile(id: string, data: Prisma.FilesUpdateInput): Promise<FileModel> {
-        return this.prisma.files.update({
+        const prisma = this.getClient();
+        return prisma.files.update({
             where: { id },
             data,
             include: {
