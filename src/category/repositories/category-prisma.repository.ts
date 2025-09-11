@@ -1,13 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
 import type { Categories as CategoryModel, Prisma } from "@prisma/client";
+import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
 
 @Injectable()
-export class CategoryPrismaRepository {
-    public constructor(private prisma: PrismaService) {}
+export class CategoryPrismaRepository implements PrismaRepository {
+    public constructor(
+        private readonly prisma: PrismaService,
+        private readonly transactionContext: TransactionContextService,
+    ) {}
+
+    public getClient(): Prisma.TransactionClient {
+        return this.transactionContext.getTransaction() ?? this.prisma;
+    }
 
     public async createCategory(data: Prisma.CategoriesCreateInput): Promise<CategoryModel> {
-        return this.prisma.categories.create({
+        const prisma = this.getClient();
+        return prisma.categories.create({
             data,
             include: {
                 Subcategories: true,
@@ -19,7 +29,8 @@ export class CategoryPrismaRepository {
         where?: Prisma.CategoriesWhereInput,
         include?: Prisma.CategoriesInclude,
     ): Promise<CategoryModel[]> {
-        return this.prisma.categories.findMany({
+        const prisma = this.getClient();
+        return prisma.categories.findMany({
             where,
             include: include ?? {
                 Subcategories: true,
@@ -31,7 +42,8 @@ export class CategoryPrismaRepository {
         id: string,
         include?: Prisma.CategoriesInclude,
     ): Promise<CategoryModel | null> {
-        return this.prisma.categories.findUnique({
+        const prisma = this.getClient();
+        return prisma.categories.findUnique({
             where: { id },
             include: include ?? {
                 Subcategories: true,
@@ -43,7 +55,8 @@ export class CategoryPrismaRepository {
         id: string,
         data: Prisma.CategoriesUpdateInput,
     ): Promise<CategoryModel> {
-        return this.prisma.categories.update({
+        const prisma = this.getClient();
+        return prisma.categories.update({
             where: { id },
             data,
             include: {
@@ -53,7 +66,8 @@ export class CategoryPrismaRepository {
     }
 
     public async deleteCategory(id: string): Promise<CategoryModel> {
-        return this.prisma.categories.delete({
+        const prisma = this.getClient();
+        return prisma.categories.delete({
             where: { id },
             include: {
                 Subcategories: true,

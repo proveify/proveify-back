@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards, Req, HttpCode, HttpStatus } from "@nestjs/common";
+import {
+    Controller,
+    Post,
+    Body,
+    UseGuards,
+    Req,
+    HttpCode,
+    HttpStatus,
+    UseInterceptors,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RequestAuthenticated, UserAuthenticate } from "./interfaces/auth.interface";
 import { LocalAuthGuard } from "./guards/local.guard";
@@ -16,6 +25,7 @@ import {
     RegisterProviderDocumentation,
 } from "@app/auth/decorators/documentations/auth.documentation";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
+import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -24,6 +34,8 @@ export class AuthController {
 
     @RegisterDocumentation()
     @Post("register")
+    @UseInterceptors(TransactionInterceptor)
+    @FormDataRequest()
     public async register(@Body() data: UserCreateDto): Promise<BasicResponseEntity> {
         await this.authService.createClient(data);
 
@@ -34,6 +46,7 @@ export class AuthController {
     }
 
     @RegisterProviderDocumentation()
+    @UseInterceptors(TransactionInterceptor)
     @Post("register/provider")
     @FormDataRequest()
     public async registerProvider(@Body() data: ProviderCreateDto): Promise<BasicResponseEntity> {
@@ -48,6 +61,7 @@ export class AuthController {
     @LoginDocumentation()
     @UseGuards(LocalAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransactionInterceptor)
     @Post("login")
     public async login(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
         return this.authService.singIn(req.user.id);
@@ -56,6 +70,7 @@ export class AuthController {
     @RefreshTokenDocumentation()
     @UseGuards(RefreshJwtAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransactionInterceptor)
     @Post("refresh")
     public async refresh(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
         return this.authService.refreshToken(req.user.id);
@@ -64,6 +79,7 @@ export class AuthController {
     @LogOutDocumentation()
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransactionInterceptor)
     @Post("logout")
     public async logout(@Req() req: RequestAuthenticated): Promise<BasicResponseEntity> {
         await this.authService.singOut(req.user.id);
