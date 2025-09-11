@@ -61,6 +61,7 @@ export class AuthController {
     @LoginDocumentation()
     @UseGuards(LocalAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransactionInterceptor)
     @Post("login")
     public async login(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
         return this.authService.singIn(req.user.id);
@@ -69,6 +70,7 @@ export class AuthController {
     @RefreshTokenDocumentation()
     @UseGuards(RefreshJwtAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransactionInterceptor)
     @Post("refresh")
     public async refresh(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
         return this.authService.refreshToken(req.user.id);
@@ -77,6 +79,7 @@ export class AuthController {
     @LogOutDocumentation()
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @UseInterceptors(TransactionInterceptor)
     @Post("logout")
     public async logout(@Req() req: RequestAuthenticated): Promise<BasicResponseEntity> {
         await this.authService.singOut(req.user.id);
