@@ -13,6 +13,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { IdentificationTypes } from "@app/user/interfaces/users";
+import { QuoteStatus } from "@app/quote/types/quotes";
 
 export class CreateQuoteItemDto {
     @ApiProperty({
@@ -115,12 +116,12 @@ export class CreateQuoteDto {
 export class UpdateQuoteDto extends PartialType(CreateQuoteDto) {
     @ApiProperty({
         description: "Estado de la cotización",
-        enum: ["PENDING", "QUOTED", "REJECTED"],
+        enum: QuoteStatus,
         required: false,
     })
     @IsOptional()
     @IsString()
-    @IsEnum(["PENDING", "QUOTED", "REJECTED"])
+    @IsEnum(QuoteStatus)
     public status?: string;
 }
 
@@ -164,3 +165,9 @@ export class QuoteFilterDto extends IntersectionType(ParamsDto) {
 }
 
 export class QuoteParamsDto extends IntersectionType(ParamsDto) {}
+
+export class QuoteMessageDto {
+    @IsString()
+    public content: string;
+    public quoteId: string;
+}

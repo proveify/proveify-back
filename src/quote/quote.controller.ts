@@ -10,6 +10,7 @@ import {
     UseGuards,
     HttpException,
     HttpStatus,
+    UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
@@ -23,9 +24,9 @@ import {
     GetQuoteDocumentation,
     GetMyQuotesDocumentation,
     UpdateQuoteDocumentation,
-    UpdateQuoteStatusDocumentation,
     DeleteQuoteDocumentation,
 } from "./decorators/documentations/quote.documentation";
+import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
 
 @ApiTags("Quotes")
 @Controller("quotes")
@@ -69,6 +70,7 @@ export class QuoteController {
     @Patch(":id")
     @UseGuards(JwtAuthGuard)
     @UpdateQuoteDocumentation()
+    @UseInterceptors(TransactionInterceptor)
     public async update(
         @Param("id") id: string,
         @Body() updateQuoteDto: UpdateQuoteDto,
@@ -77,20 +79,10 @@ export class QuoteController {
         return new QuoteEntity(updatedQuote);
     }
 
-    @Patch(":id/status")
-    @UseGuards(JwtAuthGuard)
-    @UpdateQuoteStatusDocumentation()
-    public async updateStatus(
-        @Param("id") id: string,
-        @Body() body: { status: string },
-    ): Promise<QuoteEntity> {
-        const updatedQuote = await this.quoteService.updateStatus(id, body.status);
-        return new QuoteEntity(updatedQuote);
-    }
-
     @Delete(":id")
     @UseGuards(JwtAuthGuard)
     @DeleteQuoteDocumentation()
+    @UseInterceptors(TransactionInterceptor)
     public async remove(@Param("id") id: string): Promise<BasicResponseEntity> {
         await this.quoteService.remove(id);
 

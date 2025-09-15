@@ -174,26 +174,6 @@ export class QuoteService {
         return this.quotePrismaRepository.updateQuote(id, updateData);
     }
 
-    public async updateStatus(id: string, status: string): Promise<QuoteModel> {
-        const provider = this.authContextService.getProvider();
-
-        if (!provider) {
-            throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
-        }
-
-        const existingQuote = await this.quotePrismaRepository.findQuoteByIdOnly(id);
-
-        if (!existingQuote) {
-            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
-        }
-
-        if (existingQuote.provider_id !== provider.id) {
-            throw new HttpException("You can only update your own quotes", HttpStatus.FORBIDDEN);
-        }
-
-        return this.quotePrismaRepository.updateQuote(id, { status });
-    }
-
     public async remove(id: string): Promise<QuoteModel> {
         const provider = this.authContextService.getProvider();
 
