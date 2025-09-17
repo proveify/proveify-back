@@ -8,6 +8,8 @@ import {
     Delete,
     HttpException,
     HttpStatus,
+    UseInterceptors,
+    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { CategoryService } from "./category.service";
 import { CreateCategoryDto } from "./dto/create-category.dto";
@@ -24,6 +26,7 @@ import {
 
 @ApiTags("Categories")
 @Controller("categories")
+@UseInterceptors(ClassSerializerInterceptor)
 export class CategoryController {
     public constructor(private readonly categoryService: CategoryService) {}
 

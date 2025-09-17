@@ -8,6 +8,8 @@ import {
     Delete,
     HttpException,
     HttpStatus,
+    UseInterceptors,
+    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { SubcategoryService } from "./subcategory.service";
 import { CreateSubcategoryDto } from "./dto/create-subcategory.dto";
@@ -25,6 +27,7 @@ import {
 
 @ApiTags("Subcategories")
 @Controller("subcategories")
+@UseInterceptors(ClassSerializerInterceptor)
 export class SubcategoryController {
     public constructor(private readonly subcategoryService: SubcategoryService) {}
 
