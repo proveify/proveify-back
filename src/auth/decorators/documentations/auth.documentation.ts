@@ -9,6 +9,7 @@ import {
 } from "@nestjs/swagger";
 import { LoginDto } from "@app/auth/dto/auth.dto";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
+import { UserAuthenticateEntity } from "../../entities/user-authenticate.entity";
 
 export function RegisterDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
@@ -26,11 +27,14 @@ export function RegisterProviderDocumentation(): MethodDecorator & ClassDecorato
 }
 
 export function LoginDocumentation(): MethodDecorator & ClassDecorator {
-    return applyDecorators(ApiBody({ type: LoginDto }));
+    return applyDecorators(
+        ApiBody({ type: LoginDto }),
+        ApiOkResponse({ type: UserAuthenticateEntity }),
+    );
 }
 
 export function RefreshTokenDocumentation(): MethodDecorator & ClassDecorator {
-    return applyDecorators(ApiBearerAuth());
+    return applyDecorators(ApiBearerAuth(), ApiOkResponse({ type: UserAuthenticateEntity }));
 }
 
 export function LogOutDocumentation(): MethodDecorator & ClassDecorator {

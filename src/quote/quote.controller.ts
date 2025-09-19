@@ -10,6 +10,8 @@ import {
     UseGuards,
     HttpException,
     HttpStatus,
+    UseInterceptors,
+    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
@@ -29,6 +31,7 @@ import {
 
 @ApiTags("Quotes")
 @Controller("quotes")
+@UseInterceptors(ClassSerializerInterceptor)
 export class QuoteController {
     public constructor(private readonly quoteService: QuoteService) {}
 
