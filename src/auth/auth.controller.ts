@@ -7,9 +7,10 @@ import {
     HttpCode,
     HttpStatus,
     UseInterceptors,
+    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { RequestAuthenticated, UserAuthenticate } from "./interfaces/auth.interface";
+import { RequestAuthenticated } from "./interfaces/auth.interface";
 import { LocalAuthGuard } from "./guards/local.guard";
 import { RefreshJwtAuthGuard } from "./guards/refresh-jwt.guard";
 import { JwtAuthGuard } from "./guards/jwt.guard";
@@ -26,9 +27,11 @@ import {
 } from "@app/auth/decorators/documentations/auth.documentation";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
+import { UserAuthenticateEntity } from "./entities/user-authenticate.entity";
 
 @ApiTags("Auth")
 @Controller("auth")
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
     public constructor(private authService: AuthService) {}
 
@@ -63,8 +66,9 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(TransactionInterceptor)
     @Post("login")
-    public async login(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
-        return this.authService.singIn(req.user.id);
+    public async login(@Req() req: RequestAuthenticated): Promise<UserAuthenticateEntity> {
+        const authData = await this.authService.singIn(req.user.id);
+        return new UserAuthenticateEntity(authData);
     }
 
     @RefreshTokenDocumentation()
@@ -72,8 +76,9 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(TransactionInterceptor)
     @Post("refresh")
-    public async refresh(@Req() req: RequestAuthenticated): Promise<UserAuthenticate> {
-        return this.authService.refreshToken(req.user.id);
+    public async refresh(@Req() req: RequestAuthenticated): Promise<UserAuthenticateEntity> {
+        const authData = await this.authService.refreshToken(req.user.id);
+        return new UserAuthenticateEntity(authData);
     }
 
     @LogOutDocumentation()
