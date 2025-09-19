@@ -10,6 +10,8 @@ import {
     UseGuards,
     HttpException,
     HttpStatus,
+    UseInterceptors,
+    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
@@ -33,6 +35,7 @@ import {
 
 @ApiTags("Public Requests")
 @Controller("public-requests")
+@UseInterceptors(ClassSerializerInterceptor)
 export class PublicRequestController {
     public constructor(private readonly publicRequestService: PublicRequestService) {}
 

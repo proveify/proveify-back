@@ -36,6 +36,7 @@ import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Items")
 @Controller("items")
+@UseInterceptors(ClassSerializerInterceptor)
 export class ItemController {
     public constructor(private itemService: ItemService) {}
 
@@ -110,7 +111,6 @@ export class ItemController {
 
     @Post("favorite/:itemId")
     @UseGuards(JwtAuthGuard)
-    @UseInterceptors(ClassSerializerInterceptor)
     @AddFavoriteDocumentation()
     public async addFavorite(
         @Req() req: Request & { user: TokenPayload },
@@ -121,7 +121,6 @@ export class ItemController {
 
     @Delete("favorite/:itemId")
     @UseGuards(JwtAuthGuard)
-    @UseInterceptors(ClassSerializerInterceptor)
     @RemoveFavoriteDocumentation()
     public async removeFavorite(
         @Req() req: Request & { user: TokenPayload },
@@ -132,7 +131,6 @@ export class ItemController {
 
     @Get("favorites")
     @UseGuards(JwtAuthGuard)
-    @UseInterceptors(ClassSerializerInterceptor)
     @GetFavoritesDocumentation()
     public async getFavorites(
         @Req() req: Request & { user: TokenPayload },
