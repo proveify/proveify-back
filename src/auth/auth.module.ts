@@ -34,6 +34,6 @@ import { AuthContextService } from "./auth-context.service";
         JwtModule.registerAsync(jwtConfig.asProvider()),
     ],
     controllers: [AuthController],
-    exports: [AuthContextService],
+    exports: [AuthContextService, JwtModule],
 })
 export class AuthModule {}

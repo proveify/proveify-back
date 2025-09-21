@@ -1,44 +1,31 @@
 import {
     ConnectedSocket,
     MessageBody,
-    OnGatewayConnection,
-    OnGatewayDisconnect,
     SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
+    OnGatewayInit,
+    OnGatewayDisconnect,
 } from "@nestjs/websockets";
 import { TypedSocket } from "@app/auth/interfaces/ws-auth.interface";
-import { JwtService } from "@nestjs/jwt";
-import { WebsocketJwtGuard } from "@app/auth/guards/websocket-jwt.guard";
-import { TokenPayload } from "@app/auth/interfaces/auth.interface";
 import { QuoteMessageDto } from "@app/quote/dto/quote.dto";
-import { UseGuards } from "@nestjs/common";
+import { Server } from "socket.io";
 import { PrismaService } from "@app/prisma/prisma.service";
+import { JwtService } from "@nestjs/jwt";
+import { WebsocketAuthMiddleware } from "@app/auth/middlewares/socket-auth.middleware";
 
-@WebSocketGateway({ cors: true, transports: ["websocket"] })
-export class QuoteChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({ cors: true, namespace: "quotes" })
+export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
     @WebSocketServer()
-    public server: TypedSocket;
+    public server: Server;
 
     public constructor(
         private readonly prismaService: PrismaService,
         private readonly jwtService: JwtService,
     ) {}
 
-    public async handleConnection(client: TypedSocket): Promise<void> {
-        try {
-            const token = WebsocketJwtGuard.extractTokenFromHandShake(client);
-
-            if (!token) {
-                client.disconnect(true);
-                return;
-            }
-
-            client.data.user = await this.jwtService.verifyAsync<TokenPayload>(token);
-            client.data.joinedRooms = [];
-        } catch {
-            client.disconnect(true);
-        }
+    public afterInit(client: Server): void {
+        client.use(WebsocketAuthMiddleware(this.jwtService));
     }
 
     public handleDisconnect(client: TypedSocket): void {
@@ -52,7 +39,6 @@ export class QuoteChatGateway implements OnGatewayConnection, OnGatewayDisconnec
         }
     }
 
-    @UseGuards(WebsocketJwtGuard)
     @SubscribeMessage("quote-message")
     public async handleMessage(
         @MessageBody() message: QuoteMessageDto,
@@ -70,7 +56,7 @@ export class QuoteChatGateway implements OnGatewayConnection, OnGatewayDisconnec
             });
 
             this.server.to(`quote_${message.quoteId}`).emit("new-message", {
-                messageId: "temp-id",
+                messageId: quoteMessage.id,
                 userId: user.id,
                 content: message.content,
                 timestamp: quoteMessage.created_at.toISOString(),
@@ -79,7 +65,6 @@ export class QuoteChatGateway implements OnGatewayConnection, OnGatewayDisconnec
         });
     }
 
-    @UseGuards(WebsocketJwtGuard)
     @SubscribeMessage("join-quote-room")
     public async handleJoinRoom(
         @MessageBody() data: { quoteId: string },
@@ -93,7 +78,6 @@ export class QuoteChatGateway implements OnGatewayConnection, OnGatewayDisconnec
         }
     }
 
-    @UseGuards(WebsocketJwtGuard)
     @SubscribeMessage("leave-quote-room")
     public async handleLeaveRoom(
         @MessageBody() data: { quoteId: string },

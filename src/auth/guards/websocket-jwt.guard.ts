@@ -1,26 +1,25 @@
 import type { JwtService } from "@nestjs/jwt";
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { WsException } from "@nestjs/websockets";
-import type { TokenPayload } from "@app/auth/interfaces/auth.interface";
 import type { HandshakeAuth, TypedSocket } from "@app/auth/interfaces/ws-auth.interface";
+import { WsException } from "@nestjs/websockets";
 
 @Injectable()
 export class WebsocketJwtGuard implements CanActivate {
     public constructor(private readonly jwtService: JwtService) {}
 
-    public async canActivate(context: ExecutionContext): Promise<boolean> {
-        try {
-            const client = context.switchToWs().getClient<TypedSocket>();
-            const token = WebsocketJwtGuard.extractTokenFromHandShake(client);
-            if (!token) return false;
-
-            client.data.user = await this.jwtService.verifyAsync<TokenPayload>(token);
-            client.data.joinedRooms = [];
-
-            return true;
-        } catch {
-            throw new WsException("Invalid token");
+    public canActivate(context: ExecutionContext): boolean {
+        if (context.getType() !== "ws") {
+            throw new WsException("Invalid context type");
         }
+
+        const client = context.switchToWs().getClient<TypedSocket>();
+        const user: unknown = client.handshake.auth.user;
+
+        if (!user) {
+            throw new WsException("Unauthorized");
+        }
+
+        return true;
     }
 
     public static extractTokenFromHandShake(client: TypedSocket): string | null {

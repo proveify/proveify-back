@@ -13,7 +13,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { IdentificationTypes } from "@app/user/interfaces/users";
-import { QuoteStatus } from "@app/quote/types/quotes";
+import { QuoteStatus } from "../types/quotes";
 
 export class CreateQuoteItemDto {
     @ApiProperty({
@@ -169,5 +169,7 @@ export class QuoteParamsDto extends IntersectionType(ParamsDto) {}
 export class QuoteMessageDto {
     @IsString()
     public content: string;
+
+    @IsUUID()
     public quoteId: string;
 }
