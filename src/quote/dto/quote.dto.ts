@@ -173,3 +173,15 @@ export class QuoteMessageDto {
     @IsUUID()
     public quoteId: string;
 }
+
+export class QuoteMessageParamsDto extends IntersectionType(ParamsDto) {
+    @IsOptional()
+    @IsEnum(["CLIENT", "PROVIDER"])
+    @ApiProperty({
+        description:
+            "Busca el mensaje según si el usuario es un proveedor o cliente, por defecto es cliente",
+        enum: ["CLIENT", "PROVIDER"],
+        required: false,
+    })
+    public getAs?: string;
+}

@@ -1,6 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@app/prisma/prisma.service";
-import type { Quotes as QuoteModel, Providers as ProviderModel, Prisma } from "@prisma/client";
+import type {
+    Quotes as QuoteModel,
+    Providers as ProviderModel,
+    QuoteMessages as QuoteMessageModel,
+    Prisma,
+} from "@prisma/client";
 import { TransactionContextService } from "@app/prisma/transaction-context.service";
 import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
 
@@ -163,5 +168,36 @@ export class QuotePrismaRepository implements PrismaRepository {
         return prisma.providers.findUnique({
             where: { id },
         });
+    }
+
+    public async userBelongsToQuote(userId: string, quoteId: string): Promise<boolean> {
+        const prisma = this.getClient();
+        return prisma.quotes
+            .findFirst({
+                where: {
+                    user_id: userId,
+                    id: quoteId,
+                },
+            })
+            .then((quote) => quote?.id === quoteId);
+    }
+
+    public async providerBelongsToQuote(providerId: string, quoteId: string): Promise<boolean> {
+        const prisma = this.getClient();
+        return prisma.quotes
+            .findFirst({
+                where: {
+                    provider_id: providerId,
+                    id: quoteId,
+                },
+            })
+            .then((quote) => quote?.id === quoteId);
+    }
+
+    public async getQuoteMessages(
+        args?: Prisma.QuoteMessagesFindManyArgs,
+    ): Promise<QuoteMessageModel[]> {
+        const prisma = this.getClient();
+        return prisma.quoteMessages.findMany(args);
     }
 }
