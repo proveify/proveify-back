@@ -17,4 +17,5 @@ model Users {
   Files          Files[]
   Favorites      Favorites[]
   PublicRequests PublicRequests[]
+  QuoteMessage   QuoteMessages[]
 }
