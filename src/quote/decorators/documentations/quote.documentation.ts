@@ -188,36 +188,6 @@ export function UpdateQuoteDocumentation(): MethodDecorator & ClassDecorator {
     );
 }
 
-export function UpdateQuoteStatusDocumentation(): MethodDecorator & ClassDecorator {
-    return applyDecorators(
-        ApiOperation({
-            summary: "Update quote status",
-            description: "Update only the status of a quote (PENDING, QUOTED, REJECTED)",
-        }),
-        ApiParam({
-            name: "id",
-            required: true,
-            type: String,
-            description: "ID of the quote to update",
-            example: "123e4567-e89b-12d3-a456-426614174000",
-        }),
-        ApiResponse({
-            status: 200,
-            description: "Quote status updated successfully",
-            type: QuoteEntity,
-        }),
-        ApiResponse({
-            status: 404,
-            description: "Quote not found",
-        }),
-        ApiResponse({
-            status: 403,
-            description: "Forbidden - not the quote owner",
-        }),
-        ApiBearerAuth(),
-    );
-}
-
 export function DeleteQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({

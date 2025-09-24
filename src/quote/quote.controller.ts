@@ -1,33 +1,40 @@
 import {
-    Controller,
-    Get,
-    Post,
     Body,
-    Patch,
-    Param,
+    ClassSerializerInterceptor,
+    Controller,
     Delete,
-    Query,
-    UseGuards,
+    Get,
     HttpException,
     HttpStatus,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
     UseInterceptors,
-    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { QuoteService } from "./quote.service";
-import { CreateQuoteDto, UpdateQuoteDto, QuoteFilterDto, QuoteParamsDto } from "./dto/quote.dto";
-import { QuoteEntity } from "./entities/quote.entity";
+import {
+    CreateQuoteDto,
+    QuoteFilterDto,
+    QuoteMessageParamsDto,
+    QuoteParamsDto,
+    UpdateQuoteDto,
+} from "./dto/quote.dto";
+import { QuoteEntity, QuoteMessageEntity } from "./entities/quote.entity";
 import {
     CreateQuoteDocumentation,
-    GetQuotesDocumentation,
-    GetQuoteDocumentation,
-    GetMyQuotesDocumentation,
-    UpdateQuoteDocumentation,
-    UpdateQuoteStatusDocumentation,
     DeleteQuoteDocumentation,
+    GetMyQuotesDocumentation,
+    GetQuoteDocumentation,
+    GetQuotesDocumentation,
+    UpdateQuoteDocumentation,
 } from "./decorators/documentations/quote.documentation";
+import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
+import { UserTypes } from "@app/user/interfaces/users";
 
 @ApiTags("Quotes")
 @Controller("quotes")
@@ -72,6 +79,7 @@ export class QuoteController {
     @Patch(":id")
     @UseGuards(JwtAuthGuard)
     @UpdateQuoteDocumentation()
+    @UseInterceptors(TransactionInterceptor)
     public async update(
         @Param("id") id: string,
         @Body() updateQuoteDto: UpdateQuoteDto,
@@ -80,20 +88,10 @@ export class QuoteController {
         return new QuoteEntity(updatedQuote);
     }
 
-    @Patch(":id/status")
-    @UseGuards(JwtAuthGuard)
-    @UpdateQuoteStatusDocumentation()
-    public async updateStatus(
-        @Param("id") id: string,
-        @Body() body: { status: string },
-    ): Promise<QuoteEntity> {
-        const updatedQuote = await this.quoteService.updateStatus(id, body.status);
-        return new QuoteEntity(updatedQuote);
-    }
-
     @Delete(":id")
     @UseGuards(JwtAuthGuard)
     @DeleteQuoteDocumentation()
+    @UseInterceptors(TransactionInterceptor)
     public async remove(@Param("id") id: string): Promise<BasicResponseEntity> {
         await this.quoteService.remove(id);
 
@@ -101,5 +99,15 @@ export class QuoteController {
             code: 200,
             message: "Quote deleted successfully",
         };
+    }
+
+    @Get(":id/messages")
+    @UseGuards(JwtAuthGuard)
+    public async getQuoteMessages(
+        @Param("id") id: string,
+        @Query() params: QuoteMessageParamsDto,
+    ): Promise<QuoteMessageEntity[]> {
+        if (!params.getAs) params.getAs = UserTypes.CLIENT;
+        return this.quoteService.getQuoteMessages(id, params);
     }
 }

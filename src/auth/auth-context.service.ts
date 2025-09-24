@@ -37,8 +37,6 @@ export class AuthContextService {
 
     public getProvider(): ProviderEntity | null {
         const user = this.getUser();
-        const provider = user.Provider;
-
-        return provider;
+        return user.Provider;
     }
 }

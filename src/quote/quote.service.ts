@@ -1,8 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { AuthContextService } from "@app/auth/auth-context.service";
 import { QuotePrismaRepository } from "./repositories/quote-prisma.repository";
-import { CreateQuoteDto, UpdateQuoteDto, QuoteFilterDto, QuoteParamsDto } from "./dto/quote.dto";
+import {
+    CreateQuoteDto,
+    UpdateQuoteDto,
+    QuoteFilterDto,
+    QuoteParamsDto,
+    QuoteMessageParamsDto,
+} from "./dto/quote.dto";
 import type { Quotes as QuoteModel, Prisma } from "@prisma/client";
+import { QuoteMessageEntity } from "@app/quote/entities/quote.entity";
+import { UserTypes } from "@app/user/interfaces/users";
 
 @Injectable()
 export class QuoteService {
@@ -174,26 +182,6 @@ export class QuoteService {
         return this.quotePrismaRepository.updateQuote(id, updateData);
     }
 
-    public async updateStatus(id: string, status: string): Promise<QuoteModel> {
-        const provider = this.authContextService.getProvider();
-
-        if (!provider) {
-            throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
-        }
-
-        const existingQuote = await this.quotePrismaRepository.findQuoteByIdOnly(id);
-
-        if (!existingQuote) {
-            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
-        }
-
-        if (existingQuote.provider_id !== provider.id) {
-            throw new HttpException("You can only update your own quotes", HttpStatus.FORBIDDEN);
-        }
-
-        return this.quotePrismaRepository.updateQuote(id, { status });
-    }
-
     public async remove(id: string): Promise<QuoteModel> {
         const provider = this.authContextService.getProvider();
 
@@ -212,5 +200,51 @@ export class QuoteService {
         }
 
         return this.quotePrismaRepository.deleteQuote(id);
+    }
+
+    public async getQuoteMessages(
+        id: string,
+        params: QuoteMessageParamsDto,
+    ): Promise<QuoteMessageEntity[]> {
+        if (params.getAs === UserTypes.PROVIDER) {
+            const provider = this.authContextService.getProvider();
+
+            if (!provider) {
+                throw new HttpException(
+                    "User does not have a provider profile",
+                    HttpStatus.FORBIDDEN,
+                );
+            }
+
+            const providerBelongsToQuote = await this.quotePrismaRepository.providerBelongsToQuote(
+                provider.id,
+                id,
+            );
+
+            if (!providerBelongsToQuote) {
+                throw new HttpException("Provider does not belong to quote", HttpStatus.FORBIDDEN);
+            }
+        } else {
+            const user = this.authContextService.getUser();
+            const userBelongsToQuote = await this.quotePrismaRepository.userBelongsToQuote(
+                user.id,
+                id,
+            );
+
+            if (!userBelongsToQuote) {
+                throw new HttpException("User does not belong to quote", HttpStatus.FORBIDDEN);
+            }
+        }
+
+        const quoteMessages = await this.quotePrismaRepository.getQuoteMessages({
+            where: {
+                quote_id: id,
+            },
+            take: params.limit ?? 30,
+            skip: params.offset,
+            orderBy: { created_at: params.order_by ?? "desc" },
+        });
+
+        return quoteMessages.map((message) => new QuoteMessageEntity(message));
     }
 }
