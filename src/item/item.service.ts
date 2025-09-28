@@ -144,6 +144,7 @@ export class ItemService {
             updated_at: item.updated_at,
             provider_id: item.provider_id,
             image_url: imageUrl,
+            type: item.type,
             is_favorite: options.isFavorite ?? false,
         };
 
