@@ -4,7 +4,7 @@ model Items {
   id          String    @id @default(uuid())
   name        String
   description String?
-  type        Int       @default(1)
+  type        String    @default("PRODUCT")
   price       Decimal   @default(0.00) @db.Decimal(10, 2)
   image       String?
   created_at  DateTime  @default(now())

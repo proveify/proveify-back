@@ -13,6 +13,7 @@ export class ItemEntity {
     public updated_at: Date;
     public provider_id: string;
     public image_url: string | null;
+    public type: string;
 
     @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",
