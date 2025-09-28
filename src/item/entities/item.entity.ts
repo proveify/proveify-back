@@ -37,7 +37,8 @@ export class ItemEntity {
 
     @ApiProperty({
         description: "Price of the item in decimal format (max 2 decimal)",
-        type: "number",
+        type: Number,
+        example: 16500.99,
     })
     @Expose({ name: "price" })
     public priceFormated(): number {

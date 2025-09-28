@@ -120,7 +120,11 @@ export class ItemService {
             where: {
                 type: params?.type,
             },
+            include: {
+                provider: true,
+            },
         });
+
         return results.map((item) => new ItemEntity(item));
     }
 
@@ -291,6 +295,7 @@ export class ItemService {
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },
+            include: { provider: true },
         });
 
         return await Promise.all(
