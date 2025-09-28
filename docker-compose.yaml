@@ -41,8 +41,6 @@ services:
             - proveify-bridge
 volumes:
     mysql-data:
-    azurite-data:
-    gcloud-data:
 networks:
     proveify-bridge:
         driver: bridge
