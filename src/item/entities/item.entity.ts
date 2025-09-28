@@ -35,6 +35,10 @@ export class ItemEntity {
         Object.assign(this, partial);
     }
 
+    @ApiProperty({
+        description: "Price of the item in decimal format (max 2 decimal)",
+        type: "number",
+    })
     @Expose({ name: "price" })
     public priceFormated(): number {
         return this.price.toNumber();
