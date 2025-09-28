@@ -39,6 +39,7 @@ export class ItemEntity {
         description: "Price of the item in decimal format (max 2 decimal)",
         type: Number,
         example: 16500.99,
+        name: "price",
     })
     @Expose({ name: "price" })
     public priceFormated(): number {
