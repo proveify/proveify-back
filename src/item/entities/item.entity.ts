@@ -12,13 +12,13 @@ export class ItemEntity {
     public created_at: Date;
     public updated_at: Date;
     public provider_id: string;
-    public imageUrl: string | null;
+    public image_url: string | null;
 
     @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",
         required: false,
     })
-    public isFavorite?: boolean;
+    public is_favorite?: boolean;
 
     public constructor(partial: Partial<ItemEntity>) {
         Object.assign(this, partial);

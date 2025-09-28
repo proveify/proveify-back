@@ -143,8 +143,8 @@ export class ItemService {
             created_at: item.created_at,
             updated_at: item.updated_at,
             provider_id: item.provider_id,
-            imageUrl,
-            isFavorite: options.isFavorite ?? false,
+            image_url: imageUrl,
+            is_favorite: options.isFavorite ?? false,
         };
 
         return new ItemEntity(itemData);
