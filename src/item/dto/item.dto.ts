@@ -7,7 +7,12 @@ import { ItemType } from "@app/item/interfaces/item.interface";
 export class ItemParamDto extends IntersectionType(ParamsDto) {
     @IsOptional()
     @IsEnum(ItemType)
-    public type?: number;
+    @ApiProperty({
+        description: "Tipo de producto",
+        example: "PRODUCT",
+        enum: ItemType,
+    })
+    public type?: string;
 }
 
 export class ItemCreateDto {
@@ -18,8 +23,14 @@ export class ItemCreateDto {
     @IsString()
     public description?: string;
 
+    @ApiProperty({
+        description: "Tipo de producto",
+        example: "PRODUCT",
+        enum: ItemType,
+    })
+    @IsString()
     @IsEnum(ItemType)
-    public type: number;
+    public type: string;
 
     @IsDecimal({ decimal_digits: "2" })
     @IsOptional()
