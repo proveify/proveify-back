@@ -37,6 +37,10 @@ export class AuthContextService {
 
     public getProvider(): ProviderEntity | null {
         const user = this.getUser();
-        return user.Provider;
+        return user.provider;
+    }
+
+    public hasUser(): boolean {
+        return this.user !== undefined;
     }
 }

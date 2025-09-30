@@ -1,5 +1,5 @@
+import { Exclude, Expose } from "class-transformer";
 import { ApiHideProperty } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
 
 export class ProviderEntity {
     public id: string;
@@ -8,29 +8,30 @@ export class ProviderEntity {
     public identification: string;
     public identification_type: string;
 
-    @ApiHideProperty()
-    @Exclude()
+    @Expose({ groups: ["owner"] })
     public rut: string;
 
-    @ApiHideProperty()
-    @Exclude()
+    @Expose({ groups: ["owner"] })
     public chamber_commerce: string;
 
-    @ApiHideProperty()
-    @Exclude()
+    @Expose({ groups: ["owner"] })
     public created_at: Date;
 
-    @ApiHideProperty()
-    @Exclude()
+    @Expose({ groups: ["owner"] })
     public updated_at: Date;
 
-    @ApiHideProperty()
-    @Exclude()
+    @Expose({ groups: ["owner"] })
     public plan_id: string;
+
+    @Expose({ groups: ["owner"] })
+    public user_id: string;
 
     @ApiHideProperty()
     @Exclude()
-    public user_id: string;
+    public profile_picture: string | null;
+
+    @Expose()
+    public profile_picture_url: string;
 
     public constructor(partial: Partial<ProviderEntity>) {
         Object.assign(this, partial);

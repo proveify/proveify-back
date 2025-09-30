@@ -7,7 +7,6 @@ import {
     Param,
     Put,
     Query,
-    Req,
     UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
@@ -24,8 +23,6 @@ import { ProviderEntity } from "./entities/provider.entity";
 import { ProviderUpdateDto } from "./dto/provider.dto";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
 import { FormDataRequest } from "nestjs-form-data";
-import { TokenPayload } from "@app/auth/interfaces/auth.interface";
-import { Request } from "express";
 import { AuthContextService } from "@app/auth/auth-context.service";
 
 @ApiTags("Provider")
@@ -48,59 +45,22 @@ export class ProviderController {
     @UseGuards(OptionalJwtAuthGuard)
     @GetProviderDocumention()
     @Get(":id")
-    public async getProviderById(
-        @Param() params: { id: string },
-        @Req() req: Request & { user?: TokenPayload },
-    ): Promise<ProviderEntity> {
+    public async getProviderById(@Param() params: { id: string }): Promise<ProviderEntity> {
         const provider = await this.providerService.getProviderById(params.id);
 
         if (!provider) {
             throw new HttpException("Provider not found", 404);
         }
 
-        if (req.user) {
-            try {
-                const userProvider = this.authContextService.getProvider();
-                if (userProvider && userProvider.id === params.id) {
-                    return new ProviderEntity({
-                        ...provider,
-                        rut: provider.rut,
-                        chamber_commerce: provider.chamber_commerce,
-                        plan_id: provider.plan_id,
-                        user_id: provider.user_id,
-                        created_at: provider.created_at,
-                        updated_at: provider.updated_at,
-                    });
-                }
-            } catch {
-                // Si falla el contexto, continuar con versión pública
-            }
-        }
-        return new ProviderEntity(provider);
+        return provider;
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(JwtAuthGuard)
     @FormDataRequest()
     @UpdateProviderDocumentation()
-    @Put("self")
-    public async updateProvider(
-        @Req() request: Request & { user: TokenPayload },
-        @Body() data: ProviderUpdateDto,
-    ): Promise<ProviderEntity> {
-        const providers = await this.providerService.getProvidersByUserId(request.user.id);
-
-        if (providers.length === 0) {
-            throw new HttpException("Provider not found", 404);
-        }
-
-        /**
-         * se tomará siempre el primer provedor del arreglo
-         * las cuentas solamente tendrán un proveedor asignado
-         */
-        const provider = providers[0];
-        const providerUpdated = await this.providerService.updateProvider(provider, data);
-
-        return new ProviderEntity(providerUpdated);
+    @Put()
+    public async updateProvider(@Body() data: ProviderUpdateDto): Promise<ProviderEntity> {
+        return this.providerService.updateProvider(data);
     }
 }

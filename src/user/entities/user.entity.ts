@@ -10,7 +10,7 @@ export class UserEntity {
     public identification: string;
     public identification_type: string;
 
-    public Provider: ProviderEntity | null;
+    public provider: ProviderEntity | null;
     public created_at: Date;
     public updated_at: Date;
 
