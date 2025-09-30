@@ -1,6 +1,7 @@
 import { Exclude, Expose } from "class-transformer";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { Prisma } from "@prisma/client";
+import { ProviderEntity } from "@app/provider/entities/provider.entity";
 
 export class ItemEntity {
     public id: string;
@@ -9,9 +10,11 @@ export class ItemEntity {
 
     public description: string | null;
 
+    @ApiHideProperty()
     @Exclude()
     public image: string | null;
 
+    @ApiHideProperty()
     @Exclude()
     public price: Prisma.Decimal;
 
@@ -19,17 +22,33 @@ export class ItemEntity {
 
     public updated_at: Date;
 
+    @ApiHideProperty()
+    @Exclude()
     public provider_id: string;
 
+    @ApiProperty({
+        description: "item image url",
+        type: "string",
+    })
     public image_url: string | null;
 
     public type: string;
 
     @ApiProperty({
+        description: "Provider of item",
+        type: ProviderEntity,
+    })
+    // Claramente un item debe tener un proveedor pero me tiene harto los tipos estrictos en ts
+    // y me da flojera hacer el código mas complejo solo para hacer un tipo mas estricto, asi que
+    // queda en null en caso de que las consultas al item no hagan un include de provider
+    public provider: ProviderEntity | null;
+
+    @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",
         required: false,
     })
-    public is_favorite?: boolean;
+    @Expose({ groups: ["owner"] })
+    public is_favorite: boolean;
 
     public constructor(partial: Partial<ItemEntity>) {
         Object.assign(this, partial);
@@ -37,7 +56,7 @@ export class ItemEntity {
 
     @ApiProperty({
         description: "Price of the item in decimal format (max 2 decimal)",
-        type: Number,
+        type: "number",
         example: 16500.99,
         name: "price",
     })

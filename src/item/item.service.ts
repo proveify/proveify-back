@@ -9,6 +9,7 @@ import { ItemPrismaRepository } from "./repositories/item-prisma.repository";
 import { FavoritePrismaRepository } from "./repositories/favorite-prisma.repository";
 import { ItemEntity } from "./entities/item.entity";
 import { FavoriteEntity } from "./entities/favorite.entity";
+import { ItemFactory } from "@app/item/factories/item.factory";
 
 @Injectable()
 export class ItemService {
@@ -17,6 +18,7 @@ export class ItemService {
         private favoritePrismaRepository: FavoritePrismaRepository,
         private authContextService: AuthContextService,
         private fileService: FileService,
+        private readonly itemFactory: ItemFactory,
     ) {}
 
     public async prepareCreate(data: ItemCreateDto): Promise<Prisma.ItemsCreateInput> {
@@ -83,7 +85,7 @@ export class ItemService {
 
     public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemEntity> {
         const result = await this.itemPrismaRepository.update({ where: { id }, data: item });
-        return new ItemEntity(result);
+        return this.itemFactory.create(result);
     }
 
     public async deleteItem(id: string): Promise<ItemEntity> {
@@ -104,12 +106,12 @@ export class ItemService {
         }
 
         const result = await this.itemPrismaRepository.delete({ where: { id } });
-        return new ItemEntity(result);
+        return this.itemFactory.create(result);
     }
 
     public async findItemById(id: string): Promise<ItemEntity | null> {
         const result = await this.itemPrismaRepository.findUnique({ where: { id } });
-        return result ? new ItemEntity(result) : null;
+        return result ? this.itemFactory.create(result) : null;
     }
 
     public async getItems(params?: ItemParamDto): Promise<ItemEntity[]> {
@@ -125,87 +127,16 @@ export class ItemService {
             },
         });
 
-        return results.map((item) => new ItemEntity(item));
+        return this.itemFactory.createMany(results);
     }
 
-    private async createItemEntityWithExtras(
-        item: ItemEntity,
-        options: { isFavorite?: boolean; includeImageUrl?: boolean } = {},
-    ): Promise<ItemEntity> {
-        let imageUrl = null;
-
-        if (options.includeImageUrl && item.image) {
-            imageUrl = await this.fileService.getFileUrlById(item.image);
-        }
-
-        const itemData = {
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            price: item.price,
-            image: item.image,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            provider_id: item.provider_id,
-            image_url: imageUrl,
-            type: item.type,
-            is_favorite: options.isFavorite ?? false,
-        };
-
-        return new ItemEntity(itemData);
-    }
-
-    public async getItemsWithFavoriteInfo(
-        params?: ItemParamDto,
-        userId?: string,
-    ): Promise<ItemEntity[]> {
-        const items = await this.getItems(params);
-
-        if (!userId) {
-            return await Promise.all(
-                items.map(async (item) => {
-                    return await this.createItemEntityWithExtras(item, {
-                        isFavorite: false,
-                        includeImageUrl: true,
-                    });
-                }),
-            );
-        }
-
-        const favorites = await this.getFavorites(userId, { limit: 1000 });
-        const favoriteItemIds = new Set(favorites.map((fav) => fav.item_id));
-
-        return await Promise.all(
-            items.map(async (item) => {
-                const isFavorite = favoriteItemIds.has(item.id);
-                return await this.createItemEntityWithExtras(item, {
-                    isFavorite,
-                    includeImageUrl: true,
-                });
-            }),
-        );
-    }
-
-    public async findItemByIdWithFavoriteInfo(
-        id: string,
-        userId?: string,
-    ): Promise<ItemEntity | null> {
-        const item = await this.findItemById(id);
-
+    public async getItemById(id: string): Promise<ItemEntity | null> {
+        const item = await this.itemPrismaRepository.findUnique({ where: { id } });
         if (!item) {
             return null;
         }
 
-        let isFavorite = false;
-
-        if (userId) {
-            isFavorite = await this.isFavorite(userId, id);
-        }
-
-        return await this.createItemEntityWithExtras(item, {
-            isFavorite,
-            includeImageUrl: true,
-        });
+        return this.itemFactory.create(item);
     }
 
     private async uploadImage(image: MemoryStoredFile, fileId?: string): Promise<FileModel> {
@@ -298,39 +229,6 @@ export class ItemService {
             include: { provider: true },
         });
 
-        return await Promise.all(
-            results.map(async (item) => {
-                const itemEntity = new ItemEntity(item);
-                return await this.createItemEntityWithExtras(itemEntity, {
-                    includeImageUrl: true,
-                });
-            }),
-        );
-    }
-
-    public async getItemsPublic(params?: ItemParamDto): Promise<ItemEntity[]> {
-        const items = await this.getItems(params);
-
-        return await Promise.all(
-            items.map(async (item) => {
-                return await this.createItemEntityWithExtras(item, {
-                    isFavorite: false,
-                    includeImageUrl: true,
-                });
-            }),
-        );
-    }
-
-    public async findItemByIdPublic(id: string): Promise<ItemEntity | null> {
-        const item = await this.findItemById(id);
-
-        if (!item) {
-            return null;
-        }
-
-        return await this.createItemEntityWithExtras(item, {
-            isFavorite: false,
-            includeImageUrl: true,
-        });
+        return this.itemFactory.createMany(results);
     }
 }

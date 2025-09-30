@@ -17,6 +17,7 @@ import { CategoryModule } from "./category/category.module";
 import { SubcategoryModule } from "./subcategory/subcategory.module";
 import { PublicRequestModule } from "./public-request/public-request.module";
 import { QuoteModule } from "./quote/quote.module";
+import { PdfModule } from "./pdf/pdf.module";
 
 @Module({
     imports: [
@@ -43,6 +44,7 @@ import { QuoteModule } from "./quote/quote.module";
             },
             load: [appConfig, environmentsConfig, jwtConfig, refreshJwtConfig],
         }),
+        PdfModule,
     ],
     providers: [],
 })

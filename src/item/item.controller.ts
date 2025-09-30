@@ -77,30 +77,15 @@ export class ItemController {
     @UseGuards(OptionalJwtAuthGuard)
     @GetItemsDocumentation()
     @Get()
-    public async getItems(
-        @Query() params: ItemParamDto,
-        @Req() req: Request & { user?: TokenPayload },
-    ): Promise<ItemEntity[]> {
-        if (req.user) {
-            return await this.itemService.getItemsWithFavoriteInfo(params, req.user.id);
-        }
-        return await this.itemService.getItemsPublic(params);
+    public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
+        return this.itemService.getItems(params);
     }
 
     @UseGuards(OptionalJwtAuthGuard)
     @GetItemDocumentation()
     @Get(":id")
-    public async getItemById(
-        @Param() params: { id: string },
-        @Req() req: Request & { user?: TokenPayload },
-    ): Promise<ItemEntity> {
-        let item: ItemEntity | null;
-
-        if (req.user) {
-            item = await this.itemService.findItemByIdWithFavoriteInfo(params.id, req.user.id);
-        } else {
-            item = await this.itemService.findItemByIdPublic(params.id);
-        }
+    public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
+        const item = await this.itemService.getItemById(params.id);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
