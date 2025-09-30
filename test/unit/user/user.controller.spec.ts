@@ -70,7 +70,7 @@ describe("UserController", () => {
                 password: "hashed_password",
                 refreshed_token: "token123",
                 user_type: "CLIENT",
-                Provider: null,
+                provider: null,
                 created_at: new Date(),
                 updated_at: new Date(),
             });
@@ -83,10 +83,10 @@ describe("UserController", () => {
 
             // Act
             const result = await controller.getUserProfile(mockRequest as any);
-            
+
             // Simular la serialización que ocurriría en una petición real
-            const serialized = plainToInstance(UserEntity, result, { 
-                excludeExtraneousValues: false 
+            const serialized = plainToInstance(UserEntity, result, {
+                excludeExtraneousValues: false,
             });
 
             // Assert

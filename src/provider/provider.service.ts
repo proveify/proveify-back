@@ -1,39 +1,51 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { ProviderPrismaRepository } from "./repositories/provider-prisma.repository";
 import { ProvidersParamsDto } from "./dto/params.dto";
 import { Providers as ProviderModel, Prisma } from "@prisma/client";
 import { ProviderUpdateDto } from "./dto/provider.dto";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
+import { ProviderEntity } from "@app/provider/entities/provider.entity";
+import { ProviderFactory } from "@app/provider/factories/provider.factory";
+import { AuthContextService } from "@app/auth/auth-context.service";
 
 @Injectable()
 export class ProviderService {
     public constructor(
         private providerPrismaRepository: ProviderPrismaRepository,
         private fileService: FileService,
+        private readonly providerFactory: ProviderFactory,
+        private authContext: AuthContextService,
     ) {}
 
     public async saveProvider(provider: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
         return this.providerPrismaRepository.createProvider(provider);
     }
 
-    public async getProviders(params?: ProvidersParamsDto): Promise<ProviderModel[]> {
-        return this.providerPrismaRepository.findManyProviders(
+    public async getProviders(params?: ProvidersParamsDto): Promise<ProviderEntity[]> {
+        const providers = await this.providerPrismaRepository.findManyProviders(
             undefined,
             params?.limit ?? 30,
             params?.offset,
             { id: params?.order_by ?? "desc" },
         );
+
+        return this.providerFactory.createMany(providers);
     }
 
-    public async getProviderById(id: string): Promise<ProviderModel | null> {
-        return this.providerPrismaRepository.findUniqueProvider(id);
+    public async getProviderById(id: string): Promise<ProviderEntity | null> {
+        const provider = await this.providerPrismaRepository.findUniqueProvider(id);
+        if (!provider) return null;
+        return this.providerFactory.create(provider);
     }
 
-    public async updateProvider(
-        provider: ProviderModel,
-        data: ProviderUpdateDto,
-    ): Promise<ProviderModel> {
+    public async updateProvider(data: ProviderUpdateDto): Promise<ProviderEntity> {
+        const provider = this.authContext.getProvider();
+
+        if (!provider) {
+            throw new HttpException("Provider not found", 404);
+        }
+
         const providerData: Prisma.ProvidersUpdateInput = {};
 
         if (data.name) providerData.name = data.name;
@@ -91,10 +103,11 @@ export class ProviderService {
             }
         }
 
-        return this.providerPrismaRepository.updateProvider(provider.id, providerData);
-    }
+        const providerUpdated = await this.providerPrismaRepository.updateProvider(
+            provider.id,
+            providerData,
+        );
 
-    public async getProvidersByUserId(id: string): Promise<ProviderModel[]> {
-        return this.providerPrismaRepository.findProvidersByUserId(id);
+        return this.providerFactory.create(providerUpdated);
     }
 }
