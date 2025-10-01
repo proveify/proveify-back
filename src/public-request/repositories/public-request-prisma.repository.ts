@@ -65,7 +65,10 @@ export class PublicRequestPrismaRepository implements PrismaRepository {
         });
     }
 
-    public async findUniquePublicRequest(id: string): Promise<PublicRequestModel | null> {
+    public async findUniquePublicRequest(
+        id: string,
+        includeQuotes = false,
+    ): Promise<PublicRequestModel | null> {
         const prisma = this.getClient();
         return prisma.publicRequests.findUnique({
             where: { id },
@@ -81,6 +84,18 @@ export class PublicRequestPrismaRepository implements PrismaRepository {
                         updated_at: true,
                     },
                 },
+                ...(includeQuotes && {
+                    Quotes: {
+                        include: {
+                            provider: true,
+                            quote_items: {
+                                include: {
+                                    item: true,
+                                },
+                            },
+                        },
+                    },
+                }),
             },
         });
     }

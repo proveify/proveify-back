@@ -2,6 +2,7 @@ import { applyDecorators } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { PublicRequestEntity } from "../../entities/public-request.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 
 export function CreatePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
@@ -227,5 +228,46 @@ export function GetMyPublicRequestsDocumentation(): MethodDecorator & ClassDecor
             description: "Bad request - invalid query parameters",
         }),
         ApiBearerAuth(),
+    );
+}
+
+export function GetPublicRequestQuotesDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({
+            summary: "Get quotes for a public request",
+            description: "Retrieves all quotes submitted by providers for this public request",
+        }),
+        ApiParam({
+            name: "id",
+            required: true,
+            type: String,
+            description: "ID of the public request",
+        }),
+        ApiQuery({
+            name: "limit",
+            required: false,
+            type: Number,
+            description: "Límite de 1 a 30 registros por consulta",
+        }),
+        ApiQuery({
+            name: "offset",
+            required: false,
+            type: Number,
+        }),
+        ApiQuery({
+            name: "order_by",
+            required: false,
+            type: String,
+            enum: ["asc", "desc"],
+        }),
+        ApiResponse({
+            status: 200,
+            description: "List of quotes for the public request",
+            type: [QuoteEntity],
+        }),
+        ApiResponse({
+            status: 404,
+            description: "Public request not found",
+        }),
     );
 }

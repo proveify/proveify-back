@@ -8,7 +8,11 @@ import {
     QuoteParamsDto,
     QuoteMessageParamsDto,
 } from "./dto/quote.dto";
-import type { Quotes as QuoteModel, Prisma } from "@prisma/client";
+import type {
+    Quotes as QuoteModel,
+    PublicRequests as PublicRequestModel,
+    Prisma,
+} from "@prisma/client";
 import { QuoteMessageEntity } from "@app/quote/entities/quote.entity";
 import { UserTypes } from "@app/user/interfaces/users";
 
@@ -30,6 +34,14 @@ export class QuoteService {
             throw new HttpException("Provider not found", HttpStatus.NOT_FOUND);
         }
 
+        if (createDto.public_request_id) {
+            const publicRequestExists: PublicRequestModel | null =
+                await this.quotePrismaRepository.findPublicRequestById(createDto.public_request_id);
+            if (!publicRequestExists) {
+                throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
+            }
+        }
+
         let userId: string | null = authenticatedUserId ?? null;
 
         if (!userId) {
@@ -48,6 +60,13 @@ export class QuoteService {
             identification_type: createDto.identification_type,
             description: createDto.description,
             user_id: userId,
+            ...(createDto.public_request_id && {
+                public_request: {
+                    connect: {
+                        id: createDto.public_request_id,
+                    },
+                },
+            }),
             provider: {
                 connect: {
                     id: createDto.provider_id,
@@ -246,5 +265,19 @@ export class QuoteService {
         });
 
         return quoteMessages.map((message) => new QuoteMessageEntity(message));
+    }
+
+    public async findQuotesByPublicRequest(
+        publicRequestId: string,
+        params?: QuoteParamsDto,
+    ): Promise<QuoteModel[]> {
+        return this.quotePrismaRepository.findQuotesByPublicRequest(
+            publicRequestId,
+            params?.limit ?? 30,
+            params?.offset,
+            {
+                created_at: params?.order_by ?? "desc",
+            },
+        );
     }
 }

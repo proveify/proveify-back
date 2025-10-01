@@ -8,12 +8,15 @@ import {
     PublicRequestFilterDto,
 } from "./dto/public-request.dto";
 import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
+import { QuoteService } from "@app/quote/quote.service";
+import type { Quotes as QuoteModel } from "@prisma/client";
 
 @Injectable()
 export class PublicRequestService {
     public constructor(
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
         private authContextService: AuthContextService,
+        private quoteService: QuoteService, // INYECTAR SERVICIO
     ) {}
 
     public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {
@@ -126,5 +129,19 @@ export class PublicRequestService {
         }
 
         return this.publicRequestPrismaRepository.deletePublicRequest(id);
+    }
+
+    public async getQuotesByPublicRequest(
+        id: string,
+        params?: PublicRequestParamsDto,
+    ): Promise<QuoteModel[]> {
+        const publicRequest = await this.publicRequestPrismaRepository.findUniquePublicRequest(id);
+
+        if (!publicRequest) {
+            throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
+        }
+
+        // Usa el servicio en vez del repositorio
+        return this.quoteService.findQuotesByPublicRequest(id, params);
     }
 }

@@ -8,18 +8,21 @@ model Quotes {
   identification      String
   identification_type String
   user_id             String?
+  public_request_id   String?
   description         String   @db.Text
   status              String   @default("PENDING")
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
 
-  provider     Providers       @relation(fields: [provider_id], references: [id])
-  quote_items  QuoteItems[]
-  QuoteMessage QuoteMessages[]
+  provider       Providers        @relation(fields: [provider_id], references: [id])
+  quote_items    QuoteItems[]
+  QuoteMessage   QuoteMessages[]
+  public_request PublicRequests?  @relation(fields: [public_request_id], references: [id])
 
   @@index([provider_id])
   @@index([email])
   @@index([status])
+  @@index([public_request_id])
 }
 
 // Model QuoteItems

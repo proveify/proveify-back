@@ -1,5 +1,6 @@
-import { UserEntity } from "@app/user/entities/user.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { UserEntity } from "@app/user/entities/user.entity";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 
 export class PublicRequestEntity {
     @ApiProperty({
@@ -45,6 +46,13 @@ export class PublicRequestEntity {
         description: "Información del usuario que creó la solicitud",
     })
     public user?: UserEntity;
+
+    @ApiProperty({
+        type: [QuoteEntity],
+        required: false,
+        description: "Cotizaciones recibidas para esta solicitud",
+    })
+    public Quotes?: QuoteEntity[];
 
     public constructor(partial: Partial<PublicRequestEntity>) {
         Object.assign(this, partial);
