@@ -1,20 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 import { ProviderQuoteEntity, ProviderQuoteItemEntity } from "../entities/provider-quote.entity";
 import { ProviderFactory } from "@app/provider/factories/provider.factory";
 import { ItemFactory } from "@app/item/factories/item.factory";
-
-type ProviderQuoteWithIncludes = Prisma.ProviderQuotesGetPayload<{
-    include: {
-        provider: true;
-        public_request: true;
-        provider_quote_items: {
-            include: {
-                item: true;
-            };
-        };
-    };
-}>;
+import { ProviderQuoteWithIncludes } from "../types/provider-quote.types";
 
 @Injectable()
 export class ProviderQuoteFactory {

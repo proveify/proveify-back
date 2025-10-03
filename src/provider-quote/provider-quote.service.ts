@@ -9,18 +9,7 @@ import {
 import type { Prisma } from "@prisma/client";
 import { ProviderQuoteFactory } from "./factories/provider-quote.factory";
 import { ProviderQuoteEntity } from "./entities/provider-quote.entity";
-
-type ProviderQuoteWithIncludes = Prisma.ProviderQuotesGetPayload<{
-    include: {
-        provider: true;
-        public_request: true;
-        provider_quote_items: {
-            include: {
-                item: true;
-            };
-        };
-    };
-}>;
+import { ProviderQuoteWithIncludes } from "./types/provider-quote.types";
 
 @Injectable()
 export class ProviderQuoteService {
