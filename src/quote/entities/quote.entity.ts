@@ -110,13 +110,6 @@ export class QuoteEntity {
     public user_id: string | null;
 
     @ApiProperty({
-        description: "ID de la solicitud pública (opcional)",
-        required: false,
-        example: "123e4567-e89b-12d3-a456-426614174000",
-    })
-    public public_request_id: string | null;
-
-    @ApiProperty({
         description: "Descripción general de la cotización",
         example: "Necesito desarrollar un sitio web corporativo",
     })

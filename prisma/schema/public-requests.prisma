@@ -9,7 +9,6 @@ model PublicRequests {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now()) @updatedAt
 
-  Quotes         Quotes[]
   ProviderQuotes ProviderQuotes[]
 
   @@index([user_id])

@@ -62,15 +62,6 @@ export class CreateQuoteDto {
     public provider_id: string;
 
     @ApiProperty({
-        description: "ID de la solicitud pública (opcional)",
-        required: false,
-        example: "123e4567-e89b-12d3-a456-426614174000",
-    })
-    @IsUUID()
-    @IsOptional()
-    public public_request_id?: string;
-
-    @ApiProperty({
         description: "Nombre completo del solicitante",
         example: "Juan Pérez",
     })

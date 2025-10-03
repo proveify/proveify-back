@@ -4,7 +4,6 @@ import type {
     Quotes as QuoteModel,
     Providers as ProviderModel,
     QuoteMessages as QuoteMessageModel,
-    PublicRequests as PublicRequestModel,
     Prisma,
 } from "@prisma/client";
 import { TransactionContextService } from "@app/prisma/transaction-context.service";
@@ -200,35 +199,5 @@ export class QuotePrismaRepository implements PrismaRepository {
     ): Promise<QuoteMessageModel[]> {
         const prisma = this.getClient();
         return prisma.quoteMessages.findMany(args);
-    }
-
-    public async findQuotesByPublicRequest(
-        publicRequestId: string,
-        take?: number,
-        skip?: number,
-        orderBy?: Prisma.QuotesOrderByWithRelationInput,
-    ): Promise<QuoteModel[]> {
-        const prisma = this.getClient();
-        return prisma.quotes.findMany({
-            where: { public_request_id: publicRequestId },
-            include: {
-                provider: true,
-                quote_items: {
-                    include: {
-                        item: true,
-                    },
-                },
-            },
-            take,
-            skip,
-            orderBy,
-        });
-    }
-
-    public async findPublicRequestById(id: string): Promise<PublicRequestModel | null> {
-        const prisma = this.getClient();
-        return prisma.publicRequests.findUnique({
-            where: { id },
-        });
     }
 }
