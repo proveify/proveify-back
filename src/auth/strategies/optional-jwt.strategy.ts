@@ -13,7 +13,6 @@ export class OptionalJwtStrategy extends PassportStrategy(Strategy, "optional-jw
     public constructor(
         private moduleRef: ModuleRef,
         private configService: ConfigService<typeof jwtConfig, true>,
-        private readonly userService: UserService,
     ) {
         const secret = configService.get<string>("jwt.secret", { infer: true });
 
@@ -29,7 +28,8 @@ export class OptionalJwtStrategy extends PassportStrategy(Strategy, "optional-jw
         try {
             const contextId = ContextIdFactory.getByRequest(request);
             const authContextService = await this.moduleRef.resolve(AuthContextService, contextId);
-            authContextService.setUser(await this.userService.getUserProfile(payload.id));
+            const userService = this.moduleRef.get(UserService);
+            authContextService.setUser(await userService.getUserProfile(payload.id));
             return payload;
         } catch {
             // Si falla la validación, retorna null sin lanzar error
