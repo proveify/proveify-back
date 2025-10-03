@@ -25,7 +25,7 @@ export class ProviderQuoteItemEntity {
     public quantity: number;
 
     @ApiProperty({ type: "number", example: 500000.0 })
-    private unit_price: Prisma.Decimal;
+    public unit_price: Prisma.Decimal;
 
     @ApiProperty()
     public created_at: Date;
@@ -57,7 +57,7 @@ export class ProviderQuoteEntity {
     public provider_id: string;
 
     @ApiProperty({ type: "number", example: 2500000.0 })
-    private total_price: Prisma.Decimal;
+    public total_price: Prisma.Decimal;
 
     @ApiProperty()
     public description: string;

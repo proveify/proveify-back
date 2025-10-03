@@ -1,7 +1,6 @@
 import { applyDecorators } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { ProviderQuoteEntity } from "../../entities/provider-quote.entity";
-import { BasicResponseEntity } from "@app/common/entities/response.entity";
 
 export function CreateProviderQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
@@ -185,7 +184,7 @@ export function DeleteProviderQuoteDocumentation(): MethodDecorator & ClassDecor
         ApiResponse({
             status: 200,
             description: "Provider quote deleted successfully",
-            type: BasicResponseEntity,
+            type: ProviderQuoteEntity,
         }),
         ApiResponse({
             status: 403,

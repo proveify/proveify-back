@@ -15,7 +15,6 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
-import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { ProviderQuoteService } from "./provider-quote.service";
 import {
     CreateProviderQuoteDto,
@@ -46,15 +45,13 @@ export class ProviderQuoteController {
     public async create(
         @Body() createProviderQuoteDto: CreateProviderQuoteDto,
     ): Promise<ProviderQuoteEntity> {
-        const quote = await this.providerQuoteService.create(createProviderQuoteDto);
-        return new ProviderQuoteEntity(quote);
+        return await this.providerQuoteService.create(createProviderQuoteDto);
     }
 
     @Get()
     @GetProviderQuotesDocumentation()
     public async findAll(@Query() params: ProviderQuoteParamsDto): Promise<ProviderQuoteEntity[]> {
-        const quotes = await this.providerQuoteService.findAll(params);
-        return quotes.map((quote) => new ProviderQuoteEntity(quote));
+        return await this.providerQuoteService.findAll(params);
     }
 
     @Get("my-quotes")
@@ -63,8 +60,7 @@ export class ProviderQuoteController {
     public async findMyQuotes(
         @Query() params: ProviderQuoteParamsDto,
     ): Promise<ProviderQuoteEntity[]> {
-        const quotes = await this.providerQuoteService.findMyQuotes(params);
-        return quotes.map((quote) => new ProviderQuoteEntity(quote));
+        return await this.providerQuoteService.findMyQuotes(params);
     }
 
     @Get(":id")
@@ -76,7 +72,7 @@ export class ProviderQuoteController {
             throw new HttpException("Provider quote not found", HttpStatus.NOT_FOUND);
         }
 
-        return new ProviderQuoteEntity(quote);
+        return quote;
     }
 
     @Patch(":id")
@@ -87,20 +83,14 @@ export class ProviderQuoteController {
         @Param("id") id: string,
         @Body() updateProviderQuoteDto: UpdateProviderQuoteDto,
     ): Promise<ProviderQuoteEntity> {
-        const updatedQuote = await this.providerQuoteService.update(id, updateProviderQuoteDto);
-        return new ProviderQuoteEntity(updatedQuote);
+        return await this.providerQuoteService.update(id, updateProviderQuoteDto);
     }
 
     @Delete(":id")
     @UseGuards(JwtAuthGuard)
     @DeleteProviderQuoteDocumentation()
     @UseInterceptors(TransactionInterceptor)
-    public async remove(@Param("id") id: string): Promise<BasicResponseEntity> {
-        await this.providerQuoteService.remove(id);
-
-        return {
-            code: 200,
-            message: "Provider quote deleted successfully",
-        };
+    public async remove(@Param("id") id: string): Promise<ProviderQuoteEntity> {
+        return await this.providerQuoteService.remove(id);
     }
 }

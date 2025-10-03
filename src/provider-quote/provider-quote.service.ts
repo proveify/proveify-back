@@ -6,23 +6,37 @@ import {
     UpdateProviderQuoteDto,
     ProviderQuoteParamsDto,
 } from "./dto/provider-quote.dto";
-import type { ProviderQuotes as ProviderQuoteModel, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { ProviderQuoteFactory } from "./factories/provider-quote.factory";
+import { ProviderQuoteEntity } from "./entities/provider-quote.entity";
+
+type ProviderQuoteWithIncludes = Prisma.ProviderQuotesGetPayload<{
+    include: {
+        provider: true;
+        public_request: true;
+        provider_quote_items: {
+            include: {
+                item: true;
+            };
+        };
+    };
+}>;
 
 @Injectable()
 export class ProviderQuoteService {
     public constructor(
         private providerQuotePrismaRepository: ProviderQuotePrismaRepository,
         private authContextService: AuthContextService,
+        private readonly providerQuoteFactory: ProviderQuoteFactory,
     ) {}
 
-    public async create(createDto: CreateProviderQuoteDto): Promise<ProviderQuoteModel> {
+    public async create(createDto: CreateProviderQuoteDto): Promise<ProviderQuoteEntity> {
         const provider = this.authContextService.getProvider();
 
         if (!provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
         }
 
-        // Verificar que la solicitud pública existe
         const publicRequestExists = await this.providerQuotePrismaRepository.findPublicRequestById(
             createDto.public_request_id,
         );
@@ -31,7 +45,6 @@ export class ProviderQuoteService {
             throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
         }
 
-        // Verificar que el proveedor no haya cotizado antes
         const existingQuote =
             await this.providerQuotePrismaRepository.findByPublicRequestAndProvider(
                 createDto.public_request_id,
@@ -75,10 +88,11 @@ export class ProviderQuoteService {
             },
         };
 
-        return this.providerQuotePrismaRepository.createProviderQuote(quoteData);
+        const result = await this.providerQuotePrismaRepository.createProviderQuote(quoteData);
+        return this.providerQuoteFactory.create(result as ProviderQuoteWithIncludes);
     }
 
-    public async findAll(params?: ProviderQuoteParamsDto): Promise<ProviderQuoteModel[]> {
+    public async findAll(params?: ProviderQuoteParamsDto): Promise<ProviderQuoteEntity[]> {
         const whereConditions: Prisma.ProviderQuotesWhereInput = {};
 
         if (params?.public_request_id) {
@@ -89,7 +103,7 @@ export class ProviderQuoteService {
             whereConditions.status = params.status;
         }
 
-        return this.providerQuotePrismaRepository.findManyProviderQuotes(
+        const results = await this.providerQuotePrismaRepository.findManyProviderQuotes(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -97,13 +111,18 @@ export class ProviderQuoteService {
                 created_at: params?.order_by ?? "desc",
             },
         );
+
+        return this.providerQuoteFactory.createMany(results as ProviderQuoteWithIncludes[]);
     }
 
-    public async findOne(id: string): Promise<ProviderQuoteModel | null> {
-        return this.providerQuotePrismaRepository.findUniqueProviderQuote(id);
+    public async findOne(id: string): Promise<ProviderQuoteEntity | null> {
+        const result = await this.providerQuotePrismaRepository.findUniqueProviderQuote(id);
+        return result
+            ? this.providerQuoteFactory.create(result as ProviderQuoteWithIncludes)
+            : null;
     }
 
-    public async findMyQuotes(params?: ProviderQuoteParamsDto): Promise<ProviderQuoteModel[]> {
+    public async findMyQuotes(params?: ProviderQuoteParamsDto): Promise<ProviderQuoteEntity[]> {
         const provider = this.authContextService.getProvider();
 
         if (!provider) {
@@ -122,7 +141,7 @@ export class ProviderQuoteService {
             whereConditions.status = params.status;
         }
 
-        return this.providerQuotePrismaRepository.findManyProviderQuotes(
+        const results = await this.providerQuotePrismaRepository.findManyProviderQuotes(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -130,12 +149,14 @@ export class ProviderQuoteService {
                 created_at: params?.order_by ?? "desc",
             },
         );
+
+        return this.providerQuoteFactory.createMany(results as ProviderQuoteWithIncludes[]);
     }
 
     public async update(
         id: string,
         updateDto: UpdateProviderQuoteDto,
-    ): Promise<ProviderQuoteModel> {
+    ): Promise<ProviderQuoteEntity> {
         const provider = this.authContextService.getProvider();
 
         if (!provider) {
@@ -184,10 +205,11 @@ export class ProviderQuoteService {
             };
         }
 
-        return this.providerQuotePrismaRepository.updateProviderQuote(id, updateData);
+        const result = await this.providerQuotePrismaRepository.updateProviderQuote(id, updateData);
+        return this.providerQuoteFactory.create(result as ProviderQuoteWithIncludes);
     }
 
-    public async remove(id: string): Promise<ProviderQuoteModel> {
+    public async remove(id: string): Promise<ProviderQuoteEntity> {
         const provider = this.authContextService.getProvider();
 
         if (!provider) {
@@ -205,6 +227,7 @@ export class ProviderQuoteService {
             throw new HttpException("You can only delete your own quotes", HttpStatus.FORBIDDEN);
         }
 
-        return this.providerQuotePrismaRepository.deleteProviderQuote(id);
+        const result = await this.providerQuotePrismaRepository.deleteProviderQuote(id);
+        return this.providerQuoteFactory.create(result as ProviderQuoteWithIncludes);
     }
 }
