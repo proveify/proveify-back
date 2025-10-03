@@ -6,7 +6,6 @@ import { ProviderFactory } from "@app/provider/factories/provider.factory";
 
 @Module({
     providers: [ProviderService, ProviderPrismaRepository, ProviderFactory],
-    imports: [ProviderModule],
     exports: [ProviderService, ProviderPrismaRepository, ProviderFactory],
     controllers: [ProviderController],
 })
