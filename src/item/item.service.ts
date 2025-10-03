@@ -36,9 +36,18 @@ export class ItemService {
             provider: { connect: { id: provider.id } },
         };
 
-        if (data.image) {
-            const image = await this.uploadImage(data.image);
-            item.image = image.id;
+        if (data.images) {
+            const uploadedImages = await Promise.all(
+                data.images.map((image) => this.uploadImage(image)),
+            );
+
+            item.itemImages = {
+                createMany: {
+                    data: uploadedImages.map((file) => ({
+                        file_id: file.id,
+                    })),
+                },
+            };
         }
 
         return item;
@@ -60,27 +69,17 @@ export class ItemService {
             throw new HttpException("You can only update your own items", 403);
         }
 
-        const itemUpdateInput: Prisma.ItemsUpdateInput = {
+        return {
             name: data.name,
             description: data.description,
             price: data.price,
             type: data.type,
         };
-
-        if (data.image && item.image) {
-            const image = await this.uploadImage(data.image, item.image);
-            itemUpdateInput.image = image.id;
-        } else if (data.image) {
-            const image = await this.uploadImage(data.image);
-            itemUpdateInput.image = image.id;
-        }
-
-        return itemUpdateInput;
     }
 
     public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemEntity> {
         const result = await this.itemPrismaRepository.create({ data: item });
-        return new ItemEntity(result);
+        return this.itemFactory.create(result);
     }
 
     public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemEntity> {
@@ -110,7 +109,10 @@ export class ItemService {
     }
 
     public async findItemById(id: string): Promise<ItemEntity | null> {
-        const result = await this.itemPrismaRepository.findUnique({ where: { id } });
+        const result = await this.itemPrismaRepository.findUnique({
+            where: { id },
+            include: { provider: true, itemImages: true },
+        });
         return result ? this.itemFactory.create(result) : null;
     }
 
@@ -124,6 +126,7 @@ export class ItemService {
             },
             include: {
                 provider: true,
+                itemImages: true,
             },
         });
 
@@ -201,17 +204,6 @@ export class ItemService {
             orderBy: { created_at: params?.order_by ?? "desc" },
         });
         return results.map((favorite) => new FavoriteEntity(favorite));
-    }
-
-    public async isFavorite(userId: string, itemId: string): Promise<boolean> {
-        const favorite = await this.favoritePrismaRepository.findFirst({
-            where: {
-                user_id: userId,
-                item_id: itemId,
-            },
-        });
-
-        return !!favorite;
     }
 
     public async getProviderItems(params?: ItemParamDto): Promise<ItemEntity[]> {

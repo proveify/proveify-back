@@ -43,7 +43,7 @@ export class ItemController {
     @FormDataRequest()
     @UseGuards(JwtAuthGuard)
     @PostCreateItemDocumentation()
-    @Post("self")
+    @Post()
     public async createItem(@Body() data: ItemCreateDto): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareCreate(data);
         return await this.itemService.createItem(itemDataInput);

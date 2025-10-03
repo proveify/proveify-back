@@ -30,14 +30,13 @@ export class UserService {
     public async getUserProfile(id: string): Promise<UserEntity> {
         const user = await this.userPrismaRepository.findUniqueUserById({
             where: { id },
-            include: { Provider: true },
+            include: { provider: true },
         });
 
         if (!user) {
             throw new UserNotFoundException(id);
         }
 
-        // Retorna una instancia de UserEntity
         return new UserEntity(user);
     }
 }
