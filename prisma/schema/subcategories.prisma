@@ -10,5 +10,5 @@ model Subcategories {
   updated_at  DateTime   @default(now()) @updatedAt
 
   // Relación con items
-  Items Items[]
+  items Items[]
 }

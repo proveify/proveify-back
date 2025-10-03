@@ -1,6 +1,6 @@
 import { Exclude, Expose } from "class-transformer";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Prisma } from "@prisma/client";
+import { Prisma, ItemImages } from "@prisma/client";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 
 export class ItemEntity {
@@ -9,10 +9,6 @@ export class ItemEntity {
     public name: string;
 
     public description: string | null;
-
-    @ApiHideProperty()
-    @Exclude()
-    public image: string | null;
 
     @ApiHideProperty()
     @Exclude()
@@ -26,11 +22,12 @@ export class ItemEntity {
     @Exclude()
     public provider_id: string;
 
-    @ApiProperty({
-        description: "item image url",
-        type: "string",
-    })
-    public image_url: string | null;
+    @ApiHideProperty()
+    @Exclude()
+    public itemImages?: ItemImages[];
+
+    @Expose()
+    public images: string[];
 
     public type: string;
 

@@ -20,7 +20,7 @@ export class CategoryPrismaRepository implements PrismaRepository {
         return prisma.categories.create({
             data,
             include: {
-                Subcategories: true,
+                subcategories: true,
             },
         });
     }
@@ -33,7 +33,7 @@ export class CategoryPrismaRepository implements PrismaRepository {
         return prisma.categories.findMany({
             where,
             include: include ?? {
-                Subcategories: true,
+                subcategories: true,
             },
         });
     }
@@ -46,7 +46,7 @@ export class CategoryPrismaRepository implements PrismaRepository {
         return prisma.categories.findUnique({
             where: { id },
             include: include ?? {
-                Subcategories: true,
+                subcategories: true,
             },
         });
     }
@@ -60,7 +60,7 @@ export class CategoryPrismaRepository implements PrismaRepository {
             where: { id },
             data,
             include: {
-                Subcategories: true,
+                subcategories: true,
             },
         });
     }
@@ -70,7 +70,7 @@ export class CategoryPrismaRepository implements PrismaRepository {
         return prisma.categories.delete({
             where: { id },
             include: {
-                Subcategories: true,
+                subcategories: true,
             },
         });
     }

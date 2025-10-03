@@ -1,7 +1,7 @@
 import { ParamsDto } from "@app/common/dtos/params.dto";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { IsOptional, IsString, IsDecimal, IsUUID, IsEnum } from "class-validator";
-import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
+import { IsOptional, IsString, IsDecimal, IsUUID, IsEnum, ArrayMaxSize } from "class-validator";
+import { HasMimeType, IsFiles, MemoryStoredFile } from "nestjs-form-data";
 import { ItemType } from "@app/item/interfaces/item.interface";
 
 export class ItemParamDto extends IntersectionType(ParamsDto) {
@@ -37,9 +37,19 @@ export class ItemCreateDto {
     public price?: string;
 
     @IsOptional()
-    @IsFile()
+    @IsFiles()
     @HasMimeType(["application/jpeg", "image/png"])
-    public image?: MemoryStoredFile;
+    @ApiProperty({
+        description: "Imágenes (múltiples archivos, máximo 5)",
+        type: "array",
+        items: {
+            type: "string",
+            format: "binary",
+        },
+        required: false,
+    })
+    @ArrayMaxSize(5)
+    public images?: MemoryStoredFile[];
 }
 
 export class ItemUpdateDto extends PartialType(ItemCreateDto) {}
