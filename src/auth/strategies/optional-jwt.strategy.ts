@@ -6,6 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import jwtConfig from "../../common/jwt.config";
 import { AuthContextService } from "../auth-context.service";
 import { ContextIdFactory, ModuleRef } from "@nestjs/core";
+import { UserService } from "@app/user/user.service";
 
 @Injectable()
 export class OptionalJwtStrategy extends PassportStrategy(Strategy, "optional-jwt") {
@@ -27,7 +28,8 @@ export class OptionalJwtStrategy extends PassportStrategy(Strategy, "optional-jw
         try {
             const contextId = ContextIdFactory.getByRequest(request);
             const authContextService = await this.moduleRef.resolve(AuthContextService, contextId);
-            await authContextService.generateAuthContext(payload.id);
+            const userService = await this.moduleRef.resolve(UserService, contextId);
+            authContextService.setUser(await userService.getUserProfile(payload.id));
             return payload;
         } catch {
             // Si falla la validación, retorna null sin lanzar error
