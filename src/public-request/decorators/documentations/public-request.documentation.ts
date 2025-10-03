@@ -2,7 +2,6 @@ import { applyDecorators } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { PublicRequestEntity } from "../../entities/public-request.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
-import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
 
 export function CreatePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
@@ -232,10 +231,10 @@ export function GetMyPublicRequestsDocumentation(): MethodDecorator & ClassDecor
     );
 }
 
-export function GetPublicRequestQuotesDocumentation(): MethodDecorator & ClassDecorator {
+export function GetPublicRequestProviderQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({
-            summary: "Get quotes for a public request",
+            summary: "Get provider quotes for a public request",
             description: "Retrieves all quotes submitted by providers for this public request",
         }),
         ApiParam({
@@ -243,45 +242,29 @@ export function GetPublicRequestQuotesDocumentation(): MethodDecorator & ClassDe
             required: true,
             type: String,
             description: "ID of the public request",
+            example: "123e4567-e89b-12d3-a456-426614174000",
         }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
             description: "Límite de 1 a 30 registros por consulta",
+            example: 10,
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
+            description: "Número de registros a saltar para paginación",
+            example: 0,
         }),
         ApiQuery({
             name: "order_by",
             required: false,
             type: String,
             enum: ["asc", "desc"],
-        }),
-        ApiResponse({
-            status: 200,
-            description: "List of quotes for the public request",
-            type: [QuoteEntity],
-        }),
-        ApiResponse({
-            status: 404,
-            description: "Public request not found",
-        }),
-    );
-}
-
-export function GetPublicRequestProviderQuotesDocumentation(): MethodDecorator & ClassDecorator {
-    return applyDecorators(
-        ApiOperation({
-            summary: "Get provider quotes for a public request",
-        }),
-        ApiParam({
-            name: "id",
-            required: true,
-            type: String,
+            description: "Orden de los resultados por fecha de creación",
+            example: "desc",
         }),
         ApiResponse({
             status: 200,
@@ -291,6 +274,10 @@ export function GetPublicRequestProviderQuotesDocumentation(): MethodDecorator &
         ApiResponse({
             status: 404,
             description: "Public request not found",
+        }),
+        ApiResponse({
+            status: 400,
+            description: "Bad request - invalid query parameters",
         }),
     );
 }
