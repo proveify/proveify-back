@@ -3,6 +3,7 @@ import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@n
 import { PublicRequestEntity } from "../../entities/public-request.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { QuoteEntity } from "@app/quote/entities/quote.entity";
+import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
 
 export function CreatePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
@@ -264,6 +265,28 @@ export function GetPublicRequestQuotesDocumentation(): MethodDecorator & ClassDe
             status: 200,
             description: "List of quotes for the public request",
             type: [QuoteEntity],
+        }),
+        ApiResponse({
+            status: 404,
+            description: "Public request not found",
+        }),
+    );
+}
+
+export function GetPublicRequestProviderQuotesDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({
+            summary: "Get provider quotes for a public request",
+        }),
+        ApiParam({
+            name: "id",
+            required: true,
+            type: String,
+        }),
+        ApiResponse({
+            status: 200,
+            description: "List of provider quotes",
+            type: [ProviderQuoteEntity],
         }),
         ApiResponse({
             status: 404,

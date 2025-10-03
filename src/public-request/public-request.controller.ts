@@ -31,9 +31,9 @@ import {
     UpdatePublicRequestDocumentation,
     DeletePublicRequestDocumentation,
     GetMyPublicRequestsDocumentation,
-    GetPublicRequestQuotesDocumentation,
+    GetPublicRequestProviderQuotesDocumentation,
 } from "./decorators/documentations/public-request.documentation";
-import { QuoteEntity } from "@app/quote/entities/quote.entity";
+import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
 
 @ApiTags("Public Requests")
 @Controller("public-requests")
@@ -80,16 +80,6 @@ export class PublicRequestController {
         return new PublicRequestEntity(publicRequest);
     }
 
-    @Get(":id/quotes")
-    @GetPublicRequestQuotesDocumentation()
-    public async getQuotes(
-        @Param("id") id: string,
-        @Query() params: PublicRequestParamsDto,
-    ): Promise<QuoteEntity[]> {
-        const quotes = await this.publicRequestService.getQuotesByPublicRequest(id, params);
-        return quotes.map((quote) => new QuoteEntity(quote));
-    }
-
     @Patch(":id")
     @UseGuards(JwtAuthGuard)
     @UpdatePublicRequestDocumentation()
@@ -111,5 +101,15 @@ export class PublicRequestController {
             code: 200,
             message: "Public request deleted successfully",
         };
+    }
+
+    @Get(":id/provider-quotes")
+    @GetPublicRequestProviderQuotesDocumentation()
+    public async getProviderQuotes(
+        @Param("id") id: string,
+        @Query() params: PublicRequestParamsDto,
+    ): Promise<ProviderQuoteEntity[]> {
+        const quotes = await this.publicRequestService.getProviderQuotesByPublicRequest(id, params);
+        return quotes.map((quote) => new ProviderQuoteEntity(quote));
     }
 }

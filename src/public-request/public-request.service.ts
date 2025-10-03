@@ -8,15 +8,15 @@ import {
     PublicRequestFilterDto,
 } from "./dto/public-request.dto";
 import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
-import { QuoteService } from "@app/quote/quote.service";
-import type { Quotes as QuoteModel } from "@prisma/client";
+import { ProviderQuoteService } from "@app/provider-quote/provider-quote.service";
+import type { ProviderQuotes as ProviderQuoteModel } from "@prisma/client";
 
 @Injectable()
 export class PublicRequestService {
     public constructor(
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
         private authContextService: AuthContextService,
-        private quoteService: QuoteService, // INYECTAR SERVICIO
+        private providerQuoteService: ProviderQuoteService,
     ) {}
 
     public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {
@@ -131,17 +131,21 @@ export class PublicRequestService {
         return this.publicRequestPrismaRepository.deletePublicRequest(id);
     }
 
-    public async getQuotesByPublicRequest(
+    public async getProviderQuotesByPublicRequest(
         id: string,
         params?: PublicRequestParamsDto,
-    ): Promise<QuoteModel[]> {
+    ): Promise<ProviderQuoteModel[]> {
         const publicRequest = await this.publicRequestPrismaRepository.findUniquePublicRequest(id);
 
         if (!publicRequest) {
             throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
         }
 
-        // Usa el servicio en vez del repositorio
-        return this.quoteService.findQuotesByPublicRequest(id, params);
+        return this.providerQuoteService.findAll({
+            public_request_id: id,
+            limit: params?.limit,
+            offset: params?.offset,
+            order_by: params?.order_by,
+        });
     }
 }

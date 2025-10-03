@@ -17,6 +17,7 @@ import { CategoryModule } from "./category/category.module";
 import { SubcategoryModule } from "./subcategory/subcategory.module";
 import { PublicRequestModule } from "./public-request/public-request.module";
 import { QuoteModule } from "./quote/quote.module";
+import { ProviderQuoteModule } from "./provider-quote/provider-quote.module";
 import { PdfModule } from "./pdf/pdf.module";
 
 @Module({
@@ -36,6 +37,7 @@ import { PdfModule } from "./pdf/pdf.module";
         SubcategoryModule,
         PublicRequestModule,
         QuoteModule,
+        ProviderQuoteModule, // NUEVO
         ConfigModule.forRoot({
             isGlobal: true,
             validationSchema: validationSchemaConfig,

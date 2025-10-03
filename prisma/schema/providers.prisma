@@ -14,11 +14,13 @@ model Providers {
   updated_at          DateTime @default(now()) @updatedAt
   plan                Plans    @relation(fields: [plan_id], references: [id])
   plan_id             String
-  // Add a relation to the Users model
   user                Users    @relation(fields: [user_id], references: [id])
   user_id             String   @unique
-  Items               Items[]
+
+  Items          Items[]
+  QuoteRequests  QuoteRequests[]
+  ProviderQuotes ProviderQuotes[]
+  Quotes         Quotes[]
 
   @@index([email, created_at(sort: Desc)])
-  Quotes Quotes[]
 }
