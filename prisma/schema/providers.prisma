@@ -18,7 +18,6 @@ model Providers {
   user_id             String   @unique
 
   Items          Items[]
-  QuoteRequests  QuoteRequests[]
   ProviderQuotes ProviderQuotes[]
   Quotes         Quotes[]
 

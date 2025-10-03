@@ -18,6 +18,5 @@ model Users {
   Favorites             Favorites[]
   PublicRequests        PublicRequests[]
   QuoteMessages         QuoteMessages[]
-  QuoteRequestMessages  QuoteRequestMessages[]
   ProviderQuoteMessages ProviderQuoteMessages[]
 }

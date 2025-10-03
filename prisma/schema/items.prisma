@@ -17,7 +17,6 @@ model Items {
 
   Favorites          Favorites[]
   QuoteItems         QuoteItems[]
-  QuoteRequestItems  QuoteRequestItems[]
   ProviderQuoteItems ProviderQuoteItems[]
 }
 
