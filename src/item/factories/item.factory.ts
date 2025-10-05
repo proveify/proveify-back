@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { FileService } from "@app/file/file.service";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { Items as ItemModel, Prisma } from "@prisma/client";
 import { ItemEntity } from "@app/item/entities/item.entity";
 import { FavoritePrismaRepository } from "@app/item/repositories/favorite-prisma.repository";
 import { ProviderFactory } from "@app/provider/factories/provider.factory";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 type ItemInput =
     | Prisma.ItemsGetPayload<{ include: { provider: true; itemImages: true } }>
@@ -14,7 +15,7 @@ type ItemInput =
 export class ItemFactory {
     public constructor(
         private readonly fileService: FileService,
-        private readonly authContextService: AuthContextService,
+        private readonly cls: ClsService,
         private readonly favoritePrismaRepository: FavoritePrismaRepository,
         private readonly providerFactory: ProviderFactory,
     ) {}
@@ -42,8 +43,8 @@ export class ItemFactory {
             }, []);
         }
 
-        if (this.authContextService.hasUser()) {
-            const authUser = this.authContextService.getUser();
+        if (this.cls.get<UserEntity | null>("user")) {
+            const authUser = this.cls.get<UserEntity>("user");
 
             entity.is_favorite = await this.favoritePrismaRepository
                 .findFirst({

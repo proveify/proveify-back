@@ -1,7 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ItemService } from "@app/item/item.service";
 import { PrismaService } from "@app/prisma/prisma.service";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 
 const mockPrismaService = {

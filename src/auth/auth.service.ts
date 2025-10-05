@@ -16,14 +16,14 @@ import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 import * as argon2 from "argon2";
 import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
-import { AuthContextService } from "./auth-context.service";
 import { UserEntity } from "@app/user/entities/user.entity";
+import { ClsService } from "nestjs-cls";
 
 @Injectable()
 export class AuthService {
     public constructor(
         private userService: UserService,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
         private planService: PlanService,
         private providerService: ProviderService,
         private fileService: FileService,
@@ -35,7 +35,7 @@ export class AuthService {
     public async createUser(data: Prisma.UsersCreateInput): Promise<UserEntity> {
         data.password = await this.generatePasswordHash(data.password);
         const user = await this.userService.saveUser(data);
-        this.authContextService.setUser(user);
+        this.cls.set<UserEntity>("user", user);
 
         return user;
     }

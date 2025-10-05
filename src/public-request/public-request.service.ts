@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { PublicRequestPrismaRepository } from "./repositories/public-request-prisma.repository";
 import {
     CreatePublicRequestDto,
@@ -8,16 +7,18 @@ import {
     PublicRequestFilterDto,
 } from "./dto/public-request.dto";
 import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class PublicRequestService {
     public constructor(
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
     ) {}
 
     public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {
-        const user = this.authContextService.getUser();
+        const user = this.cls.get<UserEntity>("user");
 
         const publicRequestData: Prisma.PublicRequestsCreateInput = {
             title: createDto.title,
@@ -69,7 +70,7 @@ export class PublicRequestService {
     }
 
     public async findMyRequests(params?: PublicRequestParamsDto): Promise<PublicRequestModel[]> {
-        const user = this.authContextService.getUser();
+        const user = this.cls.get<UserEntity>("user");
 
         const whereConditions: Prisma.PublicRequestsWhereInput = {
             user_id: user.id,
@@ -89,7 +90,7 @@ export class PublicRequestService {
         id: string,
         updateDto: UpdatePublicRequestDto,
     ): Promise<PublicRequestModel> {
-        const user = this.authContextService.getUser();
+        const user = this.cls.get<UserEntity>("user");
 
         const existingRequest =
             await this.publicRequestPrismaRepository.findPublicRequestByIdOnly(id);
@@ -109,7 +110,7 @@ export class PublicRequestService {
     }
 
     public async remove(id: string): Promise<PublicRequestModel> {
-        const user = this.authContextService.getUser();
+        const user = this.cls.get<UserEntity>("user");
 
         const existingRequest =
             await this.publicRequestPrismaRepository.findPublicRequestByIdOnly(id);

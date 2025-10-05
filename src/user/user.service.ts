@@ -4,12 +4,14 @@ import { UserPrismaRepository } from "./repositories/user-prisma.repository";
 import { UserNotFoundException } from "./exceptions/user-not-found.exception/user-not-found.exception";
 import { UserEntity } from "./entities/user.entity";
 import { UserFactory } from "@app/user/factories/user.factory";
+import { ClsService } from "nestjs-cls";
 
 @Injectable()
 export class UserService {
     public constructor(
         private readonly userPrismaRepository: UserPrismaRepository,
         private readonly userFactory: UserFactory,
+        private readonly cls: ClsService,
     ) {}
 
     public async saveUser(data: Prisma.UsersCreateInput): Promise<UserEntity> {
@@ -44,7 +46,11 @@ export class UserService {
         return this.userFactory.create(user);
     }
 
-    public async getUserProfile(id: string): Promise<UserEntity> {
+    public async getUserProfile(id: string, fromCls = false): Promise<UserEntity> {
+        if (fromCls) {
+            return this.cls.get<UserEntity>("user");
+        }
+
         const user = await this.userPrismaRepository.findUniqueUserById({
             where: { id },
             include: { provider: true },
@@ -54,6 +60,6 @@ export class UserService {
             throw new UserNotFoundException(id);
         }
 
-        return this.userFactory.create(user);
+        return this.userFactory.create(user, { isOwner: true });
     }
 }

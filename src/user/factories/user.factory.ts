@@ -5,16 +5,20 @@ import { Prisma, Users as UserModel } from "@prisma/client";
 
 type UserInput = Prisma.UsersGetPayload<{ include: { provider: true } }> | UserModel;
 
+const userOptions = {
+    isOwner: false,
+};
+
 @Injectable()
 export class UserFactory {
     public constructor(private readonly providerFactory: ProviderFactory) {}
 
-    public async create(user: UserInput): Promise<UserEntity> {
+    public async create(user: UserInput, options = userOptions): Promise<UserEntity> {
         const data = {
             ...user,
             provider:
                 "provider" in user && user.provider
-                    ? await this.providerFactory.create(user.provider)
+                    ? await this.providerFactory.create(user.provider, { isOwner: options.isOwner })
                     : null,
         };
 
