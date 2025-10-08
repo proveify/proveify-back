@@ -23,15 +23,11 @@ import { ProviderEntity } from "./entities/provider.entity";
 import { ProviderUpdateDto } from "./dto/provider.dto";
 import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
 import { FormDataRequest } from "nestjs-form-data";
-import { AuthContextService } from "@app/auth/auth-context.service";
 
 @ApiTags("Provider")
 @Controller("providers")
 export class ProviderController {
-    public constructor(
-        private providerService: ProviderService,
-        private authContextService: AuthContextService,
-    ) {}
+    public constructor(private providerService: ProviderService) {}
 
     @UseInterceptors(ClassSerializerInterceptor)
     @GetProvidersDocumentation()

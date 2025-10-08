@@ -35,16 +35,13 @@ export class ItemEntity {
         description: "Provider of item",
         type: ProviderEntity,
     })
-    // Claramente un item debe tener un proveedor pero me tiene harto los tipos estrictos en ts
-    // y me da flojera hacer el código mas complejo solo para hacer un tipo mas estricto, asi que
-    // queda en null en caso de que las consultas al item no hagan un include de provider
-    public provider: ProviderEntity | null;
+    public provider: ProviderEntity | null = null;
 
     @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",
         required: false,
     })
-    @Expose({ groups: ["owner"] })
+    @Expose({ groups: ["authenticated"] })
     public is_favorite: boolean;
 
     public constructor(partial: Partial<ItemEntity>) {

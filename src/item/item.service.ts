@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { Files as FileModel, Prisma } from "@prisma/client";
 import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
@@ -10,21 +9,23 @@ import { FavoritePrismaRepository } from "./repositories/favorite-prisma.reposit
 import { ItemEntity } from "./entities/item.entity";
 import { FavoriteEntity } from "./entities/favorite.entity";
 import { ItemFactory } from "@app/item/factories/item.factory";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class ItemService {
     public constructor(
         private itemPrismaRepository: ItemPrismaRepository,
         private favoritePrismaRepository: FavoritePrismaRepository,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
         private fileService: FileService,
         private readonly itemFactory: ItemFactory,
     ) {}
 
     public async prepareCreate(data: ItemCreateDto): Promise<Prisma.ItemsCreateInput> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User not has provider", 400);
         }
 
@@ -33,7 +34,7 @@ export class ItemService {
             description: data.description,
             type: data.type,
             price: data.price,
-            provider: { connect: { id: provider.id } },
+            provider: { connect: { id: user.provider.id } },
         };
 
         if (data.images) {
@@ -54,18 +55,18 @@ export class ItemService {
     }
 
     public async prepareUpdate(data: ItemUpdateDto, id: string): Promise<Prisma.ItemsUpdateInput> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
         const item = await this.findItemById(id);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
         }
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User not has provider", 400);
         }
 
-        if (item.provider_id !== provider.id) {
+        if (item.provider_id !== user.provider.id) {
             throw new HttpException("You can only update your own items", 403);
         }
 
@@ -88,9 +89,9 @@ export class ItemService {
     }
 
     public async deleteItem(id: string): Promise<ItemEntity> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User not has provider", 400);
         }
 
@@ -100,7 +101,7 @@ export class ItemService {
             throw new HttpException("Item not found", 404);
         }
 
-        if (item.provider_id !== provider.id) {
+        if (item.provider_id !== user.provider.id) {
             throw new HttpException("You can only delete your own items", 403);
         }
 
@@ -207,14 +208,14 @@ export class ItemService {
     }
 
     public async getProviderItems(params?: ItemParamDto): Promise<ItemEntity[]> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User does not have a provider account", 400);
         }
 
         const results = await this.itemPrismaRepository.findMany({
-            where: { provider_id: provider.id },
+            where: { provider_id: user.provider.id },
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },

@@ -33,4 +33,4 @@ export class RefreshTokenPayload {
     public refreshToken: string;
 }
 
-export type RequestAuthenticated = Request & { user: UserAuthenticate };
+export type RequestAuthenticated = Request & { user: TokenPayload };

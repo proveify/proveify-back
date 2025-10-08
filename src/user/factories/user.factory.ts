@@ -20,8 +20,4 @@ export class UserFactory {
 
         return new UserEntity(data);
     }
-
-    public async createMany(users: UserInput[]): Promise<UserEntity[]> {
-        return await Promise.all(users.map(async (user) => this.create(user)));
-    }
 }

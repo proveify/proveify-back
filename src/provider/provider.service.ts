@@ -7,7 +7,8 @@ import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { ProviderFactory } from "@app/provider/factories/provider.factory";
-import { AuthContextService } from "@app/auth/auth-context.service";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class ProviderService {
@@ -15,7 +16,7 @@ export class ProviderService {
         private providerPrismaRepository: ProviderPrismaRepository,
         private fileService: FileService,
         private readonly providerFactory: ProviderFactory,
-        private authContext: AuthContextService,
+        private cls: ClsService,
     ) {}
 
     public async saveProvider(provider: Prisma.ProvidersCreateInput): Promise<ProviderModel> {
@@ -40,9 +41,9 @@ export class ProviderService {
     }
 
     public async updateProvider(data: ProviderUpdateDto): Promise<ProviderEntity> {
-        const provider = this.authContext.getProvider();
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("Provider not found", 404);
         }
 
@@ -54,7 +55,9 @@ export class ProviderService {
         if (data.identification_type) providerData.identification_type = data.identification_type;
 
         if (data.chamber_commerce) {
-            let chamberCommerce = await this.fileService.getFileById(provider.chamber_commerce);
+            let chamberCommerce = await this.fileService.getFileById(
+                user.provider.chamber_commerce,
+            );
 
             if (!chamberCommerce) {
                 chamberCommerce = await this.fileService.save(
@@ -73,7 +76,7 @@ export class ProviderService {
         }
 
         if (data.rut) {
-            let rut = await this.fileService.getFileById(provider.rut);
+            let rut = await this.fileService.getFileById(user.provider.rut);
 
             if (!rut) {
                 rut = await this.fileService.save(data.rut, ResourceType.RUT);
@@ -84,8 +87,8 @@ export class ProviderService {
         }
 
         if (data.profile_picture) {
-            let profilePicture = provider.profile_picture
-                ? await this.fileService.getFileById(provider.profile_picture)
+            let profilePicture = user.provider.profile_picture
+                ? await this.fileService.getFileById(user.provider.profile_picture)
                 : null;
 
             if (!profilePicture) {
@@ -104,7 +107,7 @@ export class ProviderService {
         }
 
         const providerUpdated = await this.providerPrismaRepository.updateProvider(
-            provider.id,
+            user.provider.id,
             providerData,
         );
 
