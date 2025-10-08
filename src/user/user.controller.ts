@@ -10,11 +10,11 @@ import {
 import { UserEntity } from "./entities/user.entity";
 import { UserUpdateDto } from "@app/user/dto/user.dto";
 import { LoadUser } from "@app/common/decorators/load-user.decorator";
-import { CustomSerializerInterceptor } from "@app/common/interceptors/custom-serializer.interceptor";
+import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-serializer.interceptor";
 
 @ApiTags("Users")
 @Controller("users")
-@UseInterceptors(CustomSerializerInterceptor)
+@UseInterceptors(OwnerSerializerInterceptor)
 export class UserController {
     public constructor(private readonly userService: UserService) {}
 

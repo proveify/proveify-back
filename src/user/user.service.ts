@@ -60,6 +60,6 @@ export class UserService {
             throw new UserNotFoundException(id);
         }
 
-        return this.userFactory.create(user, { isOwner: true });
+        return this.userFactory.create(user);
     }
 }

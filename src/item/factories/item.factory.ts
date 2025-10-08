@@ -54,8 +54,6 @@ export class ItemFactory {
                     },
                 })
                 .then((favorites) => !!favorites);
-
-            Reflect.defineMetadata("custom:serialize-options", { groups: ["owner"] }, entity);
         }
 
         return entity;
