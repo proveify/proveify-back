@@ -135,7 +135,11 @@ export class ItemService {
     }
 
     public async getItemById(id: string): Promise<ItemEntity | null> {
-        const item = await this.itemPrismaRepository.findUnique({ where: { id } });
+        const item = await this.itemPrismaRepository.findUnique({
+            where: { id },
+            include: { provider: true },
+        });
+
         if (!item) {
             return null;
         }
@@ -156,12 +160,14 @@ export class ItemService {
         return await this.fileService.save(image, ResourceType.ITEM_IMAGE);
     }
 
-    public async addFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
+    public async addFavorite(id: string): Promise<FavoriteEntity> {
+        const user = this.cls.get<UserEntity>("user");
+
         try {
             const result = await this.favoritePrismaRepository.upsert({
-                where: { user_id_item_id: { user_id: userId, item_id: itemId } },
+                where: { user_id_item_id: { user_id: user.id, item_id: id } },
                 update: {},
-                create: { user: { connect: { id: userId } }, item: { connect: { id: itemId } } },
+                create: { user: { connect: { id: user.id } }, item: { connect: { id: id } } },
             });
             return new FavoriteEntity(result);
         } catch (error) {
@@ -177,10 +183,12 @@ export class ItemService {
         }
     }
 
-    public async removeFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
+    public async removeFavorite(id: string): Promise<FavoriteEntity> {
+        const user = this.cls.get<UserEntity>("user");
+
         try {
             const result = await this.favoritePrismaRepository.delete({
-                where: { user_id_item_id: { user_id: userId, item_id: itemId } },
+                where: { user_id_item_id: { user_id: user.id, item_id: id } },
             });
             return new FavoriteEntity(result);
         } catch (error) {
@@ -193,12 +201,11 @@ export class ItemService {
         }
     }
 
-    public async getFavorites(
-        userId: string,
-        params?: FavoriteParamsDto,
-    ): Promise<FavoriteEntity[]> {
+    public async getFavorites(params?: FavoriteParamsDto): Promise<FavoriteEntity[]> {
+        const user = this.cls.get<UserEntity>("user");
+
         const results = await this.favoritePrismaRepository.findMany({
-            where: { user_id: userId },
+            where: { user_id: user.id },
             include: { item: true },
             take: params?.limit ?? 30,
             skip: params?.offset,
@@ -207,19 +214,12 @@ export class ItemService {
         return results.map((favorite) => new FavoriteEntity(favorite));
     }
 
-    public async getProviderItems(params?: ItemParamDto): Promise<ItemEntity[]> {
-        const user = this.cls.get<UserEntity>("user");
-
-        if (!user.provider) {
-            throw new HttpException("User does not have a provider account", 400);
-        }
-
+    public async getProviderItems(id: string, params?: ItemParamDto): Promise<ItemEntity[]> {
         const results = await this.itemPrismaRepository.findMany({
-            where: { provider_id: user.provider.id },
+            where: { provider_id: id },
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },
-            include: { provider: true },
         });
 
         return this.itemFactory.createMany(results);

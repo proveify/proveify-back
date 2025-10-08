@@ -54,29 +54,32 @@ export class ItemController {
     @FormDataRequest()
     @UseGuards(JwtAuthGuard)
     @PutSelfItemDocumentation()
-    @Put("self/:id")
+    @Put(":id")
     @LoadUser()
     public async updateItem(
         @Body() data: ItemUpdateDto,
-        @Param() params: { id: string },
+        @Param("id") id: string,
     ): Promise<ItemEntity> {
-        const itemDataInput = await this.itemService.prepareUpdate(data, params.id);
-        return await this.itemService.updateItem(itemDataInput, params.id);
+        const itemDataInput = await this.itemService.prepareUpdate(data, id);
+        return await this.itemService.updateItem(itemDataInput, id);
     }
 
     @UseGuards(JwtAuthGuard)
     @DeleteSelfItemDocumentation()
-    @Delete("self/:id")
+    @Delete(":id")
     @LoadUser()
     public async deleteItem(@Param() params: { id: string }): Promise<ItemEntity> {
         return await this.itemService.deleteItem(params.id);
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get("provider/self")
+    @Get("provider/:id")
     @LoadUser()
-    public async getProviderItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
-        return await this.itemService.getProviderItems(params);
+    public async getProviderItems(
+        @Query() params: ItemParamDto,
+        @Param("id") id: string,
+    ): Promise<ItemEntity[]> {
+        return await this.itemService.getProviderItems(id, params);
     }
 
     @UseGuards(OptionalJwtAuthGuard)
@@ -91,8 +94,8 @@ export class ItemController {
     @GetItemDocumentation()
     @Get(":id")
     @LoadUser()
-    public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
-        const item = await this.itemService.getItemById(params.id);
+    public async getItemById(@Param("id") id: string): Promise<ItemEntity> {
+        const item = await this.itemService.getItemById(id);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
@@ -101,36 +104,30 @@ export class ItemController {
         return item;
     }
 
-    @Post("favorite/:itemId")
+    @Post(":id/favorite")
     @UseGuards(JwtAuthGuard)
     @AddFavoriteDocumentation()
     @LoadUser()
-    public async addFavorite(
-        @Req() req: Request & { user: TokenPayload },
-        @Param("itemId") itemId: string,
-    ): Promise<FavoriteEntity> {
-        return await this.itemService.addFavorite(req.user.id, itemId);
+    public async addFavorite(@Param("id") id: string): Promise<FavoriteEntity> {
+        return await this.itemService.addFavorite(id);
     }
 
-    @Delete("favorite/:itemId")
+    @Delete(":id/favorite")
     @UseGuards(JwtAuthGuard)
     @RemoveFavoriteDocumentation()
     @LoadUser()
     public async removeFavorite(
         @Req() req: Request & { user: TokenPayload },
-        @Param("itemId") itemId: string,
+        @Param("id") id: string,
     ): Promise<FavoriteEntity> {
-        return await this.itemService.removeFavorite(req.user.id, itemId);
+        return await this.itemService.removeFavorite(id);
     }
 
     @Get("favorites")
     @UseGuards(JwtAuthGuard)
     @GetFavoritesDocumentation()
     @LoadUser()
-    public async getFavorites(
-        @Req() req: Request & { user: TokenPayload },
-        @Query() params: FavoriteParamsDto,
-    ): Promise<FavoriteEntity[]> {
-        return await this.itemService.getFavorites(req.user.id, params);
+    public async getFavorites(@Query() params: FavoriteParamsDto): Promise<FavoriteEntity[]> {
+        return await this.itemService.getFavorites(params);
     }
 }
