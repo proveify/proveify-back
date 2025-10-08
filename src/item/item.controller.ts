@@ -10,7 +10,6 @@ import {
     Query,
     UseGuards,
     Req,
-    ClassSerializerInterceptor,
     UseInterceptors,
 } from "@nestjs/common";
 import { ItemService } from "./item.service";
@@ -33,10 +32,12 @@ import {
     RemoveFavoriteDocumentation,
 } from "./decorators/documentations/item.documentation";
 import { ApiTags } from "@nestjs/swagger";
+import { LoadUser } from "@app/common/decorators/load-user.decorator";
+import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-serializer.interceptor";
 
 @ApiTags("Items")
 @Controller("items")
-@UseInterceptors(ClassSerializerInterceptor)
+@UseInterceptors(OwnerSerializerInterceptor)
 export class ItemController {
     public constructor(private itemService: ItemService) {}
 
@@ -44,6 +45,7 @@ export class ItemController {
     @UseGuards(JwtAuthGuard)
     @PostCreateItemDocumentation()
     @Post()
+    @LoadUser()
     public async createItem(@Body() data: ItemCreateDto): Promise<ItemEntity> {
         const itemDataInput = await this.itemService.prepareCreate(data);
         return await this.itemService.createItem(itemDataInput);
@@ -53,6 +55,7 @@ export class ItemController {
     @UseGuards(JwtAuthGuard)
     @PutSelfItemDocumentation()
     @Put("self/:id")
+    @LoadUser()
     public async updateItem(
         @Body() data: ItemUpdateDto,
         @Param() params: { id: string },
@@ -64,12 +67,14 @@ export class ItemController {
     @UseGuards(JwtAuthGuard)
     @DeleteSelfItemDocumentation()
     @Delete("self/:id")
+    @LoadUser()
     public async deleteItem(@Param() params: { id: string }): Promise<ItemEntity> {
         return await this.itemService.deleteItem(params.id);
     }
 
     @UseGuards(JwtAuthGuard)
     @Get("provider/self")
+    @LoadUser()
     public async getProviderItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
         return await this.itemService.getProviderItems(params);
     }
@@ -77,6 +82,7 @@ export class ItemController {
     @UseGuards(OptionalJwtAuthGuard)
     @GetItemsDocumentation()
     @Get()
+    @LoadUser()
     public async getItems(@Query() params: ItemParamDto): Promise<ItemEntity[]> {
         return this.itemService.getItems(params);
     }
@@ -84,6 +90,7 @@ export class ItemController {
     @UseGuards(OptionalJwtAuthGuard)
     @GetItemDocumentation()
     @Get(":id")
+    @LoadUser()
     public async getItemById(@Param() params: { id: string }): Promise<ItemEntity> {
         const item = await this.itemService.getItemById(params.id);
 
@@ -97,6 +104,7 @@ export class ItemController {
     @Post("favorite/:itemId")
     @UseGuards(JwtAuthGuard)
     @AddFavoriteDocumentation()
+    @LoadUser()
     public async addFavorite(
         @Req() req: Request & { user: TokenPayload },
         @Param("itemId") itemId: string,
@@ -107,6 +115,7 @@ export class ItemController {
     @Delete("favorite/:itemId")
     @UseGuards(JwtAuthGuard)
     @RemoveFavoriteDocumentation()
+    @LoadUser()
     public async removeFavorite(
         @Req() req: Request & { user: TokenPayload },
         @Param("itemId") itemId: string,
@@ -117,6 +126,7 @@ export class ItemController {
     @Get("favorites")
     @UseGuards(JwtAuthGuard)
     @GetFavoritesDocumentation()
+    @LoadUser()
     public async getFavorites(
         @Req() req: Request & { user: TokenPayload },
         @Query() params: FavoriteParamsDto,
