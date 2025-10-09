@@ -45,23 +45,20 @@ export class QuoteController {
     @Post()
     @CreateQuoteDocumentation()
     public async create(@Body() createQuoteDto: CreateQuoteDto): Promise<QuoteEntity> {
-        const quote = await this.quoteService.create(createQuoteDto);
-        return new QuoteEntity(quote);
+        return this.quoteService.create(createQuoteDto);
     }
 
     @Get()
     @GetQuotesDocumentation()
     public async findAll(@Query() params: QuoteFilterDto): Promise<QuoteEntity[]> {
-        const quotes = await this.quoteService.findAll(params);
-        return quotes.map((quote) => new QuoteEntity(quote));
+        return this.quoteService.findAll(params);
     }
 
     @Get("provider/my-quotes")
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
     public async findMyQuotes(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
-        const quotes = await this.quoteService.findMyQuotes(params);
-        return quotes.map((quote) => new QuoteEntity(quote));
+        return this.quoteService.findMyQuotes(params);
     }
 
     @Get(":id")
@@ -73,7 +70,7 @@ export class QuoteController {
             throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
         }
 
-        return new QuoteEntity(quote);
+        return quote;
     }
 
     @Patch(":id")
@@ -84,8 +81,7 @@ export class QuoteController {
         @Param("id") id: string,
         @Body() updateQuoteDto: UpdateQuoteDto,
     ): Promise<QuoteEntity> {
-        const updatedQuote = await this.quoteService.update(id, updateQuoteDto);
-        return new QuoteEntity(updatedQuote);
+        return this.quoteService.update(id, updateQuoteDto);
     }
 
     @Delete(":id")
