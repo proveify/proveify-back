@@ -8,11 +8,13 @@ import {
     QuoteMessageParamsDto,
 } from "./dto/quote.dto";
 import type { Prisma } from "@prisma/client";
-import { QuoteEntity, QuoteMessageEntity } from "@app/quote/entities/quote.entity";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { UserTypes } from "@app/user/interfaces/users";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "@app/user/entities/user.entity";
 import { QuoteFactory } from "@app/quote/factories/quote.factory";
+import { QuoteMessageEntity } from "@app/quote/entities/quote-message.entity";
+import { PdfService } from "@app/pdf/pdf.service";
 
 @Injectable()
 export class QuoteService {
@@ -20,6 +22,7 @@ export class QuoteService {
         private readonly quotePrismaRepository: QuotePrismaRepository,
         private readonly cls: ClsService,
         private readonly quoteFactory: QuoteFactory,
+        private readonly pdfService: PdfService,
     ) {}
 
     public async create(
@@ -258,5 +261,20 @@ export class QuoteService {
         });
 
         return quoteMessages.map((message) => new QuoteMessageEntity(message));
+    }
+
+    public async generatePrint(id: string): Promise<Buffer> {
+        const quote = await this.findOne(id);
+        // const user = this.cls.get<UserEntity>("user");
+
+        if (!quote) {
+            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!quote.provider) {
+            throw new HttpException("Provider not found", HttpStatus.NOT_FOUND);
+        }
+
+        return this.pdfService.generateQuotePdf(quote, quote.provider);
     }
 }

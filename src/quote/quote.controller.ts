@@ -1,6 +1,5 @@
 import {
     Body,
-    ClassSerializerInterceptor,
     Controller,
     Delete,
     Get,
@@ -10,6 +9,7 @@ import {
     Patch,
     Post,
     Query,
+    Res,
     UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
@@ -24,21 +24,26 @@ import {
     QuoteParamsDto,
     UpdateQuoteDto,
 } from "./dto/quote.dto";
-import { QuoteEntity, QuoteMessageEntity } from "./entities/quote.entity";
+import { QuoteEntity } from "./entities/quote.entity";
 import {
     CreateQuoteDocumentation,
     DeleteQuoteDocumentation,
     GetMyQuotesDocumentation,
     GetQuoteDocumentation,
     GetQuotesDocumentation,
+    PrintQuoteDocumentation,
     UpdateQuoteDocumentation,
 } from "./decorators/documentations/quote.documentation";
 import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
 import { UserTypes } from "@app/user/interfaces/users";
+import { QuoteMessageEntity } from "@app/quote/entities/quote-message.entity";
+import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-serializer.interceptor";
+import { LoadUser } from "@app/common/decorators/load-user.decorator";
+import { Response } from "express";
 
 @ApiTags("Quotes")
 @Controller("quotes")
-@UseInterceptors(ClassSerializerInterceptor)
+@UseInterceptors(OwnerSerializerInterceptor)
 export class QuoteController {
     public constructor(private readonly quoteService: QuoteService) {}
 
@@ -95,6 +100,20 @@ export class QuoteController {
             code: 200,
             message: "Quote deleted successfully",
         };
+    }
+
+    @Get(":id/print")
+    @UseGuards(JwtAuthGuard)
+    @PrintQuoteDocumentation()
+    @LoadUser()
+    public async generatePrint(@Param("id") id: string, @Res() res: Response): Promise<void> {
+        const buffer = await this.quoteService.generatePrint(id);
+        res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="quote-${id}.pdf"`,
+            "Content-Length": buffer.length,
+        });
+        res.end(buffer);
     }
 
     @Get(":id/messages")
