@@ -68,8 +68,8 @@ export class ItemController {
     @DeleteSelfItemDocumentation()
     @Delete(":id")
     @LoadUser()
-    public async deleteItem(@Param() params: { id: string }): Promise<ItemEntity> {
-        return await this.itemService.deleteItem(params.id);
+    public async deleteItem(@Param("id") id: string): Promise<ItemEntity> {
+        return await this.itemService.deleteItem(id);
     }
 
     @UseGuards(JwtAuthGuard)
