@@ -70,12 +70,6 @@ export function DeleteSelfItemDocumentation(): MethodDecorator & ClassDecorator 
 export function AddFavoriteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({ summary: "Add item to favorites" }),
-        ApiParam({
-            name: "itemId",
-            required: true,
-            type: String,
-            description: "ID of the item to add to favorites",
-        }),
         ApiOkResponse({
             type: FavoriteEntity,
             description: "Item successfully added to favorites",
@@ -87,12 +81,6 @@ export function AddFavoriteDocumentation(): MethodDecorator & ClassDecorator {
 export function RemoveFavoriteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
         ApiOperation({ summary: "Remove item from favorites" }),
-        ApiParam({
-            name: "itemId",
-            required: true,
-            type: String,
-            description: "ID of the item to remove from favorites",
-        }),
         ApiOkResponse({
             type: FavoriteEntity,
             description: "Item successfully removed from favorites",
