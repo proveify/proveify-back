@@ -36,10 +36,10 @@ export class ProviderEntity {
     public profile_picture_url: string | null = null;
 
     @Expose({ groups: ["owner"] })
-    public rut_file_url: string | null = null;
+    public rut_file_url: string | null;
 
     @Expose({ groups: ["owner"] })
-    public chamber_commerce_file_url: string | null = null;
+    public chamber_commerce_file_url: string | null;
 
     public constructor(partial: Partial<ProviderEntity>) {
         Object.assign(this, partial);
