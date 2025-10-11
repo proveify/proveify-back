@@ -45,14 +45,14 @@ export class OwnerSerializerInterceptor implements NestInterceptor {
         }
 
         const user = this.cls.get<UserEntity | null>("user");
+        const ctor = (item as { constructor: ClassConstructor<unknown> }).constructor;
 
         if (!user) {
-            return item;
+            return plainToInstance(ctor, item);
         }
 
         const groups: string[] = this.groupDispatcher.determine(item, user);
-        const Ctor = (item as { constructor: ClassConstructor<unknown> }).constructor;
-        return plainToInstance(Ctor, item, { groups: [...groups, "authenticated"] });
+        return plainToInstance(ctor, item, { groups: [...groups, "authenticated"] });
     }
 
     private isValidClassInstance(
