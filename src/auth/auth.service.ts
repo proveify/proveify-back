@@ -2,7 +2,7 @@ import { UserCreateDto as UserCreateDto } from "@app/user/dto/user.dto";
 import { UserService } from "@app/user/user.service";
 import { HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Prisma, Providers as ProviderModel, Users as UserModel } from "@prisma/client";
+import { Prisma, Providers as ProviderModel } from "@prisma/client";
 import { TokenPayload, UserAuthenticate } from "./interfaces/auth.interface";
 import { ConfigType } from "@nestjs/config";
 import { PlanService } from "@app/plan/plan.service";
@@ -16,13 +16,14 @@ import { ProviderCreateDto } from "@app/provider/dto/provider.dto";
 import * as argon2 from "argon2";
 import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
-import { AuthContextService } from "./auth-context.service";
+import { UserEntity } from "@app/user/entities/user.entity";
+import { ClsService } from "nestjs-cls";
 
 @Injectable()
 export class AuthService {
     public constructor(
         private userService: UserService,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
         private planService: PlanService,
         private providerService: ProviderService,
         private fileService: FileService,
@@ -31,12 +32,15 @@ export class AuthService {
         private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
     ) {}
 
-    public async createUser(data: Prisma.UsersCreateInput): Promise<UserModel> {
+    public async createUser(data: Prisma.UsersCreateInput): Promise<UserEntity> {
         data.password = await this.generatePasswordHash(data.password);
-        return await this.userService.saveUser(data);
+        const user = await this.userService.saveUser(data);
+        this.cls.set<UserEntity>("user", user);
+
+        return user;
     }
 
-    public async createClient(data: UserCreateDto): Promise<UserModel> {
+    public async createClient(data: UserCreateDto): Promise<UserEntity> {
         const user = await this.userService.findUserOneByEmail(data.email);
 
         if (user) {
@@ -47,10 +51,7 @@ export class AuthService {
             user_type: UserTypes.CLIENT,
         });
 
-        const newUser: UserModel = await this.createUser(userData);
-        this.authContextService.setUser(newUser);
-
-        return newUser;
+        return await this.createUser(userData);
     }
 
     public async createProvider(data: ProviderCreateDto): Promise<ProviderModel> {
@@ -101,7 +102,7 @@ export class AuthService {
         };
     }
 
-    public async validateUser(email: string, password: string): Promise<UserModel | false> {
+    public async validateUser(email: string, password: string): Promise<UserEntity | false> {
         const user = await this.userService.findUserOneByEmail(email);
 
         if (!user) {

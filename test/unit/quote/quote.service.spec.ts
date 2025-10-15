@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { QuoteService } from "@app/quote/quote.service";
 import { QuotePrismaRepository } from "@app/quote/repositories/quote-prisma.repository";
-import { AuthContextService } from "@app/auth/auth-context.service";
 
 const mockQuotePrismaRepository = {
     createQuote: jest.fn(),

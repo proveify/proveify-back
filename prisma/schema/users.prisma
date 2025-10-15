@@ -1,4 +1,4 @@
-//Model Users
+// Model Users
 
 model Users {
   id                  String     @id @default(uuid())
@@ -12,10 +12,10 @@ model Users {
   refreshed_token     String?
   created_at          DateTime   @default(now())
   updated_at          DateTime   @default(now()) @updatedAt
-  Provider            Providers?
+  provider            Providers?
 
-  Files          Files[]
-  Favorites      Favorites[]
-  PublicRequests PublicRequests[]
-  QuoteMessage   QuoteMessages[]
+  files         Files[]
+  favorites     Favorites[]
+  publicRequest PublicRequests[]
+  quoteMessage  QuoteMessages[]
 }

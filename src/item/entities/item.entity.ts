@@ -1,6 +1,6 @@
 import { Exclude, Expose } from "class-transformer";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Prisma } from "@prisma/client";
+import { Prisma, ItemImages } from "@prisma/client";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 
 export class ItemEntity {
@@ -9,10 +9,6 @@ export class ItemEntity {
     public name: string;
 
     public description: string | null;
-
-    @ApiHideProperty()
-    @Exclude()
-    public image: string | null;
 
     @ApiHideProperty()
     @Exclude()
@@ -26,11 +22,12 @@ export class ItemEntity {
     @Exclude()
     public provider_id: string;
 
-    @ApiProperty({
-        description: "item image url",
-        type: "string",
-    })
-    public image_url: string | null;
+    @ApiHideProperty()
+    @Exclude()
+    public itemImages?: ItemImages[];
+
+    @Expose()
+    public images: string[];
 
     public type: string;
 
@@ -38,16 +35,13 @@ export class ItemEntity {
         description: "Provider of item",
         type: ProviderEntity,
     })
-    // Claramente un item debe tener un proveedor pero me tiene harto los tipos estrictos en ts
-    // y me da flojera hacer el código mas complejo solo para hacer un tipo mas estricto, asi que
-    // queda en null en caso de que las consultas al item no hagan un include de provider
-    public provider: ProviderEntity | null;
+    public provider: ProviderEntity | null = null;
 
     @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",
         required: false,
     })
-    @Expose({ groups: ["owner"] })
+    @Expose({ groups: ["authenticated"] })
     public is_favorite: boolean;
 
     public constructor(partial: Partial<ItemEntity>) {

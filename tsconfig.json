@@ -25,7 +25,8 @@
         "noImplicitAny": true,
         "strictBindCallApply": false,
         "noFallthroughCasesInSwitch": false,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
     },
     "watchOptions": {
         "watchFile": "dynamicprioritypolling",

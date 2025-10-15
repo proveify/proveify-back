@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { Files as FileModel, Prisma } from "@prisma/client";
 import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
@@ -10,21 +9,23 @@ import { FavoritePrismaRepository } from "./repositories/favorite-prisma.reposit
 import { ItemEntity } from "./entities/item.entity";
 import { FavoriteEntity } from "./entities/favorite.entity";
 import { ItemFactory } from "@app/item/factories/item.factory";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class ItemService {
     public constructor(
         private itemPrismaRepository: ItemPrismaRepository,
         private favoritePrismaRepository: FavoritePrismaRepository,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
         private fileService: FileService,
         private readonly itemFactory: ItemFactory,
     ) {}
 
     public async prepareCreate(data: ItemCreateDto): Promise<Prisma.ItemsCreateInput> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User not has provider", 400);
         }
 
@@ -33,54 +34,53 @@ export class ItemService {
             description: data.description,
             type: data.type,
             price: data.price,
-            provider: { connect: { id: provider.id } },
+            provider: { connect: { id: user.provider.id } },
         };
 
-        if (data.image) {
-            const image = await this.uploadImage(data.image);
-            item.image = image.id;
+        if (data.images) {
+            const uploadedImages = await Promise.all(
+                data.images.map((image) => this.uploadImage(image)),
+            );
+
+            item.itemImages = {
+                createMany: {
+                    data: uploadedImages.map((file) => ({
+                        file_id: file.id,
+                    })),
+                },
+            };
         }
 
         return item;
     }
 
     public async prepareUpdate(data: ItemUpdateDto, id: string): Promise<Prisma.ItemsUpdateInput> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
         const item = await this.findItemById(id);
 
         if (!item) {
             throw new HttpException("Item not found", 404);
         }
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User not has provider", 400);
         }
 
-        if (item.provider_id !== provider.id) {
+        if (item.provider_id !== user.provider.id) {
             throw new HttpException("You can only update your own items", 403);
         }
 
-        const itemUpdateInput: Prisma.ItemsUpdateInput = {
+        return {
             name: data.name,
             description: data.description,
             price: data.price,
             type: data.type,
         };
-
-        if (data.image && item.image) {
-            const image = await this.uploadImage(data.image, item.image);
-            itemUpdateInput.image = image.id;
-        } else if (data.image) {
-            const image = await this.uploadImage(data.image);
-            itemUpdateInput.image = image.id;
-        }
-
-        return itemUpdateInput;
     }
 
     public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemEntity> {
         const result = await this.itemPrismaRepository.create({ data: item });
-        return new ItemEntity(result);
+        return this.itemFactory.create(result);
     }
 
     public async updateItem(item: Prisma.ItemsUpdateInput, id: string): Promise<ItemEntity> {
@@ -89,9 +89,9 @@ export class ItemService {
     }
 
     public async deleteItem(id: string): Promise<ItemEntity> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User not has provider", 400);
         }
 
@@ -101,7 +101,7 @@ export class ItemService {
             throw new HttpException("Item not found", 404);
         }
 
-        if (item.provider_id !== provider.id) {
+        if (item.provider_id !== user.provider.id) {
             throw new HttpException("You can only delete your own items", 403);
         }
 
@@ -110,7 +110,10 @@ export class ItemService {
     }
 
     public async findItemById(id: string): Promise<ItemEntity | null> {
-        const result = await this.itemPrismaRepository.findUnique({ where: { id } });
+        const result = await this.itemPrismaRepository.findUnique({
+            where: { id },
+            include: { provider: true, itemImages: true },
+        });
         return result ? this.itemFactory.create(result) : null;
     }
 
@@ -124,6 +127,7 @@ export class ItemService {
             },
             include: {
                 provider: true,
+                itemImages: true,
             },
         });
 
@@ -131,7 +135,11 @@ export class ItemService {
     }
 
     public async getItemById(id: string): Promise<ItemEntity | null> {
-        const item = await this.itemPrismaRepository.findUnique({ where: { id } });
+        const item = await this.itemPrismaRepository.findUnique({
+            where: { id },
+            include: { provider: true },
+        });
+
         if (!item) {
             return null;
         }
@@ -152,12 +160,14 @@ export class ItemService {
         return await this.fileService.save(image, ResourceType.ITEM_IMAGE);
     }
 
-    public async addFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
+    public async addFavorite(id: string): Promise<FavoriteEntity> {
+        const user = this.cls.get<UserEntity>("user");
+
         try {
             const result = await this.favoritePrismaRepository.upsert({
-                where: { user_id_item_id: { user_id: userId, item_id: itemId } },
+                where: { user_id_item_id: { user_id: user.id, item_id: id } },
                 update: {},
-                create: { user: { connect: { id: userId } }, item: { connect: { id: itemId } } },
+                create: { user: { connect: { id: user.id } }, item: { connect: { id: id } } },
             });
             return new FavoriteEntity(result);
         } catch (error) {
@@ -173,10 +183,12 @@ export class ItemService {
         }
     }
 
-    public async removeFavorite(userId: string, itemId: string): Promise<FavoriteEntity> {
+    public async removeFavorite(id: string): Promise<FavoriteEntity> {
+        const user = this.cls.get<UserEntity>("user");
+
         try {
             const result = await this.favoritePrismaRepository.delete({
-                where: { user_id_item_id: { user_id: userId, item_id: itemId } },
+                where: { user_id_item_id: { user_id: user.id, item_id: id } },
             });
             return new FavoriteEntity(result);
         } catch (error) {
@@ -189,12 +201,11 @@ export class ItemService {
         }
     }
 
-    public async getFavorites(
-        userId: string,
-        params?: FavoriteParamsDto,
-    ): Promise<FavoriteEntity[]> {
+    public async getFavorites(params?: FavoriteParamsDto): Promise<FavoriteEntity[]> {
+        const user = this.cls.get<UserEntity>("user");
+
         const results = await this.favoritePrismaRepository.findMany({
-            where: { user_id: userId },
+            where: { user_id: user.id },
             include: { item: true },
             take: params?.limit ?? 30,
             skip: params?.offset,
@@ -203,30 +214,12 @@ export class ItemService {
         return results.map((favorite) => new FavoriteEntity(favorite));
     }
 
-    public async isFavorite(userId: string, itemId: string): Promise<boolean> {
-        const favorite = await this.favoritePrismaRepository.findFirst({
-            where: {
-                user_id: userId,
-                item_id: itemId,
-            },
-        });
-
-        return !!favorite;
-    }
-
-    public async getProviderItems(params?: ItemParamDto): Promise<ItemEntity[]> {
-        const provider = this.authContextService.getProvider();
-
-        if (!provider) {
-            throw new HttpException("User does not have a provider account", 400);
-        }
-
+    public async getProviderItems(id: string, params?: ItemParamDto): Promise<ItemEntity[]> {
         const results = await this.itemPrismaRepository.findMany({
-            where: { provider_id: provider.id },
+            where: { provider_id: id },
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },
-            include: { provider: true },
         });
 
         return this.itemFactory.createMany(results);

@@ -13,18 +13,10 @@ import { ParameterModule } from "@app/parameter/parameter.module";
 import { PlanModule } from "@app/plan/plan.module";
 import { ProviderModule } from "@app/provider/provider.module";
 import jwtConfig from "@app/common/jwt.config";
-import { AuthContextService } from "./auth-context.service";
 
 @Global()
 @Module({
-    providers: [
-        AuthService,
-        JwtStrategy,
-        OptionalJwtStrategy,
-        LocalStrategy,
-        RefreshJwtStrategy,
-        AuthContextService,
-    ],
+    providers: [AuthService, JwtStrategy, OptionalJwtStrategy, LocalStrategy, RefreshJwtStrategy],
     imports: [
         UserModule,
         ParameterModule,
@@ -34,6 +26,6 @@ import { AuthContextService } from "./auth-context.service";
         JwtModule.registerAsync(jwtConfig.asProvider()),
     ],
     controllers: [AuthController],
-    exports: [AuthContextService, JwtModule],
+    exports: [JwtModule],
 })
 export class AuthModule {}
