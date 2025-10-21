@@ -12,11 +12,11 @@ model Users {
   refreshed_token     String?
   created_at          DateTime   @default(now())
   updated_at          DateTime   @default(now()) @updatedAt
-  Provider            Providers?
+  provider            Providers?
 
-  Files                 Files[]
-  Favorites             Favorites[]
-  PublicRequests        PublicRequests[]
-  QuoteMessages         QuoteMessages[]
-  ProviderQuoteMessages ProviderQuoteMessages[]
+  files                 Files[]
+  favorites             Favorites[]
+  publicRequests        PublicRequests[]
+  quoteMessages         QuoteMessages[]
+  providerQuoteMessages ProviderQuoteMessages[]
 }
