@@ -49,6 +49,15 @@ export class CreateProviderQuoteItemDto {
     public quantity: number;
 
     @ApiProperty({
+        description: "Precio total del item (price = unit_price * quantity)",
+        example: "2500000.00",
+        required: false,
+    })
+    @IsOptional()
+    @IsDecimal({ decimal_digits: "2" })
+    public price?: string;
+
+    @ApiProperty({
         description: "Precio unitario",
         example: "2500000.00",
     })

@@ -1,8 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiHideProperty } from "@nestjs/swagger";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { PublicRequestEntity } from "@app/public-request/entities/public-request.entity";
 import { ItemEntity } from "@app/item/entities/item.entity";
-import { Expose } from "class-transformer";
+import { Exclude, Expose } from "class-transformer";
 import { Prisma } from "@prisma/client";
 
 export class ProviderQuoteItemEntity {
@@ -24,7 +24,12 @@ export class ProviderQuoteItemEntity {
     @ApiProperty()
     public quantity: number;
 
-    @ApiProperty({ type: "number", example: 500000.0 })
+    @ApiHideProperty()
+    @Exclude()
+    public price: Prisma.Decimal;
+
+    @ApiHideProperty()
+    @Exclude()
     public unit_price: Prisma.Decimal;
 
     @ApiProperty()
@@ -40,6 +45,23 @@ export class ProviderQuoteItemEntity {
         Object.assign(this, partial);
     }
 
+    @ApiProperty({
+        description: "Precio total del item",
+        type: "number",
+        example: 2500000.0,
+        name: "price",
+    })
+    @Expose({ name: "price" })
+    public priceFormatted(): number {
+        return this.price.toNumber();
+    }
+
+    @ApiProperty({
+        description: "Precio unitario del item",
+        type: "number",
+        example: 500000.0,
+        name: "unit_price",
+    })
     @Expose({ name: "unit_price" })
     public unitPriceFormatted(): number {
         return this.unit_price.toNumber();
@@ -56,7 +78,8 @@ export class ProviderQuoteEntity {
     @ApiProperty()
     public provider_id: string;
 
-    @ApiProperty({ type: "number", example: 2500000.0 })
+    @ApiHideProperty()
+    @Exclude()
     public total_price: Prisma.Decimal;
 
     @ApiProperty()
@@ -80,10 +103,16 @@ export class ProviderQuoteEntity {
     @ApiProperty({ type: [ProviderQuoteItemEntity] })
     public provider_quote_items: ProviderQuoteItemEntity[];
 
-    public constructor(partial: Partial<ProviderQuoteEntity>) {
+    public constructor(partial: Partial<ProviderQuoteItemEntity>) {
         Object.assign(this, partial);
     }
 
+    @ApiProperty({
+        description: "Precio total de la cotización",
+        type: "number",
+        example: 2500000.0,
+        name: "total_price",
+    })
     @Expose({ name: "total_price" })
     public totalPriceFormatted(): number {
         return this.total_price.toNumber();

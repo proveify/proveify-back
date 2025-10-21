@@ -12,7 +12,7 @@ model ProviderQuotes {
 
   public_request        PublicRequests          @relation(fields: [public_request_id], references: [id], onDelete: Cascade)
   provider              Providers               @relation(fields: [provider_id], references: [id])
-  provider_quote_items  ProviderQuoteItems[]
+  providerQuoteItems    ProviderQuoteItems[]
   ProviderQuoteMessages ProviderQuoteMessages[]
 
   @@unique([public_request_id, provider_id]) // Un proveedor solo puede cotizar una vez por solicitud
@@ -30,6 +30,7 @@ model ProviderQuoteItems {
   name              String
   description       String?
   quantity          Int
+  price             Decimal  @default(0.00) @db.Decimal(10, 2)
   unit_price        Decimal  @default(0.00) @db.Decimal(10, 2)
   created_at        DateTime @default(now())
   updated_at        DateTime @default(now()) @updatedAt
