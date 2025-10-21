@@ -7,9 +7,10 @@ import {
     PublicRequestParamsDto,
     PublicRequestFilterDto,
 } from "./dto/public-request.dto";
-import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
+import type { ProviderQuotes as ProviderQuoteModel, Prisma } from "@prisma/client";
 import { ProviderQuoteService } from "@app/provider-quote/provider-quote.service";
-import type { ProviderQuotes as ProviderQuoteModel } from "@prisma/client";
+import { PublicRequestEntity } from "./entities/public-request.entity";
+import { PublicRequestFactory } from "./factories/public-request.factory";
 
 @Injectable()
 export class PublicRequestService {
@@ -17,9 +18,10 @@ export class PublicRequestService {
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
         private authContextService: AuthContextService,
         private providerQuoteService: ProviderQuoteService,
+        private readonly publicRequestFactory: PublicRequestFactory,
     ) {}
 
-    public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {
+    public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestEntity> {
         const user = this.authContextService.getUser();
 
         const publicRequestData: Prisma.PublicRequestsCreateInput = {
@@ -32,10 +34,12 @@ export class PublicRequestService {
             },
         };
 
-        return this.publicRequestPrismaRepository.createPublicRequest(publicRequestData);
+        const result =
+            await this.publicRequestPrismaRepository.createPublicRequest(publicRequestData);
+        return this.publicRequestFactory.create(result);
     }
 
-    public async findAll(params?: PublicRequestFilterDto): Promise<PublicRequestModel[]> {
+    public async findAll(params?: PublicRequestFilterDto): Promise<PublicRequestEntity[]> {
         const whereConditions: Prisma.PublicRequestsWhereInput = {};
 
         if (params?.user_id) {
@@ -57,7 +61,7 @@ export class PublicRequestService {
             ];
         }
 
-        return this.publicRequestPrismaRepository.findManyPublicRequests(
+        const results = await this.publicRequestPrismaRepository.findManyPublicRequests(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -65,20 +69,28 @@ export class PublicRequestService {
                 created_at: params?.order_by ?? "desc",
             },
         );
+
+        return this.publicRequestFactory.createMany(results);
     }
 
-    public async findOne(id: string): Promise<PublicRequestModel | null> {
-        return this.publicRequestPrismaRepository.findUniquePublicRequest(id);
+    public async findOne(id: string): Promise<PublicRequestEntity | null> {
+        const result = await this.publicRequestPrismaRepository.findUniquePublicRequest(id);
+
+        if (!result) {
+            return null;
+        }
+
+        return this.publicRequestFactory.create(result);
     }
 
-    public async findMyRequests(params?: PublicRequestParamsDto): Promise<PublicRequestModel[]> {
+    public async findMyRequests(params?: PublicRequestParamsDto): Promise<PublicRequestEntity[]> {
         const user = this.authContextService.getUser();
 
         const whereConditions: Prisma.PublicRequestsWhereInput = {
             user_id: user.id,
         };
 
-        return this.publicRequestPrismaRepository.findManyPublicRequests(
+        const results = await this.publicRequestPrismaRepository.findManyPublicRequests(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -86,12 +98,14 @@ export class PublicRequestService {
                 created_at: params?.order_by ?? "desc",
             },
         );
+
+        return this.publicRequestFactory.createMany(results);
     }
 
     public async update(
         id: string,
         updateDto: UpdatePublicRequestDto,
-    ): Promise<PublicRequestModel> {
+    ): Promise<PublicRequestEntity> {
         const user = this.authContextService.getUser();
 
         const existingRequest =
@@ -108,10 +122,11 @@ export class PublicRequestService {
             );
         }
 
-        return this.publicRequestPrismaRepository.updatePublicRequest(id, updateDto);
+        const result = await this.publicRequestPrismaRepository.updatePublicRequest(id, updateDto);
+        return this.publicRequestFactory.create(result);
     }
 
-    public async remove(id: string): Promise<PublicRequestModel> {
+    public async remove(id: string): Promise<PublicRequestEntity> {
         const user = this.authContextService.getUser();
 
         const existingRequest =
@@ -128,7 +143,8 @@ export class PublicRequestService {
             );
         }
 
-        return this.publicRequestPrismaRepository.deletePublicRequest(id);
+        const result = await this.publicRequestPrismaRepository.deletePublicRequest(id);
+        return this.publicRequestFactory.create(result);
     }
 
     public async getProviderQuotesByPublicRequest(
