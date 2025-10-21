@@ -19,6 +19,9 @@ import { PublicRequestModule } from "./public-request/public-request.module";
 import { QuoteModule } from "./quote/quote.module";
 import { ProviderQuoteModule } from "./provider-quote/provider-quote.module";
 import { PdfModule } from "./pdf/pdf.module";
+import { ClsModule } from "nestjs-cls";
+import { APP_INTERCEPTOR } from "@nestjs/core";
+import { LoadUserInterceptor } from "@app/common/interceptors/load-user.interceptor";
 
 @Module({
     imports: [
@@ -47,7 +50,16 @@ import { PdfModule } from "./pdf/pdf.module";
             load: [appConfig, environmentsConfig, jwtConfig, refreshJwtConfig],
         }),
         PdfModule,
+        ClsModule.forRoot({
+            global: true,
+            middleware: { mount: true },
+        }),
     ],
-    providers: [],
+    providers: [
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: LoadUserInterceptor,
+        },
+    ],
 })
 export class AppModule {}

@@ -15,21 +15,11 @@ export class PlanPrismaRepository implements PrismaRepository {
         return this.transactionContext.getTransaction() ?? this.prisma;
     }
 
-    public async createPlan(data: Prisma.PlansCreateInput): Promise<PlanModel> {
-        const prisma = this.getClient();
-        return prisma.plans.create({
-            data,
-            include: {
-                Providers: true,
-            },
-        });
-    }
-
     public async findManyPlans(): Promise<PlanModel[]> {
         const prisma = this.getClient();
         return prisma.plans.findMany({
             include: {
-                Providers: true,
+                providers: true,
             },
         });
     }
@@ -39,7 +29,7 @@ export class PlanPrismaRepository implements PrismaRepository {
         return prisma.plans.findUniqueOrThrow({
             where: { plan_key: planKey },
             include: {
-                Providers: true,
+                providers: true,
             },
         });
     }

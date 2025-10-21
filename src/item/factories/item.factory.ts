@@ -1,20 +1,21 @@
 import { Injectable } from "@nestjs/common";
 import { FileService } from "@app/file/file.service";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { Items as ItemModel, Prisma } from "@prisma/client";
 import { ItemEntity } from "@app/item/entities/item.entity";
-import { ProviderService } from "@app/provider/provider.service";
 import { FavoritePrismaRepository } from "@app/item/repositories/favorite-prisma.repository";
 import { ProviderFactory } from "@app/provider/factories/provider.factory";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
-type ItemInput = Prisma.ItemsGetPayload<{ include: { provider: true } }> | ItemModel;
+type ItemInput =
+    | Prisma.ItemsGetPayload<{ include: { provider: true; itemImages: true } }>
+    | ItemModel;
 
 @Injectable()
 export class ItemFactory {
     public constructor(
         private readonly fileService: FileService,
-        private readonly authContextService: AuthContextService,
-        private readonly providerService: ProviderService,
+        private readonly cls: ClsService,
         private readonly favoritePrismaRepository: FavoritePrismaRepository,
         private readonly providerFactory: ProviderFactory,
     ) {}
@@ -22,24 +23,28 @@ export class ItemFactory {
     public async create(item: ItemInput): Promise<ItemEntity> {
         const data = {
             ...item,
-            provider:
-                "provider" in item
-                    ? await this.providerFactory.create(item.provider)
-                    : await this.providerService.getProviderById(item.provider_id),
+            provider: "provider" in item ? await this.providerFactory.create(item.provider) : null,
         };
 
         const entity = new ItemEntity(data);
 
-        if (entity.image) {
-            const url = await this.fileService.getFileUrlById(entity.image);
+        if (entity.itemImages) {
+            const results = await Promise.allSettled(
+                entity.itemImages.map(async (image) => {
+                    return await this.fileService.getFileUrlById(image.file_id);
+                }),
+            );
 
-            if (!url) {
-                entity.image_url = url;
-            }
+            entity.images = results.reduce<string[]>((acc, result) => {
+                if (result.status === "fulfilled" && result.value) {
+                    acc.push(result.value);
+                }
+                return acc;
+            }, []);
         }
 
-        if (this.authContextService.hasUser()) {
-            const authUser = this.authContextService.getUser();
+        if (this.cls.get<UserEntity | null>("user")) {
+            const authUser = this.cls.get<UserEntity>("user");
 
             entity.is_favorite = await this.favoritePrismaRepository
                 .findFirst({
@@ -49,8 +54,6 @@ export class ItemFactory {
                     },
                 })
                 .then((favorites) => !!favorites);
-
-            Reflect.defineMetadata("custom:serialize-options", { groups: ["owner"] }, entity);
         }
 
         return entity;

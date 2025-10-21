@@ -1,4 +1,4 @@
-//Model Users
+// Model Users
 
 model Users {
   id                  String     @id @default(uuid())
@@ -14,9 +14,8 @@ model Users {
   updated_at          DateTime   @default(now()) @updatedAt
   provider            Providers?
 
-  files                 Files[]
-  favorites             Favorites[]
-  publicRequests        PublicRequests[]
-  quoteMessages         QuoteMessages[]
-  providerQuoteMessages ProviderQuoteMessages[]
+  files         Files[]
+  favorites     Favorites[]
+  publicRequest PublicRequests[]
+  quoteMessage  QuoteMessages[]
 }

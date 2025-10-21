@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { PublicRequestPrismaRepository } from "./repositories/public-request-prisma.repository";
 import {
     CreatePublicRequestDto,
@@ -11,18 +10,19 @@ import type { ProviderQuotes as ProviderQuoteModel, Prisma } from "@prisma/clien
 import { ProviderQuoteService } from "@app/provider-quote/provider-quote.service";
 import { PublicRequestEntity } from "./entities/public-request.entity";
 import { PublicRequestFactory } from "./factories/public-request.factory";
+import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class PublicRequestService {
     public constructor(
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
-        private authContextService: AuthContextService,
-        private providerQuoteService: ProviderQuoteService,
-        private readonly publicRequestFactory: PublicRequestFactory,
+        private cls: ClsService,
     ) {}
 
-    public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestEntity> {
-        const user = this.authContextService.getUser();
+    public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {
+        const user = this.cls.get<UserEntity>("user");
 
         const publicRequestData: Prisma.PublicRequestsCreateInput = {
             title: createDto.title,
@@ -83,8 +83,8 @@ export class PublicRequestService {
         return this.publicRequestFactory.create(result);
     }
 
-    public async findMyRequests(params?: PublicRequestParamsDto): Promise<PublicRequestEntity[]> {
-        const user = this.authContextService.getUser();
+    public async findMyRequests(params?: PublicRequestParamsDto): Promise<PublicRequestModel[]> {
+        const user = this.cls.get<UserEntity>("user");
 
         const whereConditions: Prisma.PublicRequestsWhereInput = {
             user_id: user.id,
@@ -105,8 +105,8 @@ export class PublicRequestService {
     public async update(
         id: string,
         updateDto: UpdatePublicRequestDto,
-    ): Promise<PublicRequestEntity> {
-        const user = this.authContextService.getUser();
+    ): Promise<PublicRequestModel> {
+        const user = this.cls.get<UserEntity>("user");
 
         const existingRequest =
             await this.publicRequestPrismaRepository.findPublicRequestByIdOnly(id);
@@ -126,8 +126,8 @@ export class PublicRequestService {
         return this.publicRequestFactory.create(result);
     }
 
-    public async remove(id: string): Promise<PublicRequestEntity> {
-        const user = this.authContextService.getUser();
+    public async remove(id: string): Promise<PublicRequestModel> {
+        const user = this.cls.get<UserEntity>("user");
 
         const existingRequest =
             await this.publicRequestPrismaRepository.findPublicRequestByIdOnly(id);

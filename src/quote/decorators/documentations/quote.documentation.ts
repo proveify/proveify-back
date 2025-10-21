@@ -1,5 +1,12 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
+import {
+    ApiOperation,
+    ApiResponse,
+    ApiBearerAuth,
+    ApiParam,
+    ApiQuery,
+    ApiProduces,
+} from "@nestjs/swagger";
 import { QuoteEntity } from "../../entities/quote.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
 
@@ -23,6 +30,7 @@ export function CreateQuoteDocumentation(): MethodDecorator & ClassDecorator {
             status: 404,
             description: "Provider not found",
         }),
+        ApiBearerAuth(),
     );
 }
 
@@ -214,6 +222,29 @@ export function DeleteQuoteDocumentation(): MethodDecorator & ClassDecorator {
         ApiResponse({
             status: 403,
             description: "Forbidden - not the quote owner",
+        }),
+        ApiBearerAuth(),
+    );
+}
+
+export function PrintQuoteDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({
+            summary: "Descargar/visualizar PDF de la cotización",
+            description: "Genera y devuelve un archivo PDF con el detalle de la cotización.",
+        }),
+        ApiProduces("application/pdf"),
+        ApiResponse({
+            status: 200,
+            description: "PDF generado correctamente",
+            schema: {
+                type: "string",
+                format: "binary",
+            },
+        }),
+        ApiResponse({
+            status: 404,
+            description: "Quote not found",
         }),
         ApiBearerAuth(),
     );

@@ -5,16 +5,17 @@ import { Files as FileModel } from "@prisma/client";
 import { CreateFileDto } from "@app/file/dto/file.dto";
 import { FilePrismaRepository } from "./repositories/file-prisma.repository";
 import { CloudStorageRepository } from "@app/file/repositories/gcp/cloud-storage.repository";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { ResourceType, ResourceTypePath } from "./interfaces/file-manager.interface";
 import { ConfigService } from "@nestjs/config";
 import { environmentsConfig } from "@app/common/base.config";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class FileService {
     public constructor(
         private cloudStorageRepository: CloudStorageRepository,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
         private filePrismaRepository: FilePrismaRepository,
         private configService: ConfigService<typeof environmentsConfig, true>,
     ) {}
@@ -27,7 +28,7 @@ export class FileService {
         const environment = this.configService.get<string>("environments.environment", {
             infer: true,
         });
-        const user = this.authContextService.getUser();
+        const user = this.cls.get<UserEntity>("user");
         const name = this.generateUniqueFileName(file.extension);
         const originalName = file.originalName;
         file.originalName = name;

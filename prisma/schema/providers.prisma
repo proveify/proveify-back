@@ -16,10 +16,8 @@ model Providers {
   plan_id             String
   user                Users    @relation(fields: [user_id], references: [id])
   user_id             String   @unique
-
-  Items          Items[]
-  ProviderQuotes ProviderQuotes[]
-  Quotes         Quotes[]
+  items               Items[]
+  quotes              Quotes[]
 
   @@index([email, created_at(sort: Desc)])
 }

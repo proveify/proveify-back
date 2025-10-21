@@ -8,5 +8,5 @@ model Categories {
   updated_at  DateTime @default(now()) @updatedAt
 
   // Relación con subcategorías
-  Subcategories Subcategories[]
+  subcategories Subcategories[]
 }

@@ -20,7 +20,7 @@ export class UserPrismaRepository implements PrismaRepository {
         return prisma.users.create({
             data,
             include: {
-                Provider: true,
+                provider: true,
             },
         });
     }
@@ -30,7 +30,7 @@ export class UserPrismaRepository implements PrismaRepository {
         return prisma.users.findUnique({
             where: { email },
             include: {
-                Provider: true,
+                provider: true,
             },
         });
     }
@@ -43,7 +43,7 @@ export class UserPrismaRepository implements PrismaRepository {
             return prisma.users.findUnique({
                 where: { id: args.id },
                 include: {
-                    Provider: true,
+                    provider: true,
                 },
             });
         }
@@ -56,7 +56,7 @@ export class UserPrismaRepository implements PrismaRepository {
             where: { id },
             data,
             include: {
-                Provider: true,
+                provider: true,
             },
         });
     }

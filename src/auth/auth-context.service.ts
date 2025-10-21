@@ -1,30 +1,13 @@
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { UserEntity } from "@app/user/entities/user.entity";
-import { UserService } from "@app/user/user.service";
-import { HttpException, Injectable, Scope } from "@nestjs/common";
-import { Users as UserModel } from "@prisma/client";
+import { Injectable, Scope } from "@nestjs/common";
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthContextService {
-    private user: UserEntity | undefined;
+    public user?: UserEntity;
 
-    public constructor(private userService: UserService) {}
-
-    public async generateAuthContext(id: string): Promise<void> {
-        const user = await this.userService.findUserOneById({
-            where: { id },
-            include: { Provider: true },
-        });
-
-        if (!user) {
-            throw new HttpException("User not found", 404);
-        }
-
-        this.setUser(user);
-    }
-
-    public setUser(user: UserModel): void {
-        this.user = new UserEntity(user);
+    public setUser(user: UserEntity): void {
+        this.user = user;
     }
 
     public getUser(): UserEntity {

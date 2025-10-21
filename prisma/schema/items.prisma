@@ -6,7 +6,7 @@ model Items {
   description String?
   type        String    @default("PRODUCT")
   price       Decimal   @default(0.00) @db.Decimal(10, 2)
-  image       String?
+  slug        String?   @unique
   created_at  DateTime  @default(now())
   updated_at  DateTime  @default(now()) @updatedAt
   provider_id String
@@ -15,22 +15,34 @@ model Items {
   id_subcategory String?
   subcategory    Subcategories? @relation(fields: [id_subcategory], references: [id])
 
-  Favorites          Favorites[]
-  QuoteItems         QuoteItems[]
-  providerQuoteItems ProviderQuoteItems[]
+  favorites Favorites[]
+  quoteItems QuoteItems[]
+  itemImages ItemImages[]
 }
 
 // Model Favorites
 
 model Favorites {
   id         String   @id @default(uuid())
-  user       Users    @relation(fields: [user_id], references: [id])
   user_id    String
-  item       Items    @relation(fields: [item_id], references: [id])
   item_id    String
   created_at DateTime @default(now())
+
+  user       Users    @relation(fields: [user_id], references: [id])
+  item       Items    @relation(fields: [item_id], references: [id])
 
   @@unique([user_id, item_id])
   @@index([user_id])
   @@index([item_id])
+}
+
+model ItemImages {
+  id  String @id @default(uuid())
+  item_id String
+  file_id String
+  created_at DateTime @default(now())
+  update_at DateTime  @default(now())
+
+  item  Items @relation(fields: [item_id], references: [id])
+  file  Files @relation(fields: [file_id], references: [id])
 }

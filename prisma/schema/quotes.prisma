@@ -15,7 +15,7 @@ model Quotes {
 
   provider     Providers       @relation(fields: [provider_id], references: [id])
   quote_items  QuoteItems[]
-  QuoteMessage QuoteMessages[]
+  quoteMessage QuoteMessages[]
 
   @@index([provider_id])
   @@index([email])
@@ -31,6 +31,7 @@ model QuoteItems {
   name        String
   description String?
   quantity    Int
+  price       Decimal  @default(0.00) @db.Decimal(10, 2)
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now()) @updatedAt
 

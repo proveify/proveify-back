@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { AuthContextService } from "@app/auth/auth-context.service";
 import { QuotePrismaRepository } from "./repositories/quote-prisma.repository";
 import {
     CreateQuoteDto,
@@ -8,21 +7,28 @@ import {
     QuoteParamsDto,
     QuoteMessageParamsDto,
 } from "./dto/quote.dto";
-import type { Quotes as QuoteModel, Prisma } from "@prisma/client";
-import { QuoteMessageEntity } from "@app/quote/entities/quote.entity";
+import type { Prisma } from "@prisma/client";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { UserTypes } from "@app/user/interfaces/users";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "@app/user/entities/user.entity";
+import { QuoteFactory } from "@app/quote/factories/quote.factory";
+import { QuoteMessageEntity } from "@app/quote/entities/quote-message.entity";
+import { PdfService } from "@app/pdf/pdf.service";
 
 @Injectable()
 export class QuoteService {
     public constructor(
-        private quotePrismaRepository: QuotePrismaRepository,
-        private authContextService: AuthContextService,
+        private readonly quotePrismaRepository: QuotePrismaRepository,
+        private readonly cls: ClsService,
+        private readonly quoteFactory: QuoteFactory,
+        private readonly pdfService: PdfService,
     ) {}
 
     public async create(
         createDto: CreateQuoteDto,
         authenticatedUserId?: string,
-    ): Promise<QuoteModel> {
+    ): Promise<QuoteEntity> {
         const providerExists = await this.quotePrismaRepository.findProviderById(
             createDto.provider_id,
         );
@@ -34,7 +40,7 @@ export class QuoteService {
 
         if (!userId) {
             try {
-                const user = this.authContextService.getUser();
+                const user = this.cls.get<UserEntity>("user");
                 userId = user.id;
             } catch {
                 console.log("Anonymous user creating quote");
@@ -69,10 +75,11 @@ export class QuoteService {
             },
         };
 
-        return this.quotePrismaRepository.createQuote(quoteData);
+        const quote = await this.quotePrismaRepository.createQuote(quoteData);
+        return this.quoteFactory.create(quote);
     }
 
-    public async findAll(params?: QuoteFilterDto): Promise<QuoteModel[]> {
+    public async findAll(params?: QuoteFilterDto): Promise<QuoteEntity[]> {
         const whereConditions: Prisma.QuotesWhereInput = {};
 
         if (params?.provider_id) {
@@ -107,7 +114,7 @@ export class QuoteService {
             ];
         }
 
-        return this.quotePrismaRepository.findManyQuotes(
+        const quotes = await this.quotePrismaRepository.findManyQuotes(
             whereConditions,
             params?.limit ?? 30,
             params?.offset,
@@ -115,33 +122,39 @@ export class QuoteService {
                 created_at: params?.order_by ?? "desc",
             },
         );
+
+        return this.quoteFactory.createMany(quotes);
     }
 
-    public async findOne(id: string): Promise<QuoteModel | null> {
-        return this.quotePrismaRepository.findUniqueQuote(id);
+    public async findOne(id: string): Promise<QuoteEntity | null> {
+        const quote = await this.quotePrismaRepository.findUniqueQuote(id);
+        if (!quote) return null;
+        return this.quoteFactory.create(quote);
     }
 
-    public async findMyQuotes(params?: QuoteParamsDto): Promise<QuoteModel[]> {
-        const provider = this.authContextService.getProvider();
+    public async findMyQuotes(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
         }
 
-        return this.quotePrismaRepository.findQuotesByProvider(
-            provider.id,
+        const quotes = await this.quotePrismaRepository.findQuotesByProvider(
+            user.provider.id,
             params?.limit ?? 30,
             params?.offset,
             {
                 created_at: params?.order_by ?? "desc",
             },
         );
+
+        return this.quoteFactory.createMany(quotes);
     }
 
-    public async update(id: string, updateDto: UpdateQuoteDto): Promise<QuoteModel> {
-        const provider = this.authContextService.getProvider();
+    public async update(id: string, updateDto: UpdateQuoteDto): Promise<QuoteEntity> {
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
         }
 
@@ -151,7 +164,7 @@ export class QuoteService {
             throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
         }
 
-        if (existingQuote.provider_id !== provider.id) {
+        if (existingQuote.provider_id !== user.provider.id) {
             throw new HttpException("You can only update your own quotes", HttpStatus.FORBIDDEN);
         }
 
@@ -179,13 +192,14 @@ export class QuoteService {
             };
         }
 
-        return this.quotePrismaRepository.updateQuote(id, updateData);
+        const quote = await this.quotePrismaRepository.updateQuote(id, updateData);
+        return this.quoteFactory.create(quote);
     }
 
-    public async remove(id: string): Promise<QuoteModel> {
-        const provider = this.authContextService.getProvider();
+    public async remove(id: string): Promise<QuoteEntity> {
+        const user = this.cls.get<UserEntity>("user");
 
-        if (!provider) {
+        if (!user.provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
         }
 
@@ -195,11 +209,12 @@ export class QuoteService {
             throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
         }
 
-        if (existingQuote.provider_id !== provider.id) {
+        if (existingQuote.provider_id !== user.provider.id) {
             throw new HttpException("You can only delete your own quotes", HttpStatus.FORBIDDEN);
         }
 
-        return this.quotePrismaRepository.deleteQuote(id);
+        const quote = await this.quotePrismaRepository.deleteQuote(id);
+        return this.quoteFactory.create(quote);
     }
 
     public async getQuoteMessages(
@@ -207,9 +222,9 @@ export class QuoteService {
         params: QuoteMessageParamsDto,
     ): Promise<QuoteMessageEntity[]> {
         if (params.getAs === UserTypes.PROVIDER) {
-            const provider = this.authContextService.getProvider();
+            const user = this.cls.get<UserEntity>("user");
 
-            if (!provider) {
+            if (!user.provider) {
                 throw new HttpException(
                     "User does not have a provider profile",
                     HttpStatus.FORBIDDEN,
@@ -217,7 +232,7 @@ export class QuoteService {
             }
 
             const providerBelongsToQuote = await this.quotePrismaRepository.providerBelongsToQuote(
-                provider.id,
+                user.provider.id,
                 id,
             );
 
@@ -225,7 +240,7 @@ export class QuoteService {
                 throw new HttpException("Provider does not belong to quote", HttpStatus.FORBIDDEN);
             }
         } else {
-            const user = this.authContextService.getUser();
+            const user = this.cls.get<UserEntity>("user");
             const userBelongsToQuote = await this.quotePrismaRepository.userBelongsToQuote(
                 user.id,
                 id,
@@ -246,5 +261,20 @@ export class QuoteService {
         });
 
         return quoteMessages.map((message) => new QuoteMessageEntity(message));
+    }
+
+    public async generatePrint(id: string): Promise<Buffer> {
+        const quote = await this.findOne(id);
+        // const user = this.cls.get<UserEntity>("user");
+
+        if (!quote) {
+            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!quote.provider) {
+            throw new HttpException("Provider not found", HttpStatus.NOT_FOUND);
+        }
+
+        return this.pdfService.generateQuotePdf(quote, quote.provider);
     }
 }

@@ -10,4 +10,6 @@ model Files {
   resource_type String
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
+
+  ItemImages ItemImages[]
 }
