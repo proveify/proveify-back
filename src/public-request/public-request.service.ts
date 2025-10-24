@@ -6,7 +6,7 @@ import {
     PublicRequestParamsDto,
     PublicRequestFilterDto,
 } from "./dto/public-request.dto";
-import type { ProviderQuotes as ProviderQuoteModel, Prisma } from "@prisma/client";
+import type { ProviderQuotes as ProviderQuoteModel } from "@prisma/client";
 import { ProviderQuoteService } from "@app/provider-quote/provider-quote.service";
 import { PublicRequestEntity } from "./entities/public-request.entity";
 import { PublicRequestFactory } from "./factories/public-request.factory";
@@ -19,6 +19,8 @@ export class PublicRequestService {
     public constructor(
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
         private cls: ClsService,
+        private readonly publicRequestFactory: PublicRequestFactory,
+        private readonly providerQuoteService: ProviderQuoteService,
     ) {}
 
     public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {

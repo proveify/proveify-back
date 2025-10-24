@@ -10,10 +10,10 @@ model ProviderQuotes {
   created_at        DateTime @default(now())
   updated_at        DateTime @default(now()) @updatedAt
 
-  public_request        PublicRequests          @relation(fields: [public_request_id], references: [id], onDelete: Cascade)
-  provider              Providers               @relation(fields: [provider_id], references: [id])
-  providerQuoteItems    ProviderQuoteItems[]
-  ProviderQuoteMessages ProviderQuoteMessages[]
+  public_request         PublicRequests          @relation(fields: [public_request_id], references: [id], onDelete: Cascade)
+  provider               Providers               @relation(fields: [provider_id], references: [id])
+  provider_quote_items   ProviderQuoteItems[]
+  provider_quote_message ProviderQuoteMessages[]
 
   @@unique([public_request_id, provider_id]) // Un proveedor solo puede cotizar una vez por solicitud
   @@index([public_request_id])

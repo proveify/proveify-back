@@ -103,7 +103,7 @@ export class ProviderQuoteEntity {
     @ApiProperty({ type: [ProviderQuoteItemEntity] })
     public provider_quote_items: ProviderQuoteItemEntity[];
 
-    public constructor(partial: Partial<ProviderQuoteItemEntity>) {
+    public constructor(partial: Partial<ProviderQuoteEntity>) {
         Object.assign(this, partial);
     }
 
