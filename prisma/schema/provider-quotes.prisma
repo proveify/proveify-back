@@ -1,0 +1,55 @@
+// Model ProviderQuotes
+
+model ProviderQuotes {
+  id                String   @id @default(uuid())
+  public_request_id String
+  provider_id       String
+  total_price       Decimal  @default(0.00) @db.Decimal(10, 2)
+  description       String   @db.Text
+  status            String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
+
+  public_request        PublicRequests          @relation(fields: [public_request_id], references: [id], onDelete: Cascade)
+  provider              Providers               @relation(fields: [provider_id], references: [id])
+  providerQuoteItems    ProviderQuoteItems[]
+  ProviderQuoteMessages ProviderQuoteMessages[]
+
+  @@unique([public_request_id, provider_id]) // Un proveedor solo puede cotizar una vez por solicitud
+  @@index([public_request_id])
+  @@index([provider_id])
+  @@index([status])
+}
+
+// Model ProviderQuoteItems
+
+model ProviderQuoteItems {
+  id                String   @id @default(uuid())
+  provider_quote_id String
+  item_id           String?
+  name              String
+  description       String?
+  quantity          Int
+  price             Decimal  @default(0.00) @db.Decimal(10, 2)
+  unit_price        Decimal  @default(0.00) @db.Decimal(10, 2)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
+
+  provider_quote ProviderQuotes @relation(fields: [provider_quote_id], references: [id], onDelete: Cascade)
+  item           Items?         @relation(fields: [item_id], references: [id])
+
+  @@index([provider_quote_id])
+}
+
+// Mensajes para ProviderQuotes
+model ProviderQuoteMessages {
+  id                String   @id @default(uuid())
+  provider_quote_id String
+  user_id           String
+  content           String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
+
+  provider_quote ProviderQuotes @relation(fields: [provider_quote_id], references: [id], onDelete: Cascade)
+  user           Users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}

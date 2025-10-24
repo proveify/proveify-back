@@ -31,7 +31,9 @@ import {
     UpdatePublicRequestDocumentation,
     DeletePublicRequestDocumentation,
     GetMyPublicRequestsDocumentation,
+    GetPublicRequestProviderQuotesDocumentation,
 } from "./decorators/documentations/public-request.documentation";
+import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
 
 @ApiTags("Public Requests")
 @Controller("public-requests")
@@ -45,15 +47,13 @@ export class PublicRequestController {
     public async create(
         @Body() createPublicRequestDto: CreatePublicRequestDto,
     ): Promise<PublicRequestEntity> {
-        const publicRequest = await this.publicRequestService.create(createPublicRequestDto);
-        return new PublicRequestEntity(publicRequest);
+        return await this.publicRequestService.create(createPublicRequestDto);
     }
 
     @Get()
     @GetPublicRequestsDocumentation()
     public async findAll(@Query() params: PublicRequestFilterDto): Promise<PublicRequestEntity[]> {
-        const publicRequests = await this.publicRequestService.findAll(params);
-        return publicRequests.map((request) => new PublicRequestEntity(request));
+        return await this.publicRequestService.findAll(params);
     }
 
     @Get("my-requests")
@@ -62,8 +62,7 @@ export class PublicRequestController {
     public async findMyRequests(
         @Query() params: PublicRequestParamsDto,
     ): Promise<PublicRequestEntity[]> {
-        const publicRequests = await this.publicRequestService.findMyRequests(params);
-        return publicRequests.map((request) => new PublicRequestEntity(request));
+        return await this.publicRequestService.findMyRequests(params);
     }
 
     @Get(":id")
@@ -75,7 +74,7 @@ export class PublicRequestController {
             throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
         }
 
-        return new PublicRequestEntity(publicRequest);
+        return publicRequest;
     }
 
     @Patch(":id")
@@ -85,8 +84,7 @@ export class PublicRequestController {
         @Param("id") id: string,
         @Body() updatePublicRequestDto: UpdatePublicRequestDto,
     ): Promise<PublicRequestEntity> {
-        const updatedRequest = await this.publicRequestService.update(id, updatePublicRequestDto);
-        return new PublicRequestEntity(updatedRequest);
+        return await this.publicRequestService.update(id, updatePublicRequestDto);
     }
 
     @Delete(":id")
@@ -99,5 +97,15 @@ export class PublicRequestController {
             code: 200,
             message: "Public request deleted successfully",
         };
+    }
+
+    @Get(":id/provider-quotes")
+    @GetPublicRequestProviderQuotesDocumentation()
+    public async getProviderQuotes(
+        @Param("id") id: string,
+        @Query() params: PublicRequestParamsDto,
+    ): Promise<ProviderQuoteEntity[]> {
+        const quotes = await this.publicRequestService.getProviderQuotesByPublicRequest(id, params);
+        return quotes.map((quote) => new ProviderQuoteEntity(quote));
     }
 }
