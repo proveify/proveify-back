@@ -217,6 +217,7 @@ export class ItemService {
     public async getProviderItems(id: string, params?: ItemParamDto): Promise<ItemEntity[]> {
         const results = await this.itemPrismaRepository.findMany({
             where: { provider_id: id },
+            include: { itemImages: true },
             take: params?.limit ?? 30,
             skip: params?.offset,
             orderBy: { created_at: params?.order_by ?? "desc" },
