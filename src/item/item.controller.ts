@@ -72,7 +72,7 @@ export class ItemController {
         return await this.itemService.deleteItem(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(OptionalJwtAuthGuard)
     @Get("provider/:id")
     @LoadUser()
     public async getProviderItems(
