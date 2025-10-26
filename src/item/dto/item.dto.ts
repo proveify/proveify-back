@@ -38,7 +38,7 @@ export class ItemCreateDto {
 
     @IsOptional()
     @IsFiles()
-    @HasMimeType(["application/jpeg", "image/png"])
+    @HasMimeType(["image/jpeg", "image/png", "image/jpg", "image/webp"])
     @ApiProperty({
         description: "Imágenes (múltiples archivos, máximo 5)",
         type: "array",
@@ -50,6 +50,10 @@ export class ItemCreateDto {
     })
     @ArrayMaxSize(5)
     public images?: MemoryStoredFile[];
+
+    @ApiProperty({ description: "ID de la subcategoría" })
+    @IsUUID()
+    public subcategory_id?: string;
 }
 
 export class ItemUpdateDto extends PartialType(ItemCreateDto) {}

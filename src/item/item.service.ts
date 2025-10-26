@@ -11,6 +11,7 @@ import { FavoriteEntity } from "./entities/favorite.entity";
 import { ItemFactory } from "@app/item/factories/item.factory";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "@app/user/entities/user.entity";
+import { generateSlug } from "@app/common/helpers/slug";
 
 @Injectable()
 export class ItemService {
@@ -34,7 +35,9 @@ export class ItemService {
             description: data.description,
             type: data.type,
             price: data.price,
+            slug: await this.generateItemSlug(data.name),
             provider: { connect: { id: user.provider.id } },
+            subcategory: { connect: { id: data.subcategory_id } },
         };
 
         if (data.images) {
@@ -224,5 +227,18 @@ export class ItemService {
         });
 
         return this.itemFactory.createMany(results);
+    }
+
+    private async generateItemSlug(text: string): Promise<string> {
+        const user = this.cls.get<UserEntity>("user");
+
+        if (!user.provider) {
+            throw new HttpException("User not has provider", 400);
+        }
+
+        const slug = generateSlug(text) + "-" + user.provider.id;
+        const sameSlugs = await this.itemPrismaRepository.getTotalSlug(slug);
+
+        return slug + (sameSlugs > 0 ? `-${(sameSlugs + 1).toString()}` : "");
     }
 }
