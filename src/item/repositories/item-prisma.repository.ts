@@ -39,4 +39,13 @@ export class ItemPrismaRepository implements PrismaRepository {
         const prisma = this.getClient();
         return prisma.items.delete(args);
     }
+
+    public async getTotalSlug(slug: string): Promise<number> {
+        const prisma = this.getClient();
+        return prisma.items.count({
+            where: {
+                slug,
+            },
+        });
+    }
 }
