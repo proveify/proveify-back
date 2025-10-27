@@ -17,7 +17,9 @@ export class QuoteFactory {
             ...quote,
             quote_items:
                 "quote_items" in quote
-                    ? quote.quote_items.map((item) => new QuoteItemEntity(item))
+                    ? quote.quote_items.map(
+                          (item) => new QuoteItemEntity({ ...item, price: item.price.toNumber() }),
+                      )
                     : [],
             provider:
                 "provider" in quote ? await this.providerFactory.create(quote.provider) : null,

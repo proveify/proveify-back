@@ -1,6 +1,6 @@
 import { Exclude, Expose } from "class-transformer";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Prisma, ItemImages } from "@prisma/client";
+import { ItemImages } from "@prisma/client";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 
 export class ItemEntity {
@@ -10,9 +10,13 @@ export class ItemEntity {
 
     public description: string | null;
 
-    @ApiHideProperty()
-    @Exclude()
-    public price: Prisma.Decimal;
+    @ApiProperty({
+        description: "Price of the item in decimal format (max 2 decimal)",
+        type: "number",
+        example: 16500.99,
+        name: "price",
+    })
+    public price: number;
 
     public created_at: Date;
 
@@ -46,16 +50,5 @@ export class ItemEntity {
 
     public constructor(partial: Partial<ItemEntity>) {
         Object.assign(this, partial);
-    }
-
-    @ApiProperty({
-        description: "Price of the item in decimal format (max 2 decimal)",
-        type: "number",
-        example: 16500.99,
-        name: "price",
-    })
-    @Expose({ name: "price" })
-    public priceFormated(): number {
-        return this.price.toNumber();
     }
 }

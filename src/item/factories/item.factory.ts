@@ -23,6 +23,7 @@ export class ItemFactory {
     public async create(item: ItemInput): Promise<ItemEntity> {
         const data = {
             ...item,
+            price: item.price.toNumber(),
             provider: "provider" in item ? await this.providerFactory.create(item.provider) : null,
         };
 

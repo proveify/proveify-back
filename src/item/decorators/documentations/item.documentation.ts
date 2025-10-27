@@ -118,3 +118,34 @@ export function GetFavoritesDocumentation(): MethodDecorator & ClassDecorator {
         ApiBearerAuth(),
     );
 }
+
+export function GetProviderItemsDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiOperation({ summary: "Get items by provider ID" }),
+        ApiParam({
+            name: "id",
+            required: true,
+            type: String,
+            description: "ID of the provider",
+        }),
+        ApiParam({
+            name: "limit",
+            required: false,
+            type: Number,
+            description: "limite de 1 a 30 registros por consulta",
+        }),
+        ApiParam({
+            name: "offset",
+            required: false,
+            type: Number,
+        }),
+        ApiParam({
+            name: "order_by",
+            required: false,
+            type: String,
+            enum: ["asc", "desc"],
+        }),
+        ApiOkResponse({ type: [ItemEntity] }),
+        ApiBearerAuth(),
+    );
+}
