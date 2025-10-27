@@ -93,8 +93,8 @@ export class QuoteEntity {
             item.name,
             item.quantity.toString(),
             item.description ?? "",
-            item.priceFormated().toString(),
-            (item.priceFormated() * item.quantity).toString(),
+            item.price.toString(),
+            (item.price * item.quantity).toString(),
         ]);
     }
 }

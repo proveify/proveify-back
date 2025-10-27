@@ -1,7 +1,7 @@
 import { NestInterceptor, ExecutionContext, CallHandler, Injectable } from "@nestjs/common";
 import type { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { ClassConstructor, plainToInstance } from "class-transformer";
+import { ClassConstructor, instanceToPlain, plainToInstance } from "class-transformer";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "@app/user/entities/user.entity";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
@@ -48,11 +48,13 @@ export class OwnerSerializerInterceptor implements NestInterceptor {
         const ctor = (item as { constructor: ClassConstructor<unknown> }).constructor;
 
         if (!user) {
-            return plainToInstance(ctor, item);
+            const instance = plainToInstance(ctor, item);
+            return instanceToPlain(instance);
         }
 
         const groups: string[] = this.groupDispatcher.determine(item, user);
-        return plainToInstance(ctor, item, { groups: [...groups, "authenticated"] });
+        const instance = plainToInstance(ctor, item, { groups: [...groups, "authenticated"] });
+        return instanceToPlain(instance);
     }
 
     private isValidClassInstance(

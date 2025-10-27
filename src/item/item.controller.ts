@@ -27,6 +27,7 @@ import {
     GetFavoritesDocumentation,
     GetItemDocumentation,
     GetItemsDocumentation,
+    GetProviderItemsDocumentation,
     PostCreateItemDocumentation,
     PutSelfItemDocumentation,
     RemoveFavoriteDocumentation,
@@ -74,6 +75,7 @@ export class ItemController {
 
     @UseGuards(OptionalJwtAuthGuard)
     @Get("provider/:id")
+    @GetProviderItemsDocumentation()
     @LoadUser()
     public async getProviderItems(
         @Query() params: ItemParamDto,

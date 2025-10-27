@@ -38,7 +38,7 @@ export class ItemCreateDto {
 
     @IsOptional()
     @IsFiles()
-    @HasMimeType(["image/jpeg", "image/png", "image/jpg", "image/webp"])
+    @HasMimeType(["image/jpeg", "image/png", "image/jpg", "image/webp"], { each: true })
     @ApiProperty({
         description: "Imágenes (múltiples archivos, máximo 5)",
         type: "array",
