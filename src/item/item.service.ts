@@ -140,7 +140,7 @@ export class ItemService {
     public async getItemById(id: string): Promise<ItemEntity | null> {
         const item = await this.itemPrismaRepository.findUnique({
             where: { id },
-            include: { provider: true },
+            include: { provider: true, itemImages: true },
         });
 
         if (!item) {
