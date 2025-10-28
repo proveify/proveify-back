@@ -78,6 +78,7 @@ export class ItemService {
             description: data.description,
             price: data.price,
             type: data.type,
+            subcategory: { update: { id: data.subcategory_id } },
         };
     }
 
