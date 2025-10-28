@@ -9,7 +9,6 @@ import {
     Put,
     Query,
     UseGuards,
-    Req,
     UseInterceptors,
 } from "@nestjs/common";
 import { ItemService } from "./item.service";
@@ -19,8 +18,6 @@ import { OptionalJwtAuthGuard } from "@app/auth/guards/optional-jwt.guard";
 import { FavoriteParamsDto, ItemCreateDto, ItemParamDto, ItemUpdateDto } from "./dto/item.dto";
 import { ItemEntity } from "./entities/item.entity";
 import { FavoriteEntity } from "./entities/favorite.entity";
-import { Request } from "express";
-import { TokenPayload } from "@app/auth/interfaces/auth.interface";
 import {
     AddFavoriteDocumentation,
     DeleteSelfItemDocumentation,
@@ -118,10 +115,7 @@ export class ItemController {
     @UseGuards(JwtAuthGuard)
     @RemoveFavoriteDocumentation()
     @LoadUser()
-    public async removeFavorite(
-        @Req() req: Request & { user: TokenPayload },
-        @Param("id") id: string,
-    ): Promise<FavoriteEntity> {
+    public async removeFavorite(@Param("id") id: string): Promise<FavoriteEntity> {
         return await this.itemService.removeFavorite(id);
     }
 
