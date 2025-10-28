@@ -237,7 +237,8 @@ export class ItemService {
             throw new HttpException("User not has provider", 400);
         }
 
-        const slug = generateSlug(text) + "-" + user.provider.id;
+        const splitId = user.provider.id.split("-");
+        const slug = generateSlug(text) + "-" + splitId[splitId.length - 1];
         const sameSlugs = await this.itemPrismaRepository.getTotalSlug(slug);
 
         return slug + (sameSlugs > 0 ? `-${(sameSlugs + 1).toString()}` : "");
