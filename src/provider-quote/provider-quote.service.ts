@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { AuthContextService } from "@app/auth/auth-context.service";
+import { ClsService } from "nestjs-cls";
 import { ProviderQuotePrismaRepository } from "./repositories/provider-quote-prisma.repository";
 import {
     CreateProviderQuoteDto,
@@ -10,17 +10,19 @@ import type { Prisma } from "@prisma/client";
 import { ProviderQuoteFactory } from "./factories/provider-quote.factory";
 import { ProviderQuoteEntity } from "./entities/provider-quote.entity";
 import { ProviderQuoteWithIncludes } from "./types/provider-quote.types";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class ProviderQuoteService {
     public constructor(
         private providerQuotePrismaRepository: ProviderQuotePrismaRepository,
-        private authContextService: AuthContextService,
+        private cls: ClsService,
         private readonly providerQuoteFactory: ProviderQuoteFactory,
     ) {}
 
     public async create(createDto: CreateProviderQuoteDto): Promise<ProviderQuoteEntity> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
+        const provider = user.provider;
 
         if (!provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
@@ -112,7 +114,8 @@ export class ProviderQuoteService {
     }
 
     public async findMyQuotes(params?: ProviderQuoteParamsDto): Promise<ProviderQuoteEntity[]> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
+        const provider = user.provider;
 
         if (!provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
@@ -146,7 +149,8 @@ export class ProviderQuoteService {
         id: string,
         updateDto: UpdateProviderQuoteDto,
     ): Promise<ProviderQuoteEntity> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
+        const provider = user.provider;
 
         if (!provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
@@ -199,7 +203,8 @@ export class ProviderQuoteService {
     }
 
     public async remove(id: string): Promise<ProviderQuoteEntity> {
-        const provider = this.authContextService.getProvider();
+        const user = this.cls.get<UserEntity>("user");
+        const provider = user.provider;
 
         if (!provider) {
             throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);

@@ -31,7 +31,12 @@ export class ItemFactory {
         if (entity.itemImages) {
             const results = await Promise.allSettled(
                 entity.itemImages.map(async (image) => {
-                    return await this.fileService.getFileUrlById(image.file_id);
+                    const safeImage = image as { file_id?: string };
+                    const fileId = safeImage.file_id;
+                    if (typeof fileId === "string") {
+                        return await this.fileService.getFileUrlById(fileId);
+                    }
+                    return null;
                 }),
             );
 

@@ -3,19 +3,21 @@ import { ProviderFactory } from "@app/provider/factories/provider.factory";
 import { UserEntity } from "@app/user/entities/user.entity";
 import { Prisma, Users as UserModel } from "@prisma/client";
 
-type UserInput = Prisma.UsersGetPayload<{ include: { provider: true } }> | UserModel;
+type UserInput = Prisma.UsersGetPayload<{ include: { Provider?: true } }> | UserModel;
 
 @Injectable()
 export class UserFactory {
     public constructor(private readonly providerFactory: ProviderFactory) {}
 
     public async create(user: UserInput): Promise<UserEntity> {
+        const providerData =
+            "provider" in user && user.provider
+                ? (user.provider as Prisma.ProvidersGetPayload<object>)
+                : null;
+
         const data = {
             ...user,
-            provider:
-                "provider" in user && user.provider
-                    ? await this.providerFactory.create(user.provider)
-                    : null,
+            provider: providerData ? await this.providerFactory.create(providerData) : null,
         };
 
         return new UserEntity(data);
