@@ -48,13 +48,13 @@ export class ItemFactory {
             }, []);
         }
 
-        if (this.cls.get<UserEntity | null>("user")) {
-            const authUser = this.cls.get<UserEntity>("user");
+        const user = this.cls.get<UserEntity | null>("user");
 
+        if (user) {
             entity.is_favorite = await this.favoritePrismaRepository
                 .findFirst({
                     where: {
-                        user_id: authUser.id,
+                        user_id: user.id,
                         item_id: entity.id,
                     },
                 })
