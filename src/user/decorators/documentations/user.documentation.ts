@@ -17,5 +17,6 @@ export function UpdateUserDocumentation(): MethodDecorator & ClassDecorator {
         ApiOperation({ summary: "Update logged user information" }),
         ApiResponse({ status: 200, type: UserEntity, description: "User profile data" }),
         ApiResponse({ status: 401, description: "Unauthorized" }),
+        ApiBearerAuth(),
     );
 }

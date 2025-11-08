@@ -5,7 +5,9 @@ import { QuoteItemEntity } from "@app/quote/entities/quote-item.entity";
 import { ProviderFactory } from "@app/provider/factories/provider.factory";
 
 type QuoteInput =
-    | Prisma.QuotesGetPayload<{ include: { quote_items: true; provider: true } }>
+    | Prisma.QuotesGetPayload<{
+          include: { quote_items: { include: { item: true } }; provider: true };
+      }>
     | QuoteModel;
 
 @Injectable()
@@ -15,15 +17,24 @@ export class QuoteFactory {
     public async create(quote: QuoteInput): Promise<QuoteEntity> {
         const data = {
             ...quote,
-            quote_items:
-                "quote_items" in quote
-                    ? quote.quote_items.map(
-                          (item) => new QuoteItemEntity({ ...item, price: item.price.toNumber() }),
-                      )
-                    : [],
+            quote_items: [] as QuoteItemEntity[],
             provider:
                 "provider" in quote ? await this.providerFactory.create(quote.provider) : null,
         };
+
+        if ("quote_items" in quote) {
+            const quoteItems = quote.quote_items.map((quoteItem) => {
+                const quoteItemData = {
+                    ...quoteItem,
+                    price: quoteItem.price.toNumber(),
+                    item: undefined, // TODO: revisar si es necesario traer el item en el item de cotizacion
+                };
+
+                return new QuoteItemEntity(quoteItemData);
+            });
+
+            data.quote_items = quoteItems;
+        }
 
         return new QuoteEntity(data);
     }
