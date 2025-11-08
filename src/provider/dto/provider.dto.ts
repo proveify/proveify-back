@@ -1,10 +1,10 @@
 import { IsOptional } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
-import { ApiProperty, ApiSchema, IntersectionType, PartialType } from "@nestjs/swagger";
-import { UserCreateDto } from "@app/user/dto/user.dto";
+import { ApiProperty, ApiSchema, OmitType, PartialType } from "@nestjs/swagger";
+import { BaseUserDto } from "@app/common/dtos/base-user.dto";
 
 @ApiSchema({ name: "ProviderCreate" })
-export class ProviderCreateDto extends IntersectionType(UserCreateDto) {
+export class ProviderCreateDto extends BaseUserDto {
     @ApiProperty({
         description: "Debe ser un archivo en formato PDF.",
         type: "string",
@@ -35,3 +35,9 @@ export class ProviderCreateDto extends IntersectionType(UserCreateDto) {
 }
 
 export class ProviderUpdateDto extends PartialType(ProviderCreateDto) {}
+
+export class ProviderUpdateWithoutFilesDto extends OmitType(ProviderUpdateDto, [
+    "rut",
+    "chamber_commerce",
+    "profile_picture",
+] as const) {}

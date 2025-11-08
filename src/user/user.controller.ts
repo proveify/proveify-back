@@ -30,10 +30,7 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     @UpdateUserDocumentation()
     @LoadUser()
-    public async updateUser(
-        @Req() req: RequestAuthenticated,
-        @Body() data: UserUpdateDto,
-    ): Promise<UserEntity> {
-        return this.userService.update(req.user.id, data);
+    public async updateUser(@Body() data: UserUpdateDto): Promise<UserEntity> {
+        return this.userService.updateWithProviderData(data);
     }
 }

@@ -36,25 +36,41 @@ export class OwnerSerializerInterceptor implements NestInterceptor {
     }
 
     private transformWithOwnership(item: unknown): unknown {
-        if (!this.isValidClassInstance(item)) {
-            return item;
-        }
-
         if (Array.isArray(item)) {
             return item.map((element) => this.transformWithOwnership(element));
+        }
+
+        if (!this.isValidClassInstance(item)) {
+            return item;
         }
 
         const user = this.cls.get<UserEntity | null>("user");
         const ctor = (item as { constructor: ClassConstructor<unknown> }).constructor;
 
-        if (!user) {
-            const instance = plainToInstance(ctor, item);
-            return instanceToPlain(instance);
-        }
+        const alreadyInstance =
+            item instanceof (ctor as new (...args: unknown[]) => unknown) ||
+            Object.getPrototypeOf(item) === ctor.prototype;
 
-        const groups: string[] = this.groupDispatcher.determine(item, user);
-        const instance = plainToInstance(ctor, item, { groups: [...groups, "authenticated"] });
-        return instanceToPlain(instance);
+        try {
+            if (!user) {
+                const instance = alreadyInstance
+                    ? item
+                    : plainToInstance(ctor, item, { enableImplicitConversion: true });
+                return instanceToPlain(instance);
+            }
+
+            const groups: string[] = this.groupDispatcher.determine(item, user);
+            const instance = alreadyInstance
+                ? item
+                : plainToInstance(ctor, item, {
+                      groups: [...groups, "authenticated"],
+                      enableImplicitConversion: true,
+                  });
+
+            return instanceToPlain(instance, { groups: [...groups, "authenticated"] });
+        } catch {
+            return item;
+        }
     }
 
     private isValidClassInstance(

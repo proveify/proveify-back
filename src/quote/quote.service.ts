@@ -25,27 +25,16 @@ export class QuoteService {
         private readonly pdfService: PdfService,
     ) {}
 
-    public async create(
-        createDto: CreateQuoteDto,
-        authenticatedUserId?: string,
-    ): Promise<QuoteEntity> {
+    public async create(createDto: CreateQuoteDto): Promise<QuoteEntity> {
         const providerExists = await this.quotePrismaRepository.findProviderById(
             createDto.provider_id,
         );
+
         if (!providerExists) {
             throw new HttpException("Provider not found", HttpStatus.NOT_FOUND);
         }
 
-        let userId: string | null = authenticatedUserId ?? null;
-
-        if (!userId) {
-            try {
-                const user = this.cls.get<UserEntity>("user");
-                userId = user.id;
-            } catch {
-                console.log("Anonymous user creating quote");
-            }
-        }
+        const user = this.cls.get<UserEntity | undefined>("user");
 
         const quoteData: Prisma.QuotesCreateInput = {
             name: createDto.name,
@@ -53,7 +42,7 @@ export class QuoteService {
             identification: createDto.identification,
             identification_type: createDto.identification_type,
             description: createDto.description,
-            user_id: userId,
+            user_id: user?.id,
             provider: {
                 connect: {
                     id: createDto.provider_id,
