@@ -15,9 +15,10 @@ model Items {
   id_subcategory String?
   subcategory    Subcategories? @relation(fields: [id_subcategory], references: [id])
 
-  favorites Favorites[]
-  quoteItems QuoteItems[]
-  itemImages ItemImages[]
+  favorites          Favorites[]
+  quoteItems         QuoteItems[]
+  itemImages         ItemImages[]
+  ProviderQuoteItems ProviderQuoteItems[]
 }
 
 // Model Favorites
@@ -28,8 +29,8 @@ model Favorites {
   item_id    String
   created_at DateTime @default(now())
 
-  user       Users    @relation(fields: [user_id], references: [id])
-  item       Items    @relation(fields: [item_id], references: [id])
+  user Users @relation(fields: [user_id], references: [id])
+  item Items @relation(fields: [item_id], references: [id])
 
   @@unique([user_id, item_id])
   @@index([user_id])
@@ -37,12 +38,12 @@ model Favorites {
 }
 
 model ItemImages {
-  id  String @id @default(uuid())
-  item_id String
-  file_id String
+  id         String   @id @default(uuid())
+  item_id    String
+  file_id    String
   created_at DateTime @default(now())
-  update_at DateTime  @default(now())
+  update_at  DateTime @default(now())
 
-  item  Items @relation(fields: [item_id], references: [id])
-  file  Files @relation(fields: [file_id], references: [id])
+  item Items @relation(fields: [item_id], references: [id])
+  file Files @relation(fields: [file_id], references: [id])
 }

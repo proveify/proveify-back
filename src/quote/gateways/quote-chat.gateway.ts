@@ -85,6 +85,6 @@ export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
     ): Promise<void> {
         const room = `quote_${data.quoteId}`;
         await client.leave(room);
-        client.data.joinedRooms = client.data.joinedRooms.filter((r) => r !== room);
+        client.data.joinedRooms = client.data.joinedRooms.filter((r: string) => r !== room);
     }
 }

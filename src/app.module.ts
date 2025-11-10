@@ -17,6 +17,7 @@ import { CategoryModule } from "./category/category.module";
 import { SubcategoryModule } from "./subcategory/subcategory.module";
 import { PublicRequestModule } from "./public-request/public-request.module";
 import { QuoteModule } from "./quote/quote.module";
+import { ProviderQuoteModule } from "./provider-quote/provider-quote.module";
 import { PdfModule } from "./pdf/pdf.module";
 import { ClsModule } from "nestjs-cls";
 import { APP_INTERCEPTOR } from "@nestjs/core";
@@ -39,6 +40,7 @@ import { LoadUserInterceptor } from "@app/common/interceptors/load-user.intercep
         SubcategoryModule,
         PublicRequestModule,
         QuoteModule,
+        ProviderQuoteModule, // NUEVO
         ConfigModule.forRoot({
             isGlobal: true,
             validationSchema: validationSchemaConfig,
