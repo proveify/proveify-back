@@ -36,10 +36,8 @@ export const quoteTemplate = (
 
     const subtotal = Array.isArray(quote.quote_items)
         ? quote.quote_items.reduce((sum: number, item: QuoteItemEntity) => {
-              const price =
-                  typeof item.priceFormated === "function" ? Number(item.priceFormated()) : 0;
               const qty = Number(item.quantity);
-              return sum + price * qty;
+              return sum + item.price * qty;
           }, 0)
         : 0;
 

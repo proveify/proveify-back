@@ -1,54 +1,19 @@
-import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
-import { PartialType, ApiProperty, ApiSchema } from "@nestjs/swagger";
-import { IdentificationTypes } from "../interfaces/users";
+import { IsOptional } from "class-validator";
+import { PartialType, ApiProperty, ApiSchema, OmitType } from "@nestjs/swagger";
+import { ProviderUpdateWithoutFilesDto } from "@app/provider/dto/provider.dto";
+import { Type } from "class-transformer";
+import { BaseUserDto } from "@app/common/dtos/base-user.dto";
 
 @ApiSchema({ name: "UserCreate" })
-export class UserCreateDto {
-    @ApiProperty({
-        example: "John Doe",
-        description: "user name",
-    })
-    @IsString()
-    public name: string;
+export class UserCreateDto extends BaseUserDto {}
 
+export class UserUpdateDto extends PartialType(OmitType(UserCreateDto, ["password"] as const)) {
+    @IsOptional()
     @ApiProperty({
-        example: "john.doe@example.com",
-        description: "user email address",
-    })
-    @IsEmail()
-    public email: string;
-
-    @ApiProperty({
-        example: "123456789",
-        description: "User identification number",
-    })
-    @IsString()
-    public identification: string;
-
-    @ApiProperty({
-        example: "CC",
-        description: "Type of identification document",
-        enum: IdentificationTypes,
-    })
-    @IsString()
-    @IsEnum(IdentificationTypes)
-    public identification_type: string;
-
-    @ApiProperty({
-        example: "mySecurePassword123",
-        description: "User password",
-    })
-    @IsString()
-    public password: string;
-
-    @ApiProperty({
-        example: "+1234567890",
-        description: "User phone number",
+        description: "update provider data only if user has a provider",
+        type: () => ProviderUpdateWithoutFilesDto,
         required: false,
     })
-    @IsString()
-    @IsOptional()
-    public phone?: string;
+    @Type(() => ProviderUpdateWithoutFilesDto)
+    public provider?: ProviderUpdateWithoutFilesDto;
 }
-
-export class UserUpdateDto extends PartialType(UserCreateDto) {}

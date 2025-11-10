@@ -1,7 +1,7 @@
 import { NestInterceptor, ExecutionContext, CallHandler, Injectable } from "@nestjs/common";
 import type { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { ClassConstructor, plainToInstance } from "class-transformer";
+import { ClassConstructor, instanceToPlain, plainToInstance } from "class-transformer";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "@app/user/entities/user.entity";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
@@ -36,23 +36,41 @@ export class OwnerSerializerInterceptor implements NestInterceptor {
     }
 
     private transformWithOwnership(item: unknown): unknown {
-        if (!this.isValidClassInstance(item)) {
-            return item;
-        }
-
         if (Array.isArray(item)) {
             return item.map((element) => this.transformWithOwnership(element));
+        }
+
+        if (!this.isValidClassInstance(item)) {
+            return item;
         }
 
         const user = this.cls.get<UserEntity | null>("user");
         const ctor = (item as { constructor: ClassConstructor<unknown> }).constructor;
 
-        if (!user) {
-            return plainToInstance(ctor, item);
-        }
+        const alreadyInstance =
+            item instanceof (ctor as new (...args: unknown[]) => unknown) ||
+            Object.getPrototypeOf(item) === ctor.prototype;
 
-        const groups: string[] = this.groupDispatcher.determine(item, user);
-        return plainToInstance(ctor, item, { groups: [...groups, "authenticated"] });
+        try {
+            if (!user) {
+                const instance = alreadyInstance
+                    ? item
+                    : plainToInstance(ctor, item, { enableImplicitConversion: true });
+                return instanceToPlain(instance);
+            }
+
+            const groups: string[] = this.groupDispatcher.determine(item, user);
+            const instance = alreadyInstance
+                ? item
+                : plainToInstance(ctor, item, {
+                      groups: [...groups, "authenticated"],
+                      enableImplicitConversion: true,
+                  });
+
+            return instanceToPlain(instance, { groups: [...groups, "authenticated"] });
+        } catch {
+            return item;
+        }
     }
 
     private isValidClassInstance(

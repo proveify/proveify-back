@@ -6,8 +6,8 @@ import {
     HttpException,
     HttpStatus,
     Param,
-    Patch,
     Post,
+    Put,
     Query,
     Res,
     UseGuards,
@@ -78,7 +78,7 @@ export class QuoteController {
         return quote;
     }
 
-    @Patch(":id")
+    @Put(":id")
     @UseGuards(JwtAuthGuard)
     @UpdateQuoteDocumentation()
     @UseInterceptors(TransactionInterceptor)

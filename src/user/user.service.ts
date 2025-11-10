@@ -5,6 +5,7 @@ import { UserNotFoundException } from "./exceptions/user-not-found.exception/use
 import { UserEntity } from "./entities/user.entity";
 import { UserFactory } from "@app/user/factories/user.factory";
 import { ClsService } from "nestjs-cls";
+import { UserUpdateDto } from "@app/user/dto/user.dto";
 
 @Injectable()
 export class UserService {
@@ -44,6 +45,25 @@ export class UserService {
     public async update(id: string, userData: Prisma.UsersUpdateInput): Promise<UserEntity> {
         const user = await this.userPrismaRepository.updateUser(id, userData);
         return this.userFactory.create(user);
+    }
+
+    public async updateWithProviderData(data: UserUpdateDto): Promise<UserEntity> {
+        const user = this.cls.get<UserEntity>("user");
+
+        const userData: Prisma.UsersUpdateInput = {
+            name: data.name,
+            identification: data.identification,
+            identification_type: data.identification_type,
+            phone: data.phone,
+            email: data.email,
+            provider: {
+                update: {
+                    data: data.provider,
+                },
+            },
+        };
+
+        return await this.update(user.id, userData);
     }
 
     public async getUserProfile(id: string, fromCls = false): Promise<UserEntity> {
