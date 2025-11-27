@@ -31,6 +31,7 @@ import {
     DeleteProviderQuoteDocumentation,
 } from "./decorators/documentations/provider-quote.documentation";
 import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
+import { LoadUser } from "@app/common/decorators/load-user.decorator";
 
 @ApiTags("Provider Quotes")
 @Controller("provider-quotes")
@@ -57,6 +58,7 @@ export class ProviderQuoteController {
     @Get("my-quotes")
     @UseGuards(JwtAuthGuard)
     @GetMyProviderQuotesDocumentation()
+    @LoadUser()
     public async findMyQuotes(
         @Query() params: ProviderQuoteParamsDto,
     ): Promise<ProviderQuoteEntity[]> {
