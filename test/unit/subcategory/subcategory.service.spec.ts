@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { SubcategoryService } from "../../../src/subcategory/subcategory.service";
-import { PrismaService } from "../../../src/prisma/prisma.service";
+import { SubcategoryPrismaRepository } from "../../../src/subcategory/repositories/subcategory-prisma.repository";
 import { SubcategoryNotFoundException } from "../../../src/subcategory/exceptions/subcategory-not-found.exception";
 import { plainToInstance } from "class-transformer";
 import { SubcategoryEntity } from "../../../src/subcategory/entities/subcategory.entity";
@@ -8,14 +8,13 @@ import { CategoryService } from "../../../src/category/category.service";
 import { CategoryNotFoundException } from "../../../src/category/exceptions/category-not-found.exception";
 import { HttpException, HttpStatus } from "@nestjs/common";
 
-const mockPrismaService = {
-    subcategories: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-    },
+const mockSubcategoryPrismaRepository = {
+    createSubcategory: jest.fn(),
+    findManySubcategories: jest.fn(),
+    findUniqueSubcategory: jest.fn(),
+    findSubcategoriesByCategory: jest.fn(),
+    updateSubcategory: jest.fn(),
+    deleteSubcategory: jest.fn(),
 };
 
 const mockCategoryService = {
@@ -24,7 +23,7 @@ const mockCategoryService = {
 
 describe("SubcategoryService", () => {
     let service: SubcategoryService;
-    let prismaService: PrismaService;
+    let subcategoryPrismaRepository: SubcategoryPrismaRepository;
     let categoryService: CategoryService;
 
     beforeEach(async () => {
@@ -32,8 +31,8 @@ describe("SubcategoryService", () => {
             providers: [
                 SubcategoryService,
                 {
-                    provide: PrismaService,
-                    useValue: mockPrismaService,
+                    provide: SubcategoryPrismaRepository,
+                    useValue: mockSubcategoryPrismaRepository,
                 },
                 {
                     provide: CategoryService,
@@ -43,16 +42,18 @@ describe("SubcategoryService", () => {
         }).compile();
 
         service = module.get<SubcategoryService>(SubcategoryService);
-        prismaService = module.get<PrismaService>(PrismaService);
+        subcategoryPrismaRepository = module.get<SubcategoryPrismaRepository>(
+            SubcategoryPrismaRepository,
+        );
         categoryService = module.get<CategoryService>(CategoryService);
 
         jest.clearAllMocks();
 
-        jest.spyOn(service, 'findByCategoryId');
-        
-        jest.spyOn(service, 'create');
-        
-        jest.spyOn(service, 'update');
+        jest.spyOn(service, "findByCategoryId");
+
+        jest.spyOn(service, "create");
+
+        jest.spyOn(service, "update");
     });
 
     it("should be defined", () => {
@@ -70,27 +71,27 @@ describe("SubcategoryService", () => {
                 updated_at: new Date(),
             };
 
-            mockPrismaService.subcategories.findUnique.mockResolvedValue(mockSubcategory);
+            mockSubcategoryPrismaRepository.findUniqueSubcategory.mockResolvedValue(
+                mockSubcategory,
+            );
 
             const result = await service.findOne("test-subcategory-id");
 
             expect(result).toEqual(mockSubcategory);
-            expect(prismaService.subcategories.findUnique).toHaveBeenCalledWith({
-                where: { id: "test-subcategory-id" },
-                include: { category: true }
-            });
+            expect(subcategoryPrismaRepository.findUniqueSubcategory).toHaveBeenCalledWith(
+                "test-subcategory-id",
+            );
         });
 
         it("should return null when subcategory does not exist", async () => {
-            mockPrismaService.subcategories.findUnique.mockResolvedValue(null);
+            mockSubcategoryPrismaRepository.findUniqueSubcategory.mockResolvedValue(null);
 
             const result = await service.findOne("non-existent-id");
 
             expect(result).toBeNull();
-            expect(prismaService.subcategories.findUnique).toHaveBeenCalledWith({
-                where: { id: "non-existent-id" },
-                include: { category: true }
-            });
+            expect(subcategoryPrismaRepository.findUniqueSubcategory).toHaveBeenCalledWith(
+                "non-existent-id",
+            );
         });
     });
 
@@ -115,14 +116,14 @@ describe("SubcategoryService", () => {
                 },
             ];
 
-            mockPrismaService.subcategories.findMany.mockResolvedValue(mockSubcategories);
+            mockSubcategoryPrismaRepository.findManySubcategories.mockResolvedValue(
+                mockSubcategories,
+            );
 
             const result = await service.findAll();
 
             expect(result).toEqual(mockSubcategories);
-            expect(prismaService.subcategories.findMany).toHaveBeenCalledWith({
-                include: { category: true }
-            });
+            expect(subcategoryPrismaRepository.findManySubcategories).toHaveBeenCalled();
         });
     });
 
@@ -140,42 +141,34 @@ describe("SubcategoryService", () => {
                 },
             ];
 
-            service.findByCategoryId = jest.fn().mockImplementation(async (id) => {
-                mockCategoryService.findOne(id);
-                return mockSubcategories;
-            });
-
-            mockCategoryService.findOne.mockResolvedValue({ id: categoryId });
-            mockPrismaService.subcategories.findMany.mockResolvedValue(mockSubcategories);
+            mockSubcategoryPrismaRepository.findSubcategoriesByCategory.mockResolvedValue(
+                mockSubcategories,
+            );
 
             const result = await service.findByCategoryId(categoryId);
 
             expect(result).toEqual(mockSubcategories);
-            expect(categoryService.findOne).toHaveBeenCalledWith(categoryId);
+            expect(subcategoryPrismaRepository.findSubcategoriesByCategory).toHaveBeenCalledWith(
+                categoryId,
+            );
         });
 
-        it("should throw exception when categoryId is invalid", async () => {
-            const categoryId = "non-existent-category";
+        it("should return empty array when no subcategories exist for category", async () => {
+            const categoryId = "category-without-subcategories";
 
-            service.findByCategoryId = jest.fn().mockImplementation(async (id) => {
-                const category = await categoryService.findOne(id);
-                if (!category) {
-                    throw new CategoryNotFoundException(id);
-                }
-                return [];
-            });
+            mockSubcategoryPrismaRepository.findSubcategoriesByCategory.mockResolvedValue([]);
 
-            mockCategoryService.findOne.mockResolvedValue(null);
+            const result = await service.findByCategoryId(categoryId);
 
-            await expect(service.findByCategoryId(categoryId)).rejects.toThrow(
-                CategoryNotFoundException
+            expect(result).toEqual([]);
+            expect(subcategoryPrismaRepository.findSubcategoriesByCategory).toHaveBeenCalledWith(
+                categoryId,
             );
-            expect(categoryService.findOne).toHaveBeenCalledWith(categoryId);
         });
     });
 
     describe("create", () => {
-        it("should create and return a new subcategory when category exists", async () => {
+        it("should create and return a new subcategory", async () => {
             const createDto = {
                 name: "New Subcategory",
                 description: "New Description",
@@ -191,41 +184,18 @@ describe("SubcategoryService", () => {
                 updated_at: new Date(),
             };
 
-            service.create = jest.fn().mockImplementation(async (dto) => {
-                categoryService.findOne(dto.id_category);
-                return createdSubcategory;
-            });
-
-            mockCategoryService.findOne.mockResolvedValue({ id: createDto.id_category });
-            mockPrismaService.subcategories.create.mockResolvedValue(createdSubcategory);
+            mockSubcategoryPrismaRepository.createSubcategory.mockResolvedValue(createdSubcategory);
 
             const result = await service.create(createDto);
 
             expect(result).toEqual(createdSubcategory);
-            expect(categoryService.findOne).toHaveBeenCalledWith(createDto.id_category);
-        });
-
-        it("should throw exception when category does not exist", async () => {
-            const createDto = {
-                name: "New Subcategory",
-                description: "New Description",
-                id_category: "non-existent-category",
-            };
-
-            service.create = jest.fn().mockImplementation(async (dto) => {
-                const category = await categoryService.findOne(dto.id_category);
-                if (!category) {
-                    throw new CategoryNotFoundException(dto.id_category);
-                }
-                return {} as any;
+            expect(subcategoryPrismaRepository.createSubcategory).toHaveBeenCalledWith({
+                name: createDto.name,
+                description: createDto.description,
+                category: {
+                    connect: { id: createDto.id_category },
+                },
             });
-
-            mockCategoryService.findOne.mockResolvedValue(null);
-
-            await expect(service.create(createDto)).rejects.toThrow(
-                CategoryNotFoundException
-            );
-            expect(categoryService.findOne).toHaveBeenCalledWith(createDto.id_category);
         });
     });
 
@@ -246,47 +216,21 @@ describe("SubcategoryService", () => {
                 updated_at: new Date(),
             };
 
-            mockPrismaService.subcategories.update.mockResolvedValue(updatedSubcategory);
+            mockSubcategoryPrismaRepository.updateSubcategory.mockResolvedValue(updatedSubcategory);
 
             const result = await service.update(subcategoryId, updateDto);
 
             expect(result).toEqual(updatedSubcategory);
-
-            expect(prismaService.subcategories.update).toHaveBeenCalled();
-            
-            expect(prismaService.subcategories.update).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: { id: subcategoryId },
-                    data: updateDto
-                })
+            expect(subcategoryPrismaRepository.updateSubcategory).toHaveBeenCalledWith(
+                subcategoryId,
+                {
+                    name: updateDto.name,
+                    description: updateDto.description,
+                },
             );
         });
 
-        it("should throw an exception when updating with new id_category and category does not exist", async () => {
-            const subcategoryId = "subcategory-to-update";
-            const updateDto = {
-                id_category: "non-existent-category",
-            };
-
-            service.update = jest.fn().mockImplementation(async (id, dto) => {
-                if (dto.id_category) {
-                    const category = await categoryService.findOne(dto.id_category);
-                    if (!category) {
-                        throw new CategoryNotFoundException(dto.id_category);
-                    }
-                }
-                return {} as any;
-            });
-
-            mockCategoryService.findOne.mockResolvedValue(null);
-
-            await expect(service.update(subcategoryId, updateDto)).rejects.toThrow(
-                CategoryNotFoundException
-            );
-            expect(categoryService.findOne).toHaveBeenCalledWith(updateDto.id_category);
-        });
-
-        it("should update category connection when id_category is provided and valid", async () => {
+        it("should update category connection when id_category is provided", async () => {
             const subcategoryId = "subcategory-to-update";
             const updateDto = {
                 name: "Updated Name",
@@ -302,20 +246,19 @@ describe("SubcategoryService", () => {
                 updated_at: new Date(),
             };
 
-            service.update = jest.fn().mockImplementation(async (id, dto) => {
-                if (dto.id_category) {
-                    categoryService.findOne(dto.id_category);
-                }
-                return updatedSubcategory;
-            });
-
-            mockCategoryService.findOne.mockResolvedValue({ id: updateDto.id_category });
-            mockPrismaService.subcategories.update.mockResolvedValue(updatedSubcategory);
+            mockSubcategoryPrismaRepository.updateSubcategory.mockResolvedValue(updatedSubcategory);
 
             const result = await service.update(subcategoryId, updateDto);
 
             expect(result).toEqual(updatedSubcategory);
-            expect(categoryService.findOne).toHaveBeenCalledWith(updateDto.id_category);
+            expect(subcategoryPrismaRepository.updateSubcategory).toHaveBeenCalledWith(
+                subcategoryId,
+                {
+                    name: updateDto.name,
+                    description: undefined,
+                    category: { connect: { id: updateDto.id_category } },
+                },
+            );
         });
     });
 
@@ -331,25 +274,22 @@ describe("SubcategoryService", () => {
                 updated_at: new Date(),
             };
 
-            mockPrismaService.subcategories.delete.mockResolvedValue(deletedSubcategory);
+            mockSubcategoryPrismaRepository.deleteSubcategory.mockResolvedValue(deletedSubcategory);
 
             const result = await service.remove(subcategoryId);
 
             expect(result).toEqual(deletedSubcategory);
-            
-            expect(prismaService.subcategories.delete).toHaveBeenCalled();
-            
-            expect(prismaService.subcategories.delete).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: { id: subcategoryId }
-                })
+            expect(subcategoryPrismaRepository.deleteSubcategory).toHaveBeenCalledWith(
+                subcategoryId,
             );
         });
 
         it("should throw an exception when subcategory does not exist", async () => {
             const subcategoryId = "non-existent-subcategory";
 
-            mockPrismaService.subcategories.delete.mockRejectedValue(new Error("Record not found"));
+            mockSubcategoryPrismaRepository.deleteSubcategory.mockRejectedValue(
+                new Error("Record not found"),
+            );
 
             await expect(service.remove(subcategoryId)).rejects.toThrow();
         });

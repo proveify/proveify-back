@@ -7,6 +7,7 @@ import { UserNotFoundException } from "../../../src/user/exceptions/user-not-fou
 import { Reflector } from "@nestjs/core";
 import { UserEntity } from "../../../src/user/entities/user.entity";
 import { plainToInstance } from "class-transformer";
+import { OwnerSerializerInterceptor } from "../../../src/common/interceptors/owner-serializer.interceptor";
 
 // Mock para el JwtAuthGuard
 const mockJwtAuthGuard = {
@@ -45,6 +46,10 @@ describe("UserController", () => {
             .overrideGuard(JwtAuthGuard)
             .useValue(mockJwtAuthGuard)
             .overrideInterceptor(ClassSerializerInterceptor)
+            .useValue({
+                intercept: jest.fn().mockImplementation((_, next) => next.handle()),
+            })
+            .overrideInterceptor(OwnerSerializerInterceptor)
             .useValue({
                 intercept: jest.fn().mockImplementation((_, next) => next.handle()),
             })
@@ -94,7 +99,7 @@ describe("UserController", () => {
             expect(serialized.id).toBe("test-user-id");
             expect(serialized).not.toHaveProperty("password");
             expect(serialized).not.toHaveProperty("refreshed_token");
-            expect(userService.getUserProfile).toHaveBeenCalledWith("test-user-id");
+            expect(userService.getUserProfile).toHaveBeenCalledWith("test-user-id", true);
         });
 
         it("should throw exception when user does not exist", async () => {
