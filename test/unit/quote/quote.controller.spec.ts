@@ -35,6 +35,8 @@ const mockQuoteService = {
     findMyQuotes: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    getQuoteMessages: jest.fn(),
+    generatePrint: jest.fn(),
 };
 
 describe("QuoteController", () => {
@@ -410,6 +412,116 @@ describe("QuoteController", () => {
             );
 
             await expect(controller.remove("test-quote-id")).rejects.toThrow(HttpException);
+        });
+    });
+
+    describe("getQuoteMessages", () => {
+        it("should return quote messages successfully", async () => {
+            const quoteId = "quote-123";
+            const params = { getAs: "CLIENT", limit: 20, offset: 0 };
+            const mockMessages = [
+                {
+                    id: "msg-1",
+                    quote_id: quoteId,
+                    message: "Test message 1",
+                    created_at: new Date(),
+                },
+                {
+                    id: "msg-2",
+                    quote_id: quoteId,
+                    message: "Test message 2",
+                    created_at: new Date(),
+                },
+            ];
+
+            mockQuoteService.getQuoteMessages.mockResolvedValue(mockMessages);
+
+            const result = await controller.getQuoteMessages(quoteId, params as any);
+
+            expect(result).toEqual(mockMessages);
+            expect(quoteService.getQuoteMessages).toHaveBeenCalledWith(quoteId, params);
+        });
+
+        it("should use CLIENT as default when getAs is not provided", async () => {
+            const quoteId = "quote-123";
+            const params = {};
+            const mockMessages: any[] = [];
+
+            mockQuoteService.getQuoteMessages.mockResolvedValue(mockMessages);
+
+            await controller.getQuoteMessages(quoteId, params as any);
+
+            expect(quoteService.getQuoteMessages).toHaveBeenCalledWith(quoteId, {
+                getAs: "CLIENT",
+            });
+        });
+
+        it("should throw exception when user is forbidden", async () => {
+            const quoteId = "quote-123";
+            const params = { getAs: "PROVIDER" };
+
+            mockQuoteService.getQuoteMessages.mockRejectedValue(
+                new HttpException("Provider does not belong to quote", HttpStatus.FORBIDDEN),
+            );
+
+            await expect(controller.getQuoteMessages(quoteId, params as any)).rejects.toThrow(
+                HttpException,
+            );
+        });
+    });
+
+    describe("generatePrint", () => {
+        it("should generate and return PDF successfully", async () => {
+            const quoteId = "quote-123";
+            const mockBuffer = Buffer.from("PDF content");
+            const mockResponse = {
+                set: jest.fn(),
+                end: jest.fn(),
+            };
+
+            mockQuoteService.generatePrint.mockResolvedValue(mockBuffer);
+
+            await controller.generatePrint(quoteId, mockResponse as any);
+
+            expect(quoteService.generatePrint).toHaveBeenCalledWith(quoteId);
+            expect(mockResponse.set).toHaveBeenCalledWith({
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="quote-${quoteId}.pdf"`,
+                "Content-Length": mockBuffer.length,
+            });
+            expect(mockResponse.end).toHaveBeenCalledWith(mockBuffer);
+        });
+
+        it("should throw exception when quote not found", async () => {
+            const quoteId = "non-existent";
+            const mockResponse = {
+                set: jest.fn(),
+                end: jest.fn(),
+            };
+
+            mockQuoteService.generatePrint.mockRejectedValue(
+                new HttpException("Quote not found", HttpStatus.NOT_FOUND),
+            );
+
+            await expect(controller.generatePrint(quoteId, mockResponse as any)).rejects.toThrow(
+                HttpException,
+            );
+        });
+
+        it("should throw exception when provider not found", async () => {
+            const quoteId = "quote-123";
+            const mockResponse = {
+                set: jest.fn(),
+                end: jest.fn(),
+            };
+
+            mockQuoteService.generatePrint.mockRejectedValue(
+                new HttpException("Provider not found", HttpStatus.NOT_FOUND),
+            );
+
+            await expect(controller.generatePrint(quoteId, mockResponse as any)).rejects.toThrow(
+                HttpException,
+            );
         });
     });
 });

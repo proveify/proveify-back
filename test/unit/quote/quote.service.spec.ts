@@ -15,6 +15,9 @@ const mockQuotePrismaRepository = {
     deleteQuote: jest.fn(),
     findQuotesByProvider: jest.fn(),
     findProviderById: jest.fn(),
+    providerBelongsToQuote: jest.fn(),
+    userBelongsToQuote: jest.fn(),
+    getQuoteMessages: jest.fn(),
 };
 
 const mockClsService = {
@@ -590,6 +593,171 @@ describe("QuoteService", () => {
 
             await expect(service.remove(quoteId)).rejects.toThrow(
                 new HttpException("You can only delete your own quotes", HttpStatus.FORBIDDEN),
+            );
+        });
+    });
+
+    describe("getQuoteMessages", () => {
+        it("should return quote messages for provider", async () => {
+            const quoteId = "quote-1";
+            const mockProvider = { id: "provider-1" };
+            const mockUser = { id: "user-1", provider: mockProvider };
+            const params = {
+                getAs: "PROVIDER" as any,
+                limit: 10,
+                offset: 0,
+                order_by: "asc" as const,
+            };
+            const mockMessages = [
+                {
+                    id: "msg-1",
+                    quote_id: quoteId,
+                    message: "Test message 1",
+                    created_at: new Date(),
+                },
+                {
+                    id: "msg-2",
+                    quote_id: quoteId,
+                    message: "Test message 2",
+                    created_at: new Date(),
+                },
+            ];
+
+            mockClsService.get.mockReturnValue(mockUser);
+            mockQuotePrismaRepository.providerBelongsToQuote.mockResolvedValue(true);
+            mockQuotePrismaRepository.getQuoteMessages.mockResolvedValue(mockMessages);
+
+            const result = await service.getQuoteMessages(quoteId, params);
+
+            expect(result).toHaveLength(2);
+            expect(clsService.get).toHaveBeenCalledWith("user");
+            expect(quotePrismaRepository.providerBelongsToQuote).toHaveBeenCalledWith(
+                "provider-1",
+                quoteId,
+            );
+            expect(quotePrismaRepository.getQuoteMessages).toHaveBeenCalledWith({
+                where: { quote_id: quoteId },
+                take: 10,
+                skip: 0,
+                orderBy: { created_at: "asc" },
+            });
+        });
+
+        it("should throw FORBIDDEN when provider has no provider profile", async () => {
+            const mockUser = { id: "user-1", provider: null };
+            const params = { getAs: "PROVIDER" as any };
+
+            mockClsService.get.mockReturnValue(mockUser);
+
+            await expect(service.getQuoteMessages("quote-1", params)).rejects.toThrow(
+                new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN),
+            );
+        });
+
+        it("should throw FORBIDDEN when provider does not belong to quote", async () => {
+            const mockProvider = { id: "provider-1" };
+            const mockUser = { id: "user-1", provider: mockProvider };
+            const params = { getAs: "PROVIDER" as any };
+
+            mockClsService.get.mockReturnValue(mockUser);
+            mockQuotePrismaRepository.providerBelongsToQuote.mockResolvedValue(false);
+
+            await expect(service.getQuoteMessages("quote-1", params)).rejects.toThrow(
+                new HttpException("Provider does not belong to quote", HttpStatus.FORBIDDEN),
+            );
+        });
+
+        it("should return quote messages for client", async () => {
+            const quoteId = "quote-1";
+            const mockUser = { id: "user-1", provider: null };
+            const params = { getAs: "CLIENT" as any, limit: 30 };
+            const mockMessages = [
+                { id: "msg-1", quote_id: quoteId, message: "Test message", created_at: new Date() },
+            ];
+
+            mockClsService.get.mockReturnValue(mockUser);
+            mockQuotePrismaRepository.userBelongsToQuote.mockResolvedValue(true);
+            mockQuotePrismaRepository.getQuoteMessages.mockResolvedValue(mockMessages);
+
+            const result = await service.getQuoteMessages(quoteId, params);
+
+            expect(result).toHaveLength(1);
+            expect(clsService.get).toHaveBeenCalledWith("user");
+            expect(quotePrismaRepository.userBelongsToQuote).toHaveBeenCalledWith(
+                "user-1",
+                quoteId,
+            );
+            expect(quotePrismaRepository.getQuoteMessages).toHaveBeenCalledWith({
+                where: { quote_id: quoteId },
+                take: 30,
+                skip: undefined,
+                orderBy: { created_at: "desc" },
+            });
+        });
+
+        it("should throw FORBIDDEN when user does not belong to quote", async () => {
+            const mockUser = { id: "user-1", provider: null };
+            const params = { getAs: "CLIENT" as any };
+
+            mockClsService.get.mockReturnValue(mockUser);
+            mockQuotePrismaRepository.userBelongsToQuote.mockResolvedValue(false);
+
+            await expect(service.getQuoteMessages("quote-1", params)).rejects.toThrow(
+                new HttpException("User does not belong to quote", HttpStatus.FORBIDDEN),
+            );
+        });
+    });
+
+    describe("generatePrint", () => {
+        it("should generate PDF for a quote successfully", async () => {
+            const quoteId = "quote-1";
+            const mockQuote = {
+                id: quoteId,
+                name: "Test Quote",
+                email: "test@example.com",
+                provider: {
+                    id: "provider-1",
+                    name: "Test Provider",
+                    email: "provider@example.com",
+                },
+                quote_items: [],
+            };
+            const mockBuffer = Buffer.from("PDF content");
+
+            mockQuotePrismaRepository.findUniqueQuote.mockResolvedValue(mockQuote);
+            mockQuoteFactory.create.mockReturnValue(mockQuote);
+            mockPdfService.generateQuotePdf.mockResolvedValue(mockBuffer);
+
+            const result = await service.generatePrint(quoteId);
+
+            expect(result).toEqual(mockBuffer);
+            expect(quotePrismaRepository.findUniqueQuote).toHaveBeenCalledWith(quoteId);
+            expect(mockPdfService.generateQuotePdf).toHaveBeenCalledWith(
+                mockQuote,
+                mockQuote.provider,
+            );
+        });
+
+        it("should throw NOT_FOUND when quote does not exist", async () => {
+            mockQuotePrismaRepository.findUniqueQuote.mockResolvedValue(null);
+
+            await expect(service.generatePrint("non-existent")).rejects.toThrow(
+                new HttpException("Quote not found", HttpStatus.NOT_FOUND),
+            );
+        });
+
+        it("should throw NOT_FOUND when quote has no provider", async () => {
+            const mockQuote = {
+                id: "quote-1",
+                name: "Test Quote",
+                provider: null,
+            };
+
+            mockQuotePrismaRepository.findUniqueQuote.mockResolvedValue(mockQuote);
+            mockQuoteFactory.create.mockReturnValue(mockQuote);
+
+            await expect(service.generatePrint("quote-1")).rejects.toThrow(
+                new HttpException("Provider not found", HttpStatus.NOT_FOUND),
             );
         });
     });

@@ -356,4 +356,80 @@ describe("PublicRequestService", () => {
             );
         });
     });
+
+    describe("getProviderQuotesByPublicRequest", () => {
+        it("should return provider quotes for a public request", async () => {
+            const requestId = "request-123";
+            const params = { limit: 20, offset: 0, order_by: "asc" as const };
+            const mockRequest = {
+                id: requestId,
+                title: "Test Request",
+                user_id: "user-123",
+            };
+            const mockQuotes = [
+                { id: "quote-1", public_request_id: requestId, provider_id: "provider-1" },
+                { id: "quote-2", public_request_id: requestId, provider_id: "provider-2" },
+            ];
+
+            mockPublicRequestPrismaRepository.findUniquePublicRequest.mockResolvedValue(
+                mockRequest,
+            );
+            mockProviderQuoteService.findAll.mockResolvedValue(mockQuotes);
+
+            const result = await service.getProviderQuotesByPublicRequest(requestId, params);
+
+            expect(result).toEqual(mockQuotes);
+            expect(publicRequestPrismaRepository.findUniquePublicRequest).toHaveBeenCalledWith(
+                requestId,
+            );
+            expect(providerQuoteService.findAll).toHaveBeenCalledWith({
+                public_request_id: requestId,
+                limit: 20,
+                offset: 0,
+                order_by: "asc",
+            });
+        });
+
+        it("should return provider quotes with default parameters", async () => {
+            const requestId = "request-123";
+            const mockRequest = {
+                id: requestId,
+                title: "Test Request",
+                user_id: "user-123",
+            };
+            const mockQuotes = [{ id: "quote-1", public_request_id: requestId }];
+
+            mockPublicRequestPrismaRepository.findUniquePublicRequest.mockResolvedValue(
+                mockRequest,
+            );
+            mockProviderQuoteService.findAll.mockResolvedValue(mockQuotes);
+
+            const result = await service.getProviderQuotesByPublicRequest(requestId);
+
+            expect(result).toEqual(mockQuotes);
+            expect(publicRequestPrismaRepository.findUniquePublicRequest).toHaveBeenCalledWith(
+                requestId,
+            );
+            expect(providerQuoteService.findAll).toHaveBeenCalledWith({
+                public_request_id: requestId,
+                limit: undefined,
+                offset: undefined,
+                order_by: undefined,
+            });
+        });
+
+        it("should throw NOT_FOUND when public request does not exist", async () => {
+            const requestId = "non-existent";
+
+            mockPublicRequestPrismaRepository.findUniquePublicRequest.mockResolvedValue(null);
+
+            await expect(service.getProviderQuotesByPublicRequest(requestId)).rejects.toThrow(
+                new HttpException("Public request not found", HttpStatus.NOT_FOUND),
+            );
+            expect(publicRequestPrismaRepository.findUniquePublicRequest).toHaveBeenCalledWith(
+                requestId,
+            );
+            expect(providerQuoteService.findAll).not.toHaveBeenCalled();
+        });
+    });
 });

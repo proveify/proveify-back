@@ -260,4 +260,73 @@ describe("UserService", () => {
             expect(userFactory.create).toHaveBeenCalledWith(updatedUser);
         });
     });
+
+    describe("updateWithProviderData", () => {
+        it("should update user with provider data successfully", async () => {
+            const mockUser = new UserEntity({
+                id: "user-123",
+                email: "test@example.com",
+                name: "Test User",
+                password: "hashed",
+                identification: "12345",
+                identification_type: "CC",
+                user_type: "PROVIDER",
+                created_at: new Date(),
+                updated_at: new Date(),
+            });
+
+            const updateDto = {
+                name: "Updated Name",
+                email: "updated@example.com",
+                identification: "987654321",
+                identification_type: "NIT",
+                phone: "555-1234",
+                provider: {
+                    business_name: "Updated Business",
+                    description: "Updated description",
+                },
+            };
+
+            const updatedUser = {
+                id: "user-123",
+                name: "Updated Name",
+                email: "updated@example.com",
+                identification: "987654321",
+                identification_type: "NIT",
+                password: "hashed",
+                user_type: "PROVIDER",
+                provider: {
+                    id: "provider-123",
+                    business_name: "Updated Business",
+                    description: "Updated description",
+                },
+                created_at: new Date(),
+                updated_at: new Date(),
+            };
+
+            const userEntity = new UserEntity(updatedUser as any);
+
+            mockClsService.get.mockReturnValue(mockUser);
+            mockUserPrismaRepository.updateUser.mockResolvedValue(updatedUser);
+            mockUserFactory.create.mockReturnValue(userEntity);
+
+            const result = await service.updateWithProviderData(updateDto as any);
+
+            expect(result).toEqual(userEntity);
+            expect(clsService.get).toHaveBeenCalledWith("user");
+            expect(userPrismaRepository.updateUser).toHaveBeenCalledWith("user-123", {
+                name: updateDto.name,
+                identification: updateDto.identification,
+                identification_type: updateDto.identification_type,
+                phone: updateDto.phone,
+                email: updateDto.email,
+                provider: {
+                    update: {
+                        data: updateDto.provider,
+                    },
+                },
+            });
+            expect(userFactory.create).toHaveBeenCalledWith(updatedUser);
+        });
+    });
 });
