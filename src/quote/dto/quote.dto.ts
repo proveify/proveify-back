@@ -111,6 +111,15 @@ export class CreateQuoteDto {
     @Type(() => CreateQuoteItemDto)
     @IsNotEmpty()
     public quote_items: CreateQuoteItemDto[];
+
+    @ApiProperty({
+        description:
+            "Tipo de cotización, CLIENT si la cotización es creada por un cliente (valor por default) y PROVIDER si se trata de cotizaciones hechas para solicitudes publicas",
+        example: "CLIENT",
+    })
+    @IsOptional()
+    @IsEnum(["CLIENT", "PROVIDER"])
+    public type?: string;
 }
 
 export class UpdateQuoteDto extends PartialType(CreateQuoteDto) {
