@@ -61,6 +61,7 @@ export class QuoteController {
 
     @Get("client")
     @UseGuards(JwtAuthGuard)
+    @LoadUser()
     public async findMyQuotesLikeClient(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeClient(params);
     }
@@ -68,6 +69,7 @@ export class QuoteController {
     @Get("provider")
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
+    @LoadUser()
     public async findMyQuotesLikeProvider(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeProvider(params);
     }
