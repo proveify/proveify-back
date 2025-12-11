@@ -376,7 +376,7 @@ describe("QuoteService", () => {
             mockQuotePrismaRepository.findQuotesByProvider.mockResolvedValue(mockQuotes);
             mockQuoteFactory.createMany.mockReturnValue(quoteEntities);
 
-            const result = await service.findMyQuotes();
+            const result = await service.findMyQuotesLikeProvider();
 
             expect(result).toEqual(quoteEntities);
             expect(quotePrismaRepository.findQuotesByProvider).toHaveBeenCalledWith(
@@ -392,7 +392,7 @@ describe("QuoteService", () => {
 
             mockClsService.get.mockReturnValue(mockUser);
 
-            await expect(service.findMyQuotes()).rejects.toThrow(
+            await expect(service.findMyQuotesLikeProvider()).rejects.toThrow(
                 new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN),
             );
         });

@@ -59,11 +59,17 @@ export class QuoteController {
         return this.quoteService.findAll(params);
     }
 
-    @Get("provider/my-quotes")
+    @Get("client")
+    @UseGuards(JwtAuthGuard)
+    public async findMyQuotesLikeClient(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
+        return this.quoteService.findMyQuotesLikeClient(params);
+    }
+
+    @Get("provider")
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
-    public async findMyQuotes(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
-        return this.quoteService.findMyQuotes(params);
+    public async findMyQuotesLikeProvider(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
+        return this.quoteService.findMyQuotesLikeProvider(params);
     }
 
     @Get(":id")

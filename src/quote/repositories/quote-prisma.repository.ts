@@ -134,6 +134,29 @@ export class QuotePrismaRepository implements PrismaRepository {
         });
     }
 
+    public async findQuotesByClient(
+        userId: string,
+        take?: number,
+        skip?: number,
+        orderBy?: Prisma.QuotesOrderByWithRelationInput,
+    ): Promise<QuoteModel[]> {
+        const prisma = this.getClient();
+        return prisma.quotes.findMany({
+            where: { user_id: userId },
+            include: {
+                provider: true,
+                quote_items: {
+                    include: {
+                        item: true,
+                    },
+                },
+            },
+            take,
+            skip,
+            orderBy,
+        });
+    }
+
     public async countQuotesByProvider(providerId: string): Promise<number> {
         const prisma = this.getClient();
         return prisma.quotes.count({

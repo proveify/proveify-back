@@ -1,14 +1,14 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpException, HttpStatus, ClassSerializerInterceptor } from "@nestjs/common";
-import { JwtAuthGuard } from "../../../src/auth/guards/jwt.guard";
+import { JwtAuthGuard } from "@app/auth/guards/jwt.guard";
 import { Reflector } from "@nestjs/core";
-import { QuoteController } from "../../../src/quote/quote.controller";
-import { QuoteService } from "../../../src/quote/quote.service";
-import { QuoteEntity } from "../../../src/quote/entities/quote.entity";
+import { QuoteController } from "@app/quote/quote.controller";
+import { QuoteService } from "@app/quote/quote.service";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { plainToInstance } from "class-transformer";
-import { OptionalJwtAuthGuard } from "../../../src/auth/guards/optional-jwt.guard";
-import { TransactionInterceptor } from "../../../src/prisma/interceptors/transaction.interceptor";
-import { OwnerSerializerInterceptor } from "../../../src/common/interceptors/owner-serializer.interceptor";
+import { OptionalJwtAuthGuard } from "@app/auth/guards/optional-jwt.guard";
+import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
+import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-serializer.interceptor";
 import { ClsService } from "nestjs-cls";
 
 const mockJwtAuthGuard = {
@@ -32,7 +32,7 @@ const mockQuoteService = {
     create: jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
-    findMyQuotes: jest.fn(),
+    findMyQuotesLikeProvider: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
     getQuoteMessages: jest.fn(),
@@ -284,7 +284,7 @@ describe("QuoteController", () => {
         });
     });
 
-    describe("findMyQuotes", () => {
+    describe("findMyQuotesLikeProvider", () => {
         it("should return provider's own quotes", async () => {
             const mockQuotes = [
                 {
@@ -300,21 +300,21 @@ describe("QuoteController", () => {
                 },
             ];
 
-            mockQuoteService.findMyQuotes.mockResolvedValue(mockQuotes);
+            mockQuoteService.findMyQuotesLikeProvider.mockResolvedValue(mockQuotes);
 
-            const result = await controller.findMyQuotes({});
+            const result = await controller.findMyQuotesLikeProvider({});
 
             expect(result).toHaveLength(1);
             expect(result[0].id).toBe("quote-1");
-            expect(quoteService.findMyQuotes).toHaveBeenCalledWith({});
+            expect(quoteService.findMyQuotesLikeProvider).toHaveBeenCalledWith({});
         });
 
         it("should throw exception when user has no provider profile", async () => {
-            mockQuoteService.findMyQuotes.mockRejectedValue(
+            mockQuoteService.findMyQuotesLikeProvider.mockRejectedValue(
                 new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN),
             );
 
-            await expect(controller.findMyQuotes({})).rejects.toThrow(
+            await expect(controller.findMyQuotesLikeProvider({})).rejects.toThrow(
                 new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN),
             );
         });
