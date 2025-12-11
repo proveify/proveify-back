@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { QuotePrismaRepository } from "../../../src/quote/repositories/quote-prisma.repository";
 import { PrismaService } from "../../../src/prisma/prisma.service";
+import { TransactionContextService } from "../../../src/prisma/transaction-context.service";
 
 const mockPrismaService = {
     quotes: {
@@ -16,6 +17,10 @@ const mockPrismaService = {
     },
 };
 
+const mockTransactionContextService = {
+    getTransaction: jest.fn().mockReturnValue(null),
+};
+
 describe("QuotePrismaRepository", () => {
     let repository: QuotePrismaRepository;
     let prismaService: PrismaService;
@@ -27,6 +32,10 @@ describe("QuotePrismaRepository", () => {
                 {
                     provide: PrismaService,
                     useValue: mockPrismaService,
+                },
+                {
+                    provide: TransactionContextService,
+                    useValue: mockTransactionContextService,
                 },
             ],
         }).compile();
