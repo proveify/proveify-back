@@ -9,6 +9,7 @@ import {
     IsString,
     IsUUID,
     Min,
+    ValidateIf,
     ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
@@ -120,6 +121,11 @@ export class CreateQuoteDto {
     @IsOptional()
     @IsEnum(["CLIENT", "PROVIDER"])
     public type?: string;
+
+    @IsString()
+    @ValidateIf((dto: CreateQuoteDto) => dto.type === "PROVIDER")
+    @IsNotEmpty()
+    public public_request_id?: string;
 }
 
 export class UpdateQuoteDto extends PartialType(CreateQuoteDto) {
