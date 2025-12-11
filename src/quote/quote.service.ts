@@ -121,7 +121,7 @@ export class QuoteService {
         return this.quoteFactory.create(quote);
     }
 
-    public async findMyQuotes(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeProvider(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
         const user = this.cls.get<UserEntity>("user");
 
         if (!user.provider) {
@@ -130,6 +130,21 @@ export class QuoteService {
 
         const quotes = await this.quotePrismaRepository.findQuotesByProvider(
             user.provider.id,
+            params?.limit ?? 30,
+            params?.offset,
+            {
+                created_at: params?.order_by ?? "desc",
+            },
+        );
+
+        return this.quoteFactory.createMany(quotes);
+    }
+
+    public async findMyQuotesLikeClient(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+        const user = this.cls.get<UserEntity>("user");
+
+        const quotes = await this.quotePrismaRepository.findQuotesByClient(
+            user.id,
             params?.limit ?? 30,
             params?.offset,
             {

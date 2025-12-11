@@ -7,6 +7,7 @@ import { UserNotFoundException } from "../../../src/user/exceptions/user-not-fou
 import { Reflector } from "@nestjs/core";
 import { UserEntity } from "../../../src/user/entities/user.entity";
 import { plainToInstance } from "class-transformer";
+import { OwnerSerializerInterceptor } from "../../../src/common/interceptors/owner-serializer.interceptor";
 
 // Mock para el JwtAuthGuard
 const mockJwtAuthGuard = {
@@ -20,6 +21,7 @@ const mockJwtAuthGuard = {
 // Mock para el UserService
 const mockUserService = {
     getUserProfile: jest.fn(),
+    updateWithProviderData: jest.fn(),
 };
 
 describe("UserController", () => {
@@ -48,10 +50,16 @@ describe("UserController", () => {
             .useValue({
                 intercept: jest.fn().mockImplementation((_, next) => next.handle()),
             })
+            .overrideInterceptor(OwnerSerializerInterceptor)
+            .useValue({
+                intercept: jest.fn().mockImplementation((_, next) => next.handle()),
+            })
             .compile();
 
         controller = module.get<UserController>(UserController);
         userService = module.get<UserService>(UserService);
+
+        jest.clearAllMocks();
     });
 
     it("should be defined", () => {
@@ -94,7 +102,7 @@ describe("UserController", () => {
             expect(serialized.id).toBe("test-user-id");
             expect(serialized).not.toHaveProperty("password");
             expect(serialized).not.toHaveProperty("refreshed_token");
-            expect(userService.getUserProfile).toHaveBeenCalledWith("test-user-id");
+            expect(userService.getUserProfile).toHaveBeenCalledWith("test-user-id", true);
         });
 
         it("should throw exception when user does not exist", async () => {
@@ -110,6 +118,57 @@ describe("UserController", () => {
             await expect(controller.getUserProfile(mockRequest as any)).rejects.toThrow(
                 UserNotFoundException,
             );
+        });
+    });
+
+    describe("updateUser", () => {
+        it("should update user with provider data successfully", async () => {
+            const updateDto = {
+                name: "Updated Name",
+                email: "updated@example.com",
+                identification: "987654321",
+                identification_type: "CC",
+                phone: "555-1234",
+                provider: {
+                    business_name: "Updated Business",
+                    description: "Updated description",
+                },
+            };
+
+            const updatedUser = new UserEntity({
+                id: "test-user-id",
+                name: "Updated Name",
+                email: "updated@example.com",
+                identification: "987654321",
+                identification_type: "CC",
+                user_type: "PROVIDER",
+                provider: {
+                    id: "provider-123",
+                    business_name: "Updated Business",
+                    description: "Updated description",
+                },
+                created_at: new Date(),
+                updated_at: new Date(),
+            } as any);
+
+            mockUserService.updateWithProviderData.mockResolvedValue(updatedUser);
+
+            const result = await controller.updateUser(updateDto as any);
+
+            expect(result).toEqual(updatedUser);
+            expect(userService.updateWithProviderData).toHaveBeenCalledWith(updateDto);
+        });
+
+        it("should handle errors when updating user", async () => {
+            const updateDto = {
+                name: "Updated Name",
+                email: "updated@example.com",
+            };
+
+            mockUserService.updateWithProviderData.mockRejectedValue(new Error("Update failed"));
+
+            await expect(controller.updateUser(updateDto as any)).rejects.toThrow("Update failed");
+            expect(userService.updateWithProviderData).toHaveBeenCalledWith(updateDto);
         });
     });
 });
