@@ -61,6 +61,7 @@ export class QuoteController {
 
     @Get("client")
     @UseGuards(JwtAuthGuard)
+    @GetMyQuotesDocumentation()
     @LoadUser()
     public async findMyQuotesLikeClient(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeClient(params);
