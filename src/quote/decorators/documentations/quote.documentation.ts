@@ -126,10 +126,6 @@ export function GetQuoteDocumentation(): MethodDecorator & ClassDecorator {
 
 export function GetMyQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({
-            summary: "Get provider's received quotes",
-            description: "Retrieves all quotes received by the authenticated provider",
-        }),
         ApiQuery({
             name: "limit",
             required: false,
