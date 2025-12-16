@@ -40,6 +40,7 @@ import { QuoteMessageEntity } from "@app/quote/entities/quote-message.entity";
 import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-serializer.interceptor";
 import { LoadUser } from "@app/common/decorators/load-user.decorator";
 import { Response } from "express";
+import { OptionalJwtAuthGuard } from "@app/auth/guards/optional-jwt.guard";
 
 @ApiTags("Quotes")
 @Controller("quotes")
@@ -49,6 +50,8 @@ export class QuoteController {
 
     @Post()
     @CreateQuoteDocumentation()
+    @UseGuards(OptionalJwtAuthGuard)
+    @LoadUser()
     public async create(@Body() createQuoteDto: CreateQuoteDto): Promise<QuoteEntity> {
         return this.quoteService.create(createQuoteDto);
     }
