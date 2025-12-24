@@ -6,8 +6,6 @@ import {
     PublicRequestParamsDto,
     PublicRequestFilterDto,
 } from "./dto/public-request.dto";
-import type { ProviderQuotes as ProviderQuoteModel } from "@prisma/client";
-import { ProviderQuoteService } from "@app/provider-quote/provider-quote.service";
 import { PublicRequestEntity } from "./entities/public-request.entity";
 import { PublicRequestFactory } from "./factories/public-request.factory";
 import type { PublicRequests as PublicRequestModel, Prisma } from "@prisma/client";
@@ -20,7 +18,6 @@ export class PublicRequestService {
         private publicRequestPrismaRepository: PublicRequestPrismaRepository,
         private cls: ClsService,
         private readonly publicRequestFactory: PublicRequestFactory,
-        private readonly providerQuoteService: ProviderQuoteService,
     ) {}
 
     public async create(createDto: CreatePublicRequestDto): Promise<PublicRequestModel> {
@@ -147,23 +144,5 @@ export class PublicRequestService {
 
         const result = await this.publicRequestPrismaRepository.deletePublicRequest(id);
         return this.publicRequestFactory.create(result);
-    }
-
-    public async getProviderQuotesByPublicRequest(
-        id: string,
-        params?: PublicRequestParamsDto,
-    ): Promise<ProviderQuoteModel[]> {
-        const publicRequest = await this.publicRequestPrismaRepository.findUniquePublicRequest(id);
-
-        if (!publicRequest) {
-            throw new HttpException("Public request not found", HttpStatus.NOT_FOUND);
-        }
-
-        return this.providerQuoteService.findAll({
-            public_request_id: id,
-            limit: params?.limit,
-            offset: params?.offset,
-            order_by: params?.order_by,
-        });
     }
 }

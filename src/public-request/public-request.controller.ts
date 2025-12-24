@@ -33,13 +33,17 @@ import {
     GetMyPublicRequestsDocumentation,
     GetPublicRequestProviderQuotesDocumentation,
 } from "./decorators/documentations/public-request.documentation";
-import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
+import { QuoteService } from "@app/quote/quote.service";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 
 @ApiTags("Public Requests")
 @Controller("public-requests")
 @UseInterceptors(ClassSerializerInterceptor)
 export class PublicRequestController {
-    public constructor(private readonly publicRequestService: PublicRequestService) {}
+    public constructor(
+        private readonly publicRequestService: PublicRequestService,
+        private readonly quoteService: QuoteService,
+    ) {}
 
     @Post()
     @UseGuards(JwtAuthGuard)
@@ -99,13 +103,19 @@ export class PublicRequestController {
         };
     }
 
-    @Get(":id/provider-quotes")
+    @Get(":id/quotes")
     @GetPublicRequestProviderQuotesDocumentation()
-    public async getProviderQuotes(
+    public async getQuotes(
         @Param("id") id: string,
         @Query() params: PublicRequestParamsDto,
-    ): Promise<ProviderQuoteEntity[]> {
-        const quotes = await this.publicRequestService.getProviderQuotesByPublicRequest(id, params);
-        return quotes.map((quote) => new ProviderQuoteEntity(quote));
+    ): Promise<QuoteEntity[]> {
+        const quotes = await this.quoteService.findAll({
+            type: "PROVIDER",
+            public_request_id: id,
+            limit: params?.limit,
+            offset: params?.offset,
+            order_by: params?.order_by,
+        });
+        return quotes;
     }
 }

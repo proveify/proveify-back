@@ -36,12 +36,28 @@ export class QuoteService {
 
         const user = this.cls.get<UserEntity | undefined>("user");
 
+        if (createDto.type === "PROVIDER" && createDto.public_request_id) {
+            const existingQuote = await this.quotePrismaRepository.findQuoteByProviderAndPublicRequest(
+                createDto.provider_id,
+                createDto.public_request_id,
+            );
+
+            if (existingQuote) {
+                throw new HttpException(
+                    "Provider has already submitted a quote for this public request",
+                    HttpStatus.CONFLICT,
+                );
+            }
+        }
+
         const quoteData: Prisma.QuotesCreateInput = {
             name: createDto.name,
             email: createDto.email,
             identification: createDto.identification,
             identification_type: createDto.identification_type,
             description: createDto.description,
+            type: createDto.type ?? "CLIENT",
+            total_price: createDto.total_price,
             user_id: user?.id,
             provider: {
                 connect: {
@@ -53,6 +69,8 @@ export class QuoteService {
                     name: item.name,
                     description: item.description,
                     quantity: item.quantity,
+                    price: item.price ?? 0,
+                    unit_price: item.unit_price ?? 0,
                     ...(item.item_id && {
                         item: {
                             connect: {
@@ -62,6 +80,17 @@ export class QuoteService {
                     }),
                 })),
             },
+            ...(createDto.public_request_id && {
+                quote_public_request: {
+                    create: {
+                        public_request: {
+                            connect: {
+                                id: createDto.public_request_id,
+                            },
+                        },
+                    },
+                },
+            }),
         };
 
         const quote = await this.quotePrismaRepository.createQuote(quoteData);
@@ -81,6 +110,18 @@ export class QuoteService {
 
         if (params?.user_id) {
             whereConditions.user_id = params.user_id;
+        }
+
+        if (params?.type) {
+            whereConditions.type = params.type;
+        }
+
+        if (params?.public_request_id) {
+            whereConditions.quote_public_request = {
+                some: {
+                    public_request_id: params.public_request_id,
+                },
+            };
         }
 
         if (params?.search) {

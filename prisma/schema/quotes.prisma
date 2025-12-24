@@ -3,12 +3,13 @@
 model Quotes {
   id                  String   @id @default(uuid())
   provider_id         String
-  name                String
-  email               String
-  identification      String
-  identification_type String
+  name                String?
+  email               String?
+  identification      String?
+  identification_type String?
   user_id             String?
-  type                String   @default("CLIENT") // si es CLIENT es una cotización creada por cliente y PROVIDER fue creada por un proveedor
+  type                String   @default("CLIENT")
+  total_price         Decimal? @db.Decimal(10, 2)
   description         String   @db.Text
   status              String   @default("PENDING")
   created_at          DateTime @default(now())
@@ -23,6 +24,7 @@ model Quotes {
   @@index([user_id])
   @@index([email])
   @@index([status])
+  @@index([type])
 }
 
 // Model QuoteItems
@@ -35,6 +37,7 @@ model QuoteItems {
   description String?
   quantity    Int
   price       Decimal  @default(0.00) @db.Decimal(10, 2)
+  unit_price  Decimal  @default(0.00) @db.Decimal(10, 2)
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now()) @updatedAt
 

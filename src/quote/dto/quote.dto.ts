@@ -1,6 +1,7 @@
 import { ParamsDto } from "@app/common/dtos/params.dto";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import {
+    IsDecimal,
     IsEmail,
     IsEnum,
     IsInt,
@@ -51,6 +52,26 @@ export class CreateQuoteItemDto {
     @IsInt()
     @Min(1)
     public quantity: number;
+
+    @ApiProperty({
+        description: "Precio unitario del item (opcional, para cotizaciones tipo PROVIDER)",
+        required: false,
+        example: "500000.00",
+        type: "string",
+    })
+    @IsOptional()
+    @IsString()
+    public unit_price?: string;
+
+    @ApiProperty({
+        description: "Precio total del item (opcional, para cotizaciones tipo PROVIDER)",
+        required: false,
+        example: "2500000.00",
+        type: "string",
+    })
+    @IsOptional()
+    @IsString()
+    public price?: string;
 }
 
 export class CreateQuoteDto {
@@ -63,37 +84,56 @@ export class CreateQuoteDto {
     public provider_id: string;
 
     @ApiProperty({
-        description: "Nombre completo del solicitante",
+        description: "Nombre completo del solicitante (obligatorio para CLIENT, opcional para PROVIDER)",
         example: "Juan Pérez",
+        required: false,
     })
+    @ValidateIf((dto: CreateQuoteDto) => dto.type === "CLIENT" || !dto.type)
     @IsString()
     @IsNotEmpty()
-    public name: string;
+    public name?: string;
 
     @ApiProperty({
-        description: "Email de contacto",
+        description: "Email de contacto (obligatorio para CLIENT, opcional para PROVIDER)",
         example: "juan.perez@email.com",
+        required: false,
     })
+    @ValidateIf((dto: CreateQuoteDto) => dto.type === "CLIENT" || !dto.type)
     @IsEmail()
     @IsNotEmpty()
-    public email: string;
+    public email?: string;
 
     @ApiProperty({
-        description: "Número de identificación",
+        description: "Número de identificación (obligatorio para CLIENT, opcional para PROVIDER)",
         example: "12345678",
+        required: false,
     })
+    @ValidateIf((dto: CreateQuoteDto) => dto.type === "CLIENT" || !dto.type)
     @IsString()
     @IsNotEmpty()
-    public identification: string;
+    public identification?: string;
 
     @ApiProperty({
-        description: "Tipo de identificación",
+        description: "Tipo de identificación (obligatorio para CLIENT, opcional para PROVIDER)",
         enum: IdentificationTypes,
         example: "CC",
+        required: false,
     })
+    @ValidateIf((dto: CreateQuoteDto) => dto.type === "CLIENT" || !dto.type)
     @IsString()
     @IsEnum(IdentificationTypes)
-    public identification_type: string;
+    public identification_type?: string;
+
+    @ApiProperty({
+        description: "Precio total de la cotización (obligatorio para PROVIDER, opcional para CLIENT)",
+        required: false,
+        example: "2500000.00",
+        type: "string",
+    })
+    @ValidateIf((dto: CreateQuoteDto) => dto.type === "PROVIDER")
+    @IsNotEmpty()
+    @IsString()
+    public total_price?: string;
 
     @ApiProperty({
         description: "Descripción general de la cotización",
@@ -117,11 +157,17 @@ export class CreateQuoteDto {
         description:
             "Tipo de cotización, CLIENT si la cotización es creada por un cliente (valor por default) y PROVIDER si se trata de cotizaciones hechas para solicitudes publicas",
         example: "CLIENT",
+        required: false,
     })
     @IsOptional()
     @IsEnum(["CLIENT", "PROVIDER"])
     public type?: string;
 
+    @ApiProperty({
+        description: "ID de solicitud pública para cotizaciones tipo PROVIDER",
+        example: "123e4567-e89b-12d3-a456-426614174000",
+        required: false,
+    })
     @IsString()
     @ValidateIf((dto: CreateQuoteDto) => dto.type === "PROVIDER")
     @IsNotEmpty()
@@ -168,6 +214,26 @@ export class QuoteFilterDto extends IntersectionType(ParamsDto) {
     @IsOptional()
     @IsUUID()
     public user_id?: string;
+
+    @ApiProperty({
+        description: "Filtrar por tipo de cotización",
+        enum: ["CLIENT", "PROVIDER"],
+        required: false,
+        example: "PROVIDER",
+    })
+    @IsOptional()
+    @IsString()
+    @IsEnum(["CLIENT", "PROVIDER"])
+    public type?: string;
+
+    @ApiProperty({
+        description: "Filtrar por ID de solicitud pública (solo para cotizaciones tipo PROVIDER)",
+        required: false,
+        example: "123e4567-e89b-12d3-a456-426614174000",
+    })
+    @IsOptional()
+    @IsUUID()
+    public public_request_id?: string;
 
     @ApiProperty({
         description: "Buscar en nombre, email o descripción",

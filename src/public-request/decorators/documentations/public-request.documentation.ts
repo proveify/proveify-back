@@ -2,7 +2,7 @@ import { applyDecorators } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { PublicRequestEntity } from "../../entities/public-request.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
-import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
+import { QuoteEntity } from "@app/quote/entities/quote.entity";
 
 export function CreatePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
@@ -269,7 +269,7 @@ export function GetPublicRequestProviderQuotesDocumentation(): MethodDecorator &
         ApiResponse({
             status: 200,
             description: "List of provider quotes",
-            type: [ProviderQuoteEntity],
+            type: [QuoteEntity],
         }),
         ApiResponse({
             status: 404,

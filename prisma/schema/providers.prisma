@@ -18,7 +18,6 @@ model Providers {
   user_id             String           @unique
   items               Items[]
   quotes              Quotes[]
-  ProviderQuotes      ProviderQuotes[]
 
   @@index([email, created_at(sort: Desc)])
 }

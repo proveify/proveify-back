@@ -26,8 +26,7 @@ export class QuoteFactory {
             const quoteItems = quote.quote_items.map((quoteItem) => {
                 const quoteItemData = {
                     ...quoteItem,
-                    price: quoteItem.price.toNumber(),
-                    item: undefined, // TODO: revisar si es necesario traer el item en el item de cotizacion
+                    item: undefined,
                 };
 
                 return new QuoteItemEntity(quoteItemData);

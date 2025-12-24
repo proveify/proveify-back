@@ -14,9 +14,8 @@ model Users {
   updated_at          DateTime   @default(now()) @updatedAt
   provider            Providers?
 
-  files                 Files[]
-  favorites             Favorites[]
-  publicRequest         PublicRequests[]
-  quoteMessage          QuoteMessages[]
-  ProviderQuoteMessages ProviderQuoteMessages[]
+  files         Files[]
+  favorites     Favorites[]
+  publicRequest PublicRequests[]
+  quoteMessage  QuoteMessages[]
 }

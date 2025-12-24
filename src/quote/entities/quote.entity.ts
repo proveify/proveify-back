@@ -1,6 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiHideProperty } from "@nestjs/swagger";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { QuoteItemEntity } from "@app/quote/entities/quote-item.entity";
+import { Exclude, Expose } from "class-transformer";
+import { Prisma } from "@prisma/client";
 
 export class QuoteEntity {
     @ApiProperty({
@@ -16,28 +18,32 @@ export class QuoteEntity {
     public provider_id: string;
 
     @ApiProperty({
-        description: "Nombre del solicitante",
+        description: "Nombre del solicitante (opcional para cotizaciones tipo PROVIDER)",
+        required: false,
         example: "Juan Pérez",
     })
-    public name: string;
+    public name: string | null;
 
     @ApiProperty({
-        description: "Email de contacto",
+        description: "Email de contacto (opcional para cotizaciones tipo PROVIDER)",
+        required: false,
         example: "juan.perez@email.com",
     })
-    public email: string;
+    public email: string | null;
 
     @ApiProperty({
-        description: "Número de identificación",
+        description: "Número de identificación (opcional para cotizaciones tipo PROVIDER)",
+        required: false,
         example: "12345678",
     })
-    public identification: string;
+    public identification: string | null;
 
     @ApiProperty({
-        description: "Tipo de identificación",
+        description: "Tipo de identificación (opcional para cotizaciones tipo PROVIDER)",
+        required: false,
         example: "CC",
     })
-    public identification_type: string;
+    public identification_type: string | null;
 
     @ApiProperty({
         description: "ID del usuario registrado (opcional)",
@@ -45,6 +51,17 @@ export class QuoteEntity {
         example: "123e4567-e89b-12d3-a456-426614174000",
     })
     public user_id: string | null;
+
+    @ApiProperty({
+        description: "Tipo de cotización",
+        enum: ["CLIENT", "PROVIDER"],
+        example: "CLIENT",
+    })
+    public type: string;
+
+    @ApiHideProperty()
+    @Exclude()
+    public total_price: Prisma.Decimal | null;
 
     @ApiProperty({
         description: "Descripción general de la cotización",
@@ -88,13 +105,25 @@ export class QuoteEntity {
         Object.assign(this, partial);
     }
 
+    @ApiProperty({
+        description: "Precio total de la cotización (para cotizaciones tipo PROVIDER)",
+        type: "number",
+        example: 2500000.0,
+        name: "total_price",
+        required: false,
+    })
+    @Expose({ name: "total_price" })
+    public totalPriceFormatted(): number | null {
+        return this.total_price ? this.total_price.toNumber() : null;
+    }
+
     public generateItemsToPrint(): string[][] {
         return this.quote_items.map((item) => [
             item.name,
             item.quantity.toString(),
             item.description ?? "",
             item.price.toString(),
-            (item.price * item.quantity).toString(),
+            (item.price.toNumber() * item.quantity).toString(),
         ]);
     }
 }

@@ -37,7 +37,7 @@ export const quoteTemplate = (
     const subtotal = Array.isArray(quote.quote_items)
         ? quote.quote_items.reduce((sum: number, item: QuoteItemEntity) => {
               const qty = Number(item.quantity);
-              return sum + item.price * qty;
+              return sum + item.priceFormatted() * qty;
           }, 0)
         : 0;
 
@@ -141,11 +141,13 @@ export const quoteTemplate = (
                         table: {
                             widths: ["auto", "*"],
                             body: [
-                                [{ text: "Cliente", style: "label" }, quote.name],
-                                [{ text: "Email", style: "label" }, quote.email],
+                                [{ text: "Cliente", style: "label" }, quote.name ?? "N/A"],
+                                [{ text: "Email", style: "label" }, quote.email ?? "N/A"],
                                 [
                                     { text: "Identificación", style: "label" },
-                                    `${quote.identification_type} ${quote.identification}`,
+                                    quote.identification_type && quote.identification
+                                        ? `${quote.identification_type} ${quote.identification}`
+                                        : "N/A",
                                 ],
                                 [{ text: "Fecha", style: "label" }, dateStr],
                                 [{ text: "Estado", style: "label" }, quote.status],

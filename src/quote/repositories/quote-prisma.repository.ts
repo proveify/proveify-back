@@ -200,4 +200,21 @@ export class QuotePrismaRepository implements PrismaRepository {
         const prisma = this.getClient();
         return prisma.quoteMessages.findMany(args);
     }
+
+    public async findQuoteByProviderAndPublicRequest(
+        providerId: string,
+        publicRequestId: string,
+    ): Promise<QuoteModel | null> {
+        const prisma = this.getClient();
+        return prisma.quotes.findFirst({
+            where: {
+                provider_id: providerId,
+                quote_public_request: {
+                    some: {
+                        public_request_id: publicRequestId,
+                    },
+                },
+            },
+        });
+    }
 }
