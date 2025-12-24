@@ -18,5 +18,5 @@ export class ParamsDto {
     @IsOptional()
     @IsString()
     @IsIn(["asc", "desc"])
-    public order_by?: Prisma.SortOrder;
+    public order_by_date?: Prisma.SortOrder;
 }
