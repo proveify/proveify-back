@@ -108,7 +108,7 @@ export class QuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -133,7 +133,7 @@ export class QuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -148,7 +148,7 @@ export class QuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -261,7 +261,7 @@ export class QuoteService {
             },
             take: params.limit ?? 30,
             skip: params.offset,
-            orderBy: { created_at: params.order_by ?? "desc" },
+            orderBy: { created_at: params.order_by_date ?? "desc" },
         });
 
         return quoteMessages.map((message) => new QuoteMessageEntity(message));

@@ -99,7 +99,7 @@ export class ProviderQuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -138,7 +138,7 @@ export class ProviderQuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 

@@ -125,7 +125,7 @@ export class ItemService {
         const results = await this.itemPrismaRepository.findMany({
             take: params?.limit ?? 30,
             skip: params?.offset,
-            orderBy: { id: params?.order_by ?? "desc" },
+            orderBy: { id: params?.order_by_date ?? "desc" },
             where: {
                 type: params?.type,
             },
@@ -213,7 +213,7 @@ export class ItemService {
             include: { item: true },
             take: params?.limit ?? 30,
             skip: params?.offset,
-            orderBy: { created_at: params?.order_by ?? "desc" },
+            orderBy: { created_at: params?.order_by_date ?? "desc" },
         });
         return results.map((favorite) => new FavoriteEntity(favorite));
     }
@@ -224,7 +224,7 @@ export class ItemService {
             include: { itemImages: true },
             take: params?.limit ?? 30,
             skip: params?.offset,
-            orderBy: { created_at: params?.order_by ?? "desc" },
+            orderBy: { created_at: params?.order_by_date ?? "desc" },
         });
 
         return this.itemFactory.createMany(results);

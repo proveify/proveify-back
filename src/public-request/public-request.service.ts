@@ -68,7 +68,7 @@ export class PublicRequestService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -97,7 +97,7 @@ export class PublicRequestService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -163,7 +163,7 @@ export class PublicRequestService {
             public_request_id: id,
             limit: params?.limit,
             offset: params?.offset,
-            order_by: params?.order_by,
+            order_by_date: params?.order_by_date,
         });
     }
 }
