@@ -3,9 +3,10 @@ import { QuotePrismaRepository } from "./repositories/quote-prisma.repository";
 import {
     CreateQuoteDto,
     UpdateQuoteDto,
-    QuoteFilterDto,
     QuoteParamsDto,
+    QuoteParamsProviderDto,
     QuoteMessageParamsDto,
+    QuoteParamsClientDto,
 } from "./dto/quote.dto";
 import type { Prisma } from "@prisma/client";
 import { QuoteEntity } from "@app/quote/entities/quote.entity";
@@ -24,6 +25,70 @@ export class QuoteService {
         private readonly quoteFactory: QuoteFactory,
         private readonly pdfService: PdfService,
     ) {}
+
+    public static getWhereInputs(params: QuoteParamsDto): Prisma.QuotesWhereInput {
+        const whereConditions: Prisma.QuotesWhereInput = {};
+
+        if (params.provider_id) {
+            whereConditions.provider_id = params.provider_id;
+        }
+
+        if (params.status) {
+            whereConditions.status = params.status;
+        }
+
+        if (params.user_id) {
+            whereConditions.user_id = params.user_id;
+        }
+
+        if (params.search) {
+            whereConditions.OR = [
+                {
+                    name: {
+                        contains: params.search,
+                    },
+                },
+                {
+                    email: {
+                        contains: params.search,
+                    },
+                },
+                {
+                    description: {
+                        contains: params.search,
+                    },
+                },
+            ];
+        }
+
+        return whereConditions;
+    }
+
+    public static getFindManyArgs(params: QuoteParamsDto): Prisma.QuotesFindManyArgs {
+        const whereConditions = QuoteService.getWhereInputs(params);
+        const findManyArgs: Prisma.QuotesFindManyArgs = {
+            where: whereConditions,
+            take: params.limit ?? 30,
+            skip: params.offset,
+            orderBy: { created_at: params.order_by_date ?? "desc" },
+        };
+
+        if (params.include_item_images) {
+            findManyArgs.include = {
+                quote_items: {
+                    include: {
+                        item: {
+                            include: {
+                                itemImages: true,
+                            },
+                        },
+                    },
+                },
+            };
+        }
+
+        return findManyArgs;
+    }
 
     public async create(createDto: CreateQuoteDto): Promise<QuoteEntity> {
         const providerExists = await this.quotePrismaRepository.findProviderById(
@@ -68,49 +133,9 @@ export class QuoteService {
         return this.quoteFactory.create(quote);
     }
 
-    public async findAll(params?: QuoteFilterDto): Promise<QuoteEntity[]> {
-        const whereConditions: Prisma.QuotesWhereInput = {};
-
-        if (params?.provider_id) {
-            whereConditions.provider_id = params.provider_id;
-        }
-
-        if (params?.status) {
-            whereConditions.status = params.status;
-        }
-
-        if (params?.user_id) {
-            whereConditions.user_id = params.user_id;
-        }
-
-        if (params?.search) {
-            whereConditions.OR = [
-                {
-                    name: {
-                        contains: params.search,
-                    },
-                },
-                {
-                    email: {
-                        contains: params.search,
-                    },
-                },
-                {
-                    description: {
-                        contains: params.search,
-                    },
-                },
-            ];
-        }
-
-        const quotes = await this.quotePrismaRepository.findManyQuotes(
-            whereConditions,
-            params?.limit ?? 30,
-            params?.offset,
-            {
-                created_at: params?.order_by_date ?? "desc",
-            },
-        );
+    public async findAll(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+        const findManyArgs = params ? QuoteService.getFindManyArgs(params) : undefined;
+        const quotes = await this.quotePrismaRepository.findManyQuotes(findManyArgs);
 
         return this.quoteFactory.createMany(quotes);
     }
@@ -121,7 +146,7 @@ export class QuoteService {
         return this.quoteFactory.create(quote);
     }
 
-    public async findMyQuotesLikeProvider(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeProvider(params?: QuoteParamsProviderDto): Promise<QuoteEntity[]> {
         const user = this.cls.get<UserEntity>("user");
 
         if (!user.provider) {
@@ -140,7 +165,7 @@ export class QuoteService {
         return this.quoteFactory.createMany(quotes);
     }
 
-    public async findMyQuotesLikeClient(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeClient(params?: QuoteParamsClientDto): Promise<QuoteEntity[]> {
         const user = this.cls.get<UserEntity>("user");
 
         const quotes = await this.quotePrismaRepository.findQuotesByClient(

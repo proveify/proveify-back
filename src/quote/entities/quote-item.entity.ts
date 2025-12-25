@@ -1,5 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ItemEntity } from "@app/item/entities/item.entity";
 
 export class QuoteItemEntity {
     @ApiProperty({
@@ -61,11 +60,9 @@ export class QuoteItemEntity {
     public updated_at: Date;
 
     @ApiProperty({
-        type: ItemEntity,
-        required: false,
-        description: "Información del item del catálogo (si aplica)",
+        description: "item images",
     })
-    public item?: ItemEntity;
+    public item_images?: string[];
 
     public constructor(partial: Partial<QuoteItemEntity>) {
         Object.assign(this, partial);

@@ -19,9 +19,10 @@ import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { QuoteService } from "./quote.service";
 import {
     CreateQuoteDto,
-    QuoteFilterDto,
-    QuoteMessageParamsDto,
     QuoteParamsDto,
+    QuoteMessageParamsDto,
+    QuoteParamsClientDto,
+    QuoteParamsProviderDto,
     UpdateQuoteDto,
 } from "./dto/quote.dto";
 import { QuoteEntity } from "./entities/quote.entity";
@@ -58,7 +59,7 @@ export class QuoteController {
 
     @Get()
     @GetQuotesDocumentation()
-    public async findAll(@Query() params: QuoteFilterDto): Promise<QuoteEntity[]> {
+    public async findAll(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
         return this.quoteService.findAll(params);
     }
 
@@ -66,7 +67,9 @@ export class QuoteController {
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
     @LoadUser()
-    public async findMyQuotesLikeClient(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeClient(
+        @Query() params: QuoteParamsClientDto,
+    ): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeClient(params);
     }
 
@@ -74,7 +77,9 @@ export class QuoteController {
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
     @LoadUser()
-    public async findMyQuotesLikeProvider(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeProvider(
+        @Query() params: QuoteParamsProviderDto,
+    ): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeProvider(params);
     }
 

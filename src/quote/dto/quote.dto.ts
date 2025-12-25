@@ -1,6 +1,7 @@
 import { ParamsDto } from "@app/common/dtos/params.dto";
-import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
+import { ApiProperty, IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import {
+    IsBoolean,
     IsEmail,
     IsEnum,
     IsInt,
@@ -17,13 +18,12 @@ import { QuoteStatus } from "../types/quotes";
 
 export class CreateQuoteItemDto {
     @ApiProperty({
-        description: "ID del item existente (opcional)",
+        description: "ID del item",
         required: false,
         example: "123e4567-e89b-12d3-a456-426614174000",
     })
-    @IsOptional()
     @IsUUID()
-    public item_id?: string;
+    public item_id: string;
 
     @ApiProperty({
         description: "Nombre del producto/servicio",
@@ -125,7 +125,7 @@ export class UpdateQuoteDto extends PartialType(CreateQuoteDto) {
     public status?: string;
 }
 
-export class QuoteFilterDto extends IntersectionType(ParamsDto) {
+export class QuoteParamsDto extends IntersectionType(ParamsDto) {
     @ApiProperty({
         description: "Filtrar por ID de proveedor específico",
         required: false,
@@ -155,16 +155,22 @@ export class QuoteFilterDto extends IntersectionType(ParamsDto) {
     public user_id?: string;
 
     @ApiProperty({
-        description: "Buscar en nombre, email o descripción",
+        description: "Buscar en nombre o email",
         required: false,
         example: "desarrollo web",
     })
     @IsOptional()
     @IsString()
     public search?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    public include_item_images?: boolean;
 }
 
-export class QuoteParamsDto extends IntersectionType(ParamsDto) {}
+export class QuoteParamsProviderDto extends OmitType(QuoteParamsDto, ["provider_id"]) {}
+
+export class QuoteParamsClientDto extends OmitType(QuoteParamsDto, ["user_id"]) {}
 
 export class QuoteMessageDto {
     @IsString()

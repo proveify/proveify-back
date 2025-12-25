@@ -3,16 +3,23 @@ import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { Injectable } from "@nestjs/common";
 import { QuoteItemEntity } from "@app/quote/entities/quote-item.entity";
 import { ProviderFactory } from "@app/provider/factories/provider.factory";
+import { FileService } from "@app/file/file.service";
 
 type QuoteInput =
     | Prisma.QuotesGetPayload<{
-          include: { quote_items: { include: { item: true } }; provider: true };
+          include: {
+              quote_items: { include: { item: { include: { itemImages: true } } } };
+              provider: true;
+          };
       }>
     | QuoteModel;
 
 @Injectable()
 export class QuoteFactory {
-    public constructor(private readonly providerFactory: ProviderFactory) {}
+    public constructor(
+        private readonly providerFactory: ProviderFactory,
+        private readonly fileService: FileService,
+    ) {}
 
     public async create(quote: QuoteInput): Promise<QuoteEntity> {
         const data = {
@@ -23,17 +30,26 @@ export class QuoteFactory {
         };
 
         if ("quote_items" in quote) {
-            const quoteItems = quote.quote_items.map((quoteItem) => {
-                const quoteItemData = {
-                    ...quoteItem,
-                    price: quoteItem.price.toNumber(),
-                    item: undefined, // TODO: revisar si es necesario traer el item en el item de cotizacion
-                };
+            data.quote_items = await Promise.all(
+                quote.quote_items.map(async (quoteItem) => {
+                    const quoteItemData: QuoteItemEntity = {
+                        ...quoteItem,
+                        price: quoteItem.price.toNumber(),
+                    };
 
-                return new QuoteItemEntity(quoteItemData);
-            });
+                    if ("item" in quoteItem && quoteItem.item && "itemImages" in quoteItem.item) {
+                        const itemImagesUrls = await Promise.all(
+                            quoteItem.item.itemImages.map(async (image) => {
+                                return await this.fileService.getFileUrlById(image.id);
+                            }),
+                        );
 
-            data.quote_items = quoteItems;
+                        quoteItemData.item_images = itemImagesUrls.filter((url) => url !== null);
+                    }
+
+                    return new QuoteItemEntity(quoteItemData);
+                }),
+            );
         }
 
         return new QuoteEntity(data);

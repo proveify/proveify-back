@@ -141,7 +141,7 @@ export function GetMyQuotesDocumentation(): MethodDecorator & ClassDecorator {
             example: 0,
         }),
         ApiQuery({
-            name: "order_by",
+            name: "order_by_date",
             required: false,
             type: String,
             enum: ["asc", "desc"],

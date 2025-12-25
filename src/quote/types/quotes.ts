@@ -1,4 +1,10 @@
 export enum QuoteStatus {
     PENDING = "PENDING",
-    SENT = "SENT",
+    QUOTED = "QUOTED",
+    REJECTED = "REJECTED",
+}
+
+export enum QuoteTypes {
+    PRODUCT = "PRODUCT",
+    SERVICE = "SERVICE",
 }

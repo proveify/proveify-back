@@ -35,27 +35,9 @@ export class QuotePrismaRepository implements PrismaRepository {
         });
     }
 
-    public async findManyQuotes(
-        where?: Prisma.QuotesWhereInput,
-        take?: number,
-        skip?: number,
-        orderBy?: Prisma.QuotesOrderByWithRelationInput,
-    ): Promise<QuoteModel[]> {
+    public async findManyQuotes(args?: Prisma.QuotesFindManyArgs): Promise<QuoteModel[]> {
         const prisma = this.getClient();
-        return prisma.quotes.findMany({
-            where,
-            include: {
-                provider: true,
-                quote_items: {
-                    include: {
-                        item: true,
-                    },
-                },
-            },
-            take,
-            skip,
-            orderBy,
-        });
+        return prisma.quotes.findMany(args);
     }
 
     public async findUniqueQuote(id: string): Promise<QuoteModel | null> {
@@ -66,7 +48,11 @@ export class QuotePrismaRepository implements PrismaRepository {
                 provider: true,
                 quote_items: {
                     include: {
-                        item: true,
+                        item: {
+                            include: {
+                                itemImages: true,
+                            },
+                        },
                     },
                 },
             },
