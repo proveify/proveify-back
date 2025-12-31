@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { QuotePrismaRepository } from "../../../src/quote/repositories/quote-prisma.repository";
-import { PrismaService } from "../../../src/prisma/prisma.service";
-import { TransactionContextService } from "../../../src/prisma/transaction-context.service";
+import { QuotePrismaRepository } from "@app/quote/repositories/quote-prisma.repository";
+import { PrismaService } from "@app/prisma/prisma.service";
+import { TransactionContextService } from "@app/prisma/transaction-context.service";
 
 const mockPrismaService = {
     quotes: {
@@ -150,6 +150,14 @@ describe("QuotePrismaRepository", () => {
             const take = 10;
             const skip = 0;
             const orderBy = { created_at: "desc" as const };
+
+            const findManyQuotesArgs = {
+                take: 10,
+                skip: 0,
+                orderBy: { created_at: "desc" as const },
+                where: { status: "PENDING" },
+            };
+
             const mockQuotes = [
                 {
                     id: "quote-1",
@@ -161,7 +169,7 @@ describe("QuotePrismaRepository", () => {
 
             mockPrismaService.quotes.findMany.mockResolvedValue(mockQuotes);
 
-            const result = await repository.findManyQuotes(whereClause, take, skip, orderBy);
+            const result = await repository.findManyQuotes(findManyQuotesArgs);
 
             expect(result).toEqual(mockQuotes);
             expect(prismaService.quotes.findMany).toHaveBeenCalledWith({
