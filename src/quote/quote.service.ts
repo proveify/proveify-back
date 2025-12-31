@@ -2,11 +2,12 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { QuotePrismaRepository } from "./repositories/quote-prisma.repository";
 import {
     CreateQuoteDto,
-    UpdateQuoteDto,
-    QuoteParamsDto,
-    QuoteParamsProviderDto,
     QuoteMessageParamsDto,
     QuoteParamsClientDto,
+    QuoteParamsDto,
+    QuoteParamsProviderDto,
+    SentQuoteDto,
+    UpdateQuoteDto,
 } from "./dto/quote.dto";
 import type { Prisma } from "@prisma/client";
 import { QuoteEntity } from "@app/quote/entities/quote.entity";
@@ -16,6 +17,9 @@ import { UserEntity } from "@app/user/entities/user.entity";
 import { QuoteFactory } from "@app/quote/factories/quote.factory";
 import { QuoteMessageEntity } from "@app/quote/entities/quote-message.entity";
 import { PdfService } from "@app/pdf/pdf.service";
+import { FileService } from "@app/file/file.service";
+import { ResourceType } from "@app/file/interfaces/file-manager.interface";
+import { QuoteStatus } from "@app/quote/types/quotes";
 
 @Injectable()
 export class QuoteService {
@@ -24,6 +28,7 @@ export class QuoteService {
         private readonly cls: ClsService,
         private readonly quoteFactory: QuoteFactory,
         private readonly pdfService: PdfService,
+        private readonly fileService: FileService,
     ) {}
 
     public static getWhereInputs(params: QuoteParamsDto): Prisma.QuotesWhereInput {
@@ -305,5 +310,32 @@ export class QuoteService {
         }
 
         return this.pdfService.generateQuotePdf(quote, quote.provider);
+    }
+
+    public async sentQuote(id: string, data: SentQuoteDto): Promise<void> {
+        const quote = await this.quotePrismaRepository.findUniqueQuote(id);
+
+        if (!quote) {
+            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (data.file) {
+            const file = await this.fileService.save(data.file, ResourceType.QUOTES);
+            quote.file = file.id;
+        }
+
+        if (data.sent) {
+            quote.status = QuoteStatus.QUOTED;
+        }
+
+        if (data.observation) {
+            quote.observation = data.observation;
+        }
+
+        await this.quotePrismaRepository.updateQuote(quote.id, {
+            file: quote.file,
+            status: quote.status,
+            observation: quote.observation,
+        });
     }
 }

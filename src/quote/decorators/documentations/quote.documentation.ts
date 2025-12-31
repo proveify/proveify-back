@@ -6,6 +6,8 @@ import {
     ApiParam,
     ApiQuery,
     ApiProduces,
+    ApiConsumes,
+    ApiOkResponse,
 } from "@nestjs/swagger";
 import { QuoteEntity } from "../../entities/quote.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
@@ -242,6 +244,20 @@ export function PrintQuoteDocumentation(): MethodDecorator & ClassDecorator {
             status: 404,
             description: "Quote not found",
         }),
+        ApiBearerAuth(),
+    );
+}
+
+export function SentQuoteDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiResponse({
+            status: 404,
+            description: "Quote not found",
+        }),
+        ApiOkResponse({
+            description: "Quote sent successfully or updated without sent",
+        }),
+        ApiConsumes("multipart/form-data"),
         ApiBearerAuth(),
     );
 }

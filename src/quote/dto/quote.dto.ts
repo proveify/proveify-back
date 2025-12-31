@@ -15,6 +15,7 @@ import {
 import { Type } from "class-transformer";
 import { IdentificationTypes } from "@app/user/interfaces/users";
 import { QuoteStatus } from "../types/quotes";
+import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
 
 export class CreateQuoteItemDto {
     @ApiProperty({
@@ -190,4 +191,34 @@ export class QuoteMessageParamsDto extends IntersectionType(ParamsDto) {
         required: false,
     })
     public getAs?: string;
+}
+
+export class SentQuoteDto {
+    @IsOptional()
+    @ApiProperty({
+        description: "archivo de cotización",
+        required: false,
+        type: "string",
+        format: "binary",
+    })
+    @IsFile()
+    @HasMimeType(["application/pdf"])
+    public file?: MemoryStoredFile;
+
+    @ApiProperty({
+        description: "Observaciones adicionales para la cotización",
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    public observation?: string;
+
+    @IsOptional()
+    @ApiProperty({
+        description: "Indica si se quiere enviar la cotización (por defecto true)",
+        required: false,
+        default: true,
+    })
+    @IsBoolean()
+    public sent: boolean;
 }
