@@ -12,16 +12,14 @@ export enum ResourceType {
     RUT = "rut",
     CHAMBER_COMMERCE = "chamber_commerce",
     ITEM_IMAGE = "item_image",
-    PROVIDER_PROFILE_PICTURE = "provider_profile_picture",
+    PROFILE_PICTURE = "profile_picture",
     QUOTES = "quotes",
 }
 
-// Si se agrega un nuevo tipo de recurso, se debe agregar el path correspondiente en el enum ResourceTypePath
-
-export enum ResourceTypePath {
-    "rut" = "providers/rut",
-    "chamber_commerce" = "providers/chamber_commerce",
-    "item_image" = "providers/item_image",
-    "provider_profile_picture" = "providers/profile_picture",
-    "quotes" = "provider/quotes",
-}
+export const ResourceTypePath: Record<ResourceType, string> = {
+    [ResourceType.RUT]: "providers/rut",
+    [ResourceType.CHAMBER_COMMERCE]: "providers/chamber_commerce",
+    [ResourceType.ITEM_IMAGE]: "providers/item_image",
+    [ResourceType.PROFILE_PICTURE]: "users/profile_picture",
+    [ResourceType.QUOTES]: "provider/quotes",
+};

@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { QuoteEntity } from "@app/quote/entities/quote.entity";
-import { ProviderEntity } from "@app/provider/entities/provider.entity";
 import { quoteTemplate } from "@app/pdf/quotes/quote-template";
 
 import pdfMake, { TCreatedPdf } from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Injectable()
 export class PdfService {
@@ -22,7 +22,7 @@ export class PdfService {
         });
     }
 
-    public async generateQuotePdf(quote: QuoteEntity, provider: ProviderEntity): Promise<Buffer> {
+    public async generateQuotePdf(quote: QuoteEntity, provider: UserEntity): Promise<Buffer> {
         const template = quoteTemplate(quote, provider);
         const doc = this.generateDoc(template);
         return this.generateBuffer(doc);

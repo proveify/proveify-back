@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 import { UserPrismaRepository } from "./repositories/user-prisma.repository";
@@ -10,4 +10,5 @@ import { ProviderModule } from "@app/provider/provider.module";
     exports: [UserService, UserPrismaRepository, UserFactory],
     imports: [ProviderModule],
 })
+@Global()
 export class UserModule {}

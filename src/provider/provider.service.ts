@@ -49,11 +49,6 @@ export class ProviderService {
 
         const providerData: Prisma.ProvidersUpdateInput = {};
 
-        if (data.name) providerData.name = data.name;
-        if (data.email) providerData.email = data.email;
-        if (data.identification) providerData.identification = data.identification;
-        if (data.identification_type) providerData.identification_type = data.identification_type;
-
         if (data.chamber_commerce) {
             let chamberCommerce = await this.fileService.getFileById(
                 user.provider.chamber_commerce,
@@ -83,26 +78,6 @@ export class ProviderService {
                 providerData.rut = rut.id;
             } else {
                 await this.fileService.update(rut, data.rut, rut.path);
-            }
-        }
-
-        if (data.profile_picture) {
-            let profilePicture = user.provider.profile_picture
-                ? await this.fileService.getFileById(user.provider.profile_picture)
-                : null;
-
-            if (!profilePicture) {
-                profilePicture = await this.fileService.save(
-                    data.profile_picture,
-                    ResourceType.PROVIDER_PROFILE_PICTURE,
-                );
-                providerData.profile_picture = profilePicture.id;
-            } else {
-                await this.fileService.update(
-                    profilePicture,
-                    data.profile_picture,
-                    profilePicture.path,
-                );
             }
         }
 

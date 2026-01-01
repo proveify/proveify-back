@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
 import { IdentificationTypes } from "@app/user/interfaces/users";
+import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
 
 export class BaseUserDto {
     @ApiProperty({
@@ -48,4 +49,14 @@ export class BaseUserDto {
     @IsString()
     @IsOptional()
     public phone?: string;
+
+    @ApiProperty({
+        description: "Debe ser un archivo en formato JPEG o PNG.",
+        type: "string",
+        format: "binary",
+    })
+    @IsFile()
+    @IsOptional()
+    @HasMimeType(["image/jpeg", "image/png"])
+    public profile_picture?: MemoryStoredFile;
 }

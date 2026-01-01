@@ -1,24 +1,16 @@
 // Model Providers
 
 model Providers {
-  id                  String           @id @default(uuid())
-  name                String
-  email               String           @unique
-  rut                 String
-  identification      String
-  identification_type String
-  chamber_commerce    String
-  phone               String?
-  profile_picture     String?
-  created_at          DateTime         @default(now())
-  updated_at          DateTime         @default(now()) @updatedAt
-  plan                Plans            @relation(fields: [plan_id], references: [id])
-  plan_id             String
-  user                Users            @relation(fields: [user_id], references: [id])
-  user_id             String           @unique
-  items               Items[]
-  quotes              Quotes[]
-  ProviderQuotes      ProviderQuotes[]
-
-  @@index([email, created_at(sort: Desc)])
+  id               String           @id @default(uuid())
+  rut              String
+  chamber_commerce String
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @default(now()) @updatedAt
+  plan             Plans            @relation(fields: [plan_id], references: [id])
+  plan_id          String
+  user             Users            @relation(fields: [user_id], references: [id])
+  user_id          String           @unique
+  items            Items[]
+  quotes           Quotes[]
+  ProviderQuotes   ProviderQuotes[]
 }

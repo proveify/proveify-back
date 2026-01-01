@@ -10,6 +10,7 @@ model Users {
   identification_type String
   phone               String?
   refreshed_token     String?
+  profile_picture_id  String?
   created_at          DateTime   @default(now())
   updated_at          DateTime   @default(now()) @updatedAt
   provider            Providers?

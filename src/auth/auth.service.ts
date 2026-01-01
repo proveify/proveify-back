@@ -69,10 +69,6 @@ export class AuthService {
         ]);
 
         const providerData: Prisma.ProvidersCreateInput = {
-            name: user.name,
-            identification: user.identification,
-            identification_type: user.identification_type,
-            email: user.email,
             rut: rutFileData.id,
             chamber_commerce: chamberCommerceFileData.id,
             user: {
