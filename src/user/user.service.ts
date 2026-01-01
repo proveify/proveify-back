@@ -66,6 +66,15 @@ export class UserService {
             userData.profile_picture_id = await this.upProfilePicture(data.profile_picture);
         }
 
+        if (user.provider) {
+            userData.provider = {
+                connect: { id: user.provider.id },
+                update: {
+                    description: data.provider_description,
+                },
+            };
+        }
+
         return await this.update(user.id, userData);
     }
 

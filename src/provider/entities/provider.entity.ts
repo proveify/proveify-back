@@ -27,6 +27,9 @@ export class ProviderEntity {
     @Expose({ groups: ["owner"] })
     public chamber_commerce_file_url: string | null;
 
+    @Expose()
+    public description: string | null;
+
     public constructor(partial: Partial<ProviderEntity>) {
         Object.assign(this, partial);
     }

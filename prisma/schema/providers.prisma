@@ -4,6 +4,7 @@ model Providers {
   id               String           @id @default(uuid())
   rut              String
   chamber_commerce String
+  description      String?          @db.Text
   created_at       DateTime         @default(now())
   updated_at       DateTime         @default(now()) @updatedAt
   plan             Plans            @relation(fields: [plan_id], references: [id])
