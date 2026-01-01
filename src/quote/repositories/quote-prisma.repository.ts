@@ -45,7 +45,11 @@ export class QuotePrismaRepository implements PrismaRepository {
         return prisma.quotes.findUnique({
             where: { id },
             include: {
-                provider: true,
+                provider: {
+                    include: {
+                        user: true,
+                    },
+                },
                 quote_items: {
                     include: {
                         item: {

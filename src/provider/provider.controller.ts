@@ -4,6 +4,7 @@ import {
     Controller,
     Get,
     HttpException,
+    HttpStatus,
     Param,
     Put,
     Query,
@@ -57,6 +58,10 @@ export class ProviderController {
     @UpdateProviderDocumentation()
     @Put()
     public async updateProvider(@Body() data: ProviderUpdateDto): Promise<ProviderEntity> {
+        if (!data.rut && !data.chamber_commerce) {
+            throw new HttpException("rut or chamber_commerce is required", HttpStatus.BAD_REQUEST);
+        }
+
         return this.providerService.updateProvider(data);
     }
 }

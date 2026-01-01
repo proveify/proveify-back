@@ -60,11 +60,6 @@ export class UserService {
             identification_type: data.identification_type,
             phone: data.phone,
             email: data.email,
-            provider: {
-                update: {
-                    data: data.provider,
-                },
-            },
         };
 
         if (data.profile_picture) {

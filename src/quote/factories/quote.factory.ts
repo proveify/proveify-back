@@ -2,14 +2,14 @@ import type { Prisma, Quotes as QuoteModel } from "@prisma/client";
 import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { Injectable } from "@nestjs/common";
 import { QuoteItemEntity } from "@app/quote/entities/quote-item.entity";
-import { ProviderFactory } from "@app/provider/factories/provider.factory";
 import { FileService } from "@app/file/file.service";
+import { UserFactory } from "@app/user/factories/user.factory";
 
 type QuoteInput =
     | Prisma.QuotesGetPayload<{
           include: {
               quote_items: { include: { item: { include: { itemImages: true } } } };
-              provider: true;
+              provider: { include: { user: true } };
           };
       }>
     | QuoteModel;
@@ -17,7 +17,7 @@ type QuoteInput =
 @Injectable()
 export class QuoteFactory {
     public constructor(
-        private readonly providerFactory: ProviderFactory,
+        private readonly userFactory: UserFactory,
         private readonly fileService: FileService,
     ) {}
 
@@ -26,7 +26,7 @@ export class QuoteFactory {
             ...quote,
             quote_items: [] as QuoteItemEntity[],
             provider:
-                "provider" in quote ? await this.providerFactory.create(quote.provider) : null,
+                "provider" in quote ? await this.userFactory.create(quote.provider.user) : null,
         };
 
         if ("quote_items" in quote) {

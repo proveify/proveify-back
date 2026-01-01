@@ -10,10 +10,6 @@ export class ProviderFactory {
     public async create(provider: ProviderModel): Promise<ProviderEntity> {
         const entity = new ProviderEntity(provider);
 
-        if (entity.profile_picture) {
-            entity.profile_picture = await this.fileService.getFileUrlById(entity.profile_picture);
-        }
-
         if (entity.rut) {
             entity.rut_file_url = await this.fileService.getFileUrlById(entity.rut);
         }

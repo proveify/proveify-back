@@ -1,12 +1,9 @@
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import type { QuoteEntity } from "@app/quote/entities/quote.entity";
-import type { ProviderEntity } from "@app/provider/entities/provider.entity";
 import type { QuoteItemEntity } from "@app/quote/entities/quote-item.entity";
+import type { UserEntity } from "@app/user/entities/user.entity";
 
-export const quoteTemplate = (
-    quote: QuoteEntity,
-    provider: ProviderEntity,
-): TDocumentDefinitions => {
+export const quoteTemplate = (quote: QuoteEntity, provider: UserEntity): TDocumentDefinitions => {
     const ACCENT = "#fab005";
     const BLACK = "#000000";
     const WHITE = "#FFFFFF";

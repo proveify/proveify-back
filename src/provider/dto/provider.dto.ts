@@ -1,6 +1,7 @@
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
-import { ApiProperty, ApiSchema, OmitType, PartialType } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import { BaseUserDto } from "@app/common/dtos/base-user.dto";
+import { IsOptional } from "class-validator";
 
 @ApiSchema({ name: "ProviderCreate" })
 export class ProviderCreateDto extends BaseUserDto {
@@ -23,10 +24,24 @@ export class ProviderCreateDto extends BaseUserDto {
     public chamber_commerce: MemoryStoredFile;
 }
 
-export class ProviderUpdateDto extends PartialType(ProviderCreateDto) {}
+export class ProviderUpdateDto {
+    @ApiProperty({
+        description: "Debe ser un archivo en formato PDF.",
+        type: "string",
+        format: "binary",
+    })
+    @IsFile()
+    @HasMimeType(["application/pdf"])
+    @IsOptional()
+    public rut?: MemoryStoredFile;
 
-export class ProviderUpdateWithoutFilesDto extends OmitType(ProviderUpdateDto, [
-    "rut",
-    "chamber_commerce",
-    "profile_picture",
-] as const) {}
+    @ApiProperty({
+        description: "Debe ser un archivo en formato PDF.",
+        type: "string",
+        format: "binary",
+    })
+    @IsFile()
+    @HasMimeType(["application/pdf"])
+    @IsOptional()
+    public chamber_commerce?: MemoryStoredFile;
+}
