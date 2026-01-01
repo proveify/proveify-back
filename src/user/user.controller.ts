@@ -8,7 +8,7 @@ import {
     UpdateUserDocumentation,
 } from "./decorators/documentations/user.documentation";
 import { UserEntity } from "./entities/user.entity";
-import { UserUpdateDto } from "@app/user/dto/user.dto";
+import { UserUpdateDto, UserUpdateProfilePicture } from "@app/user/dto/user.dto";
 import { LoadUser } from "@app/common/decorators/load-user.decorator";
 import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-serializer.interceptor";
 
@@ -32,5 +32,12 @@ export class UserController {
     @LoadUser()
     public async updateUser(@Body() data: UserUpdateDto): Promise<UserEntity> {
         return this.userService.updateWithProviderData(data);
+    }
+
+    @Put("profile-picture")
+    @UseGuards(JwtAuthGuard)
+    @LoadUser()
+    public async upProfilePicture(@Body() data: UserUpdateProfilePicture): Promise<UserEntity> {
+        return this.userService.upProfilePicture(data);
     }
 }

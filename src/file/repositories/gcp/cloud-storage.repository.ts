@@ -10,7 +10,7 @@ import { appConfig } from "@app/common/base.config";
 
 @Injectable()
 export class CloudStorageRepository implements FileManagerInterface<GoogleFileConfigs> {
-    private client: Storage;
+    private readonly client: Storage;
 
     public constructor(
         private configService: ConfigService<typeof appConfig, true>,

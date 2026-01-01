@@ -94,7 +94,7 @@ export class ProviderService {
             if (!profilePicture) {
                 profilePicture = await this.fileService.save(
                     data.profile_picture,
-                    ResourceType.PROVIDER_PROFILE_PICTURE,
+                    ResourceType.PROFILE_PICTURE,
                 );
                 providerData.profile_picture = profilePicture.id;
             } else {

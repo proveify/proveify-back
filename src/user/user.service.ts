@@ -5,7 +5,9 @@ import { UserNotFoundException } from "./exceptions/user-not-found.exception/use
 import { UserEntity } from "./entities/user.entity";
 import { UserFactory } from "@app/user/factories/user.factory";
 import { ClsService } from "nestjs-cls";
-import { UserUpdateDto } from "@app/user/dto/user.dto";
+import { UserUpdateDto, UserUpdateProfilePicture } from "@app/user/dto/user.dto";
+import { FileService } from "@app/file/file.service";
+import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 
 @Injectable()
 export class UserService {
@@ -13,6 +15,7 @@ export class UserService {
         private readonly userPrismaRepository: UserPrismaRepository,
         private readonly userFactory: UserFactory,
         private readonly cls: ClsService,
+        private readonly fileService: FileService,
     ) {}
 
     public async saveUser(data: Prisma.UsersCreateInput): Promise<UserEntity> {
@@ -81,5 +84,25 @@ export class UserService {
         }
 
         return this.userFactory.create(user);
+    }
+
+    public async upProfilePicture(data: UserUpdateProfilePicture): Promise<UserEntity> {
+        const user = this.cls.get<UserEntity>("user");
+        let file = user.profile_picture_id
+            ? await this.fileService.getFileById(user.profile_picture_id)
+            : null;
+
+        if (!file) {
+            file = await this.fileService.save(data.image, ResourceType.PROFILE_PICTURE);
+            user.profile_picture_id = file.id;
+            user.profile_picture_url = await this.fileService.getFileUrlById(file.id);
+
+            await this.userPrismaRepository.updateUser(user.id, { profile_picture_id: file.id });
+
+            return user;
+        }
+
+        await this.fileService.update(file, data.image);
+        return user;
     }
 }
