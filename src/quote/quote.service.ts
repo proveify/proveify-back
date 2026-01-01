@@ -2,10 +2,12 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { QuotePrismaRepository } from "./repositories/quote-prisma.repository";
 import {
     CreateQuoteDto,
-    UpdateQuoteDto,
-    QuoteFilterDto,
-    QuoteParamsDto,
     QuoteMessageParamsDto,
+    QuoteParamsClientDto,
+    QuoteParamsDto,
+    QuoteParamsProviderDto,
+    SentQuoteDto,
+    UpdateQuoteDto,
 } from "./dto/quote.dto";
 import type { Prisma } from "@prisma/client";
 import { QuoteEntity } from "@app/quote/entities/quote.entity";
@@ -15,6 +17,9 @@ import { UserEntity } from "@app/user/entities/user.entity";
 import { QuoteFactory } from "@app/quote/factories/quote.factory";
 import { QuoteMessageEntity } from "@app/quote/entities/quote-message.entity";
 import { PdfService } from "@app/pdf/pdf.service";
+import { FileService } from "@app/file/file.service";
+import { ResourceType } from "@app/file/interfaces/file-manager.interface";
+import { QuoteStatus } from "@app/quote/types/quotes";
 
 @Injectable()
 export class QuoteService {
@@ -23,7 +28,72 @@ export class QuoteService {
         private readonly cls: ClsService,
         private readonly quoteFactory: QuoteFactory,
         private readonly pdfService: PdfService,
+        private readonly fileService: FileService,
     ) {}
+
+    public static getWhereInputs(params: QuoteParamsDto): Prisma.QuotesWhereInput {
+        const whereConditions: Prisma.QuotesWhereInput = {};
+
+        if (params.provider_id) {
+            whereConditions.provider_id = params.provider_id;
+        }
+
+        if (params.status) {
+            whereConditions.status = params.status;
+        }
+
+        if (params.user_id) {
+            whereConditions.user_id = params.user_id;
+        }
+
+        if (params.search) {
+            whereConditions.OR = [
+                {
+                    name: {
+                        contains: params.search,
+                    },
+                },
+                {
+                    email: {
+                        contains: params.search,
+                    },
+                },
+                {
+                    description: {
+                        contains: params.search,
+                    },
+                },
+            ];
+        }
+
+        return whereConditions;
+    }
+
+    public static getFindManyArgs(params: QuoteParamsDto): Prisma.QuotesFindManyArgs {
+        const whereConditions = QuoteService.getWhereInputs(params);
+        const findManyArgs: Prisma.QuotesFindManyArgs = {
+            where: whereConditions,
+            take: params.limit ?? 30,
+            skip: params.offset,
+            orderBy: { created_at: params.order_by_date ?? "desc" },
+        };
+
+        if (params.include_item_images) {
+            findManyArgs.include = {
+                quote_items: {
+                    include: {
+                        item: {
+                            include: {
+                                itemImages: true,
+                            },
+                        },
+                    },
+                },
+            };
+        }
+
+        return findManyArgs;
+    }
 
     public async create(createDto: CreateQuoteDto): Promise<QuoteEntity> {
         const providerExists = await this.quotePrismaRepository.findProviderById(
@@ -68,49 +138,9 @@ export class QuoteService {
         return this.quoteFactory.create(quote);
     }
 
-    public async findAll(params?: QuoteFilterDto): Promise<QuoteEntity[]> {
-        const whereConditions: Prisma.QuotesWhereInput = {};
-
-        if (params?.provider_id) {
-            whereConditions.provider_id = params.provider_id;
-        }
-
-        if (params?.status) {
-            whereConditions.status = params.status;
-        }
-
-        if (params?.user_id) {
-            whereConditions.user_id = params.user_id;
-        }
-
-        if (params?.search) {
-            whereConditions.OR = [
-                {
-                    name: {
-                        contains: params.search,
-                    },
-                },
-                {
-                    email: {
-                        contains: params.search,
-                    },
-                },
-                {
-                    description: {
-                        contains: params.search,
-                    },
-                },
-            ];
-        }
-
-        const quotes = await this.quotePrismaRepository.findManyQuotes(
-            whereConditions,
-            params?.limit ?? 30,
-            params?.offset,
-            {
-                created_at: params?.order_by ?? "desc",
-            },
-        );
+    public async findAll(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+        const findManyArgs = params ? QuoteService.getFindManyArgs(params) : undefined;
+        const quotes = await this.quotePrismaRepository.findManyQuotes(findManyArgs);
 
         return this.quoteFactory.createMany(quotes);
     }
@@ -121,7 +151,7 @@ export class QuoteService {
         return this.quoteFactory.create(quote);
     }
 
-    public async findMyQuotesLikeProvider(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeProvider(params?: QuoteParamsProviderDto): Promise<QuoteEntity[]> {
         const user = this.cls.get<UserEntity>("user");
 
         if (!user.provider) {
@@ -133,14 +163,14 @@ export class QuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
         return this.quoteFactory.createMany(quotes);
     }
 
-    public async findMyQuotesLikeClient(params?: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeClient(params?: QuoteParamsClientDto): Promise<QuoteEntity[]> {
         const user = this.cls.get<UserEntity>("user");
 
         const quotes = await this.quotePrismaRepository.findQuotesByClient(
@@ -148,7 +178,7 @@ export class QuoteService {
             params?.limit ?? 30,
             params?.offset,
             {
-                created_at: params?.order_by ?? "desc",
+                created_at: params?.order_by_date ?? "desc",
             },
         );
 
@@ -261,7 +291,7 @@ export class QuoteService {
             },
             take: params.limit ?? 30,
             skip: params.offset,
-            orderBy: { created_at: params.order_by ?? "desc" },
+            orderBy: { created_at: params.order_by_date ?? "desc" },
         });
 
         return quoteMessages.map((message) => new QuoteMessageEntity(message));
@@ -280,5 +310,32 @@ export class QuoteService {
         }
 
         return this.pdfService.generateQuotePdf(quote, quote.provider);
+    }
+
+    public async sentQuote(id: string, data: SentQuoteDto): Promise<void> {
+        const quote = await this.quotePrismaRepository.findUniqueQuote(id);
+
+        if (!quote) {
+            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (data.file) {
+            const file = await this.fileService.save(data.file, ResourceType.QUOTES);
+            quote.file = file.id;
+        }
+
+        if (data.sent) {
+            quote.status = QuoteStatus.QUOTED;
+        }
+
+        if (data.observation) {
+            quote.observation = data.observation;
+        }
+
+        await this.quotePrismaRepository.updateQuote(quote.id, {
+            file: quote.file,
+            status: quote.status,
+            observation: quote.observation,
+        });
     }
 }

@@ -8,7 +8,9 @@ model Quotes {
   identification      String
   identification_type String
   user_id             String?
+  file                String?
   description         String   @db.Text
+  observation         String?  @db.Text
   status              String   @default("PENDING")
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now()) @updatedAt
@@ -31,6 +33,7 @@ model QuoteItems {
   name        String
   description String?
   quantity    Int
+  type        String   @default("PRODUCT")
   price       Decimal  @default(0.00) @db.Decimal(10, 2)
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now()) @updatedAt

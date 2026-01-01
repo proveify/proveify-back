@@ -28,7 +28,7 @@ export class ProviderService {
             undefined,
             params?.limit ?? 30,
             params?.offset,
-            { id: params?.order_by ?? "desc" },
+            { id: params?.order_by_date ?? "desc" },
         );
 
         return this.providerFactory.createMany(providers);

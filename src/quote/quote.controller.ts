@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
     HttpException,
     HttpStatus,
     Param,
@@ -19,10 +20,12 @@ import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { QuoteService } from "./quote.service";
 import {
     CreateQuoteDto,
-    QuoteFilterDto,
-    QuoteMessageParamsDto,
     QuoteParamsDto,
+    QuoteMessageParamsDto,
+    QuoteParamsClientDto,
+    QuoteParamsProviderDto,
     UpdateQuoteDto,
+    SentQuoteDto,
 } from "./dto/quote.dto";
 import { QuoteEntity } from "./entities/quote.entity";
 import {
@@ -32,6 +35,7 @@ import {
     GetQuoteDocumentation,
     GetQuotesDocumentation,
     PrintQuoteDocumentation,
+    SentQuoteDocumentation,
     UpdateQuoteDocumentation,
 } from "./decorators/documentations/quote.documentation";
 import { TransactionInterceptor } from "@app/prisma/interceptors/transaction.interceptor";
@@ -41,6 +45,7 @@ import { OwnerSerializerInterceptor } from "@app/common/interceptors/owner-seria
 import { LoadUser } from "@app/common/decorators/load-user.decorator";
 import { Response } from "express";
 import { OptionalJwtAuthGuard } from "@app/auth/guards/optional-jwt.guard";
+import { FormDataRequest } from "nestjs-form-data";
 
 @ApiTags("Quotes")
 @Controller("quotes")
@@ -58,7 +63,7 @@ export class QuoteController {
 
     @Get()
     @GetQuotesDocumentation()
-    public async findAll(@Query() params: QuoteFilterDto): Promise<QuoteEntity[]> {
+    public async findAll(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
         return this.quoteService.findAll(params);
     }
 
@@ -66,7 +71,9 @@ export class QuoteController {
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
     @LoadUser()
-    public async findMyQuotesLikeClient(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeClient(
+        @Query() params: QuoteParamsClientDto,
+    ): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeClient(params);
     }
 
@@ -74,7 +81,9 @@ export class QuoteController {
     @UseGuards(JwtAuthGuard)
     @GetMyQuotesDocumentation()
     @LoadUser()
-    public async findMyQuotesLikeProvider(@Query() params: QuoteParamsDto): Promise<QuoteEntity[]> {
+    public async findMyQuotesLikeProvider(
+        @Query() params: QuoteParamsProviderDto,
+    ): Promise<QuoteEntity[]> {
         return this.quoteService.findMyQuotesLikeProvider(params);
     }
 
@@ -136,5 +145,23 @@ export class QuoteController {
     ): Promise<QuoteMessageEntity[]> {
         if (!params.getAs) params.getAs = UserTypes.CLIENT;
         return this.quoteService.getQuoteMessages(id, params);
+    }
+
+    @Post(":id/sent")
+    @HttpCode(HttpStatus.OK)
+    @SentQuoteDocumentation()
+    @UseGuards(JwtAuthGuard)
+    @LoadUser()
+    @FormDataRequest()
+    public async sentQuote(
+        @Param("id") id: string,
+        @Body() data: SentQuoteDto,
+    ): Promise<BasicResponseEntity> {
+        await this.quoteService.sentQuote(id, data);
+
+        return {
+            code: 200,
+            message: data.sent ? "Quote sent successfully" : "Quote updated without sent",
+        };
     }
 }

@@ -56,7 +56,7 @@ export class OwnerSerializerInterceptor implements NestInterceptor {
                 const instance = alreadyInstance
                     ? item
                     : plainToInstance(ctor, item, { enableImplicitConversion: true });
-                return instanceToPlain(instance);
+                return instanceToPlain(instance, { exposeDefaultValues: true });
             }
 
             const groups: string[] = this.groupDispatcher.determine(item, user);
@@ -67,7 +67,10 @@ export class OwnerSerializerInterceptor implements NestInterceptor {
                       enableImplicitConversion: true,
                   });
 
-            return instanceToPlain(instance, { groups: [...groups, "authenticated"] });
+            return instanceToPlain(instance, {
+                groups: [...groups, "authenticated"],
+                exposeDefaultValues: true,
+            });
         } catch {
             return item;
         }
