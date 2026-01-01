@@ -1,4 +1,3 @@
-import { IsOptional } from "class-validator";
 import { HasMimeType, IsFile, MemoryStoredFile } from "nestjs-form-data";
 import { ApiProperty, ApiSchema, OmitType, PartialType } from "@nestjs/swagger";
 import { BaseUserDto } from "@app/common/dtos/base-user.dto";
@@ -22,16 +21,6 @@ export class ProviderCreateDto extends BaseUserDto {
     @IsFile()
     @HasMimeType(["application/pdf"])
     public chamber_commerce: MemoryStoredFile;
-
-    @ApiProperty({
-        description: "Debe ser un archivo en formato JPEG o PNG.",
-        type: "string",
-        format: "binary",
-    })
-    @IsFile()
-    @IsOptional()
-    @HasMimeType(["image/jpeg", "image/png"])
-    public profile_picture?: MemoryStoredFile;
 }
 
 export class ProviderUpdateDto extends PartialType(ProviderCreateDto) {}

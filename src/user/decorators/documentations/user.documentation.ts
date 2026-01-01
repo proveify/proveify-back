@@ -1,5 +1,5 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { UserEntity } from "../../entities/user.entity";
 
 export function GetUserProfileDocumentation(): MethodDecorator & ClassDecorator {
@@ -17,6 +17,7 @@ export function UpdateUserDocumentation(): MethodDecorator & ClassDecorator {
         ApiOperation({ summary: "Update logged user information" }),
         ApiResponse({ status: 200, type: UserEntity, description: "User profile data" }),
         ApiResponse({ status: 401, description: "Unauthorized" }),
+        ApiConsumes("multipart/form-data"),
         ApiBearerAuth(),
     );
 }
