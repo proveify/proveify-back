@@ -73,13 +73,31 @@ export class ItemService {
             throw new HttpException("You can only update your own items", 403);
         }
 
-        return {
+        const itemUpdateInput: Prisma.ItemsUpdateInput = {
             name: data.name,
             description: data.description,
             price: data.price,
             type: data.type,
-            subcategory: { update: { id: data.subcategory_id } },
         };
+
+        if (data.images) {
+            const images = await Promise.all(
+                data.images.map(
+                    async (image) => await this.fileService.save(image, ResourceType.ITEM_IMAGE),
+                ),
+            );
+
+            itemUpdateInput.itemImages = {
+                deleteMany: {},
+                createMany: {
+                    data: images.map((file) => ({
+                        file_id: file.id,
+                    })),
+                },
+            };
+        }
+
+        return itemUpdateInput;
     }
 
     public async createItem(item: Prisma.ItemsCreateInput): Promise<ItemEntity> {
