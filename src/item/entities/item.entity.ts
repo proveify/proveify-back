@@ -3,13 +3,18 @@ import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { ItemImages } from "@prisma/client";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
 
+@Exclude()
 export class ItemEntity {
+    @Expose()
     public id: string;
 
+    @Expose()
     public name: string;
 
+    @Expose()
     public description: string | null;
 
+    @Expose()
     @ApiProperty({
         description: "Price of the item in decimal format (max 2 decimal)",
         type: "number",
@@ -18,16 +23,15 @@ export class ItemEntity {
     })
     public price: number;
 
+    @Expose()
     public created_at: Date;
 
     public updated_at: Date;
 
     @ApiHideProperty()
-    @Exclude()
     public provider_id: string;
 
     @ApiHideProperty()
-    @Exclude()
     public itemImages?: ItemImages[];
 
     @Expose()
