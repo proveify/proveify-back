@@ -111,7 +111,11 @@ export class QuotePrismaRepository implements PrismaRepository {
         return prisma.quotes.findMany({
             where: { provider_id: providerId },
             include: {
-                provider: true,
+                provider: {
+                    include: {
+                        user: true,
+                    },
+                },
                 quote_items: {
                     include: {
                         item: true,
