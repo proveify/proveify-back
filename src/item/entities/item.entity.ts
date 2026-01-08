@@ -26,8 +26,10 @@ export class ItemEntity {
     @Expose()
     public created_at: Date;
 
+    @Expose()
     public updated_at: Date;
 
+    @Expose()
     @ApiHideProperty()
     public provider_id: string;
 
@@ -52,6 +54,12 @@ export class ItemEntity {
     })
     @Expose({ groups: ["authenticated"] })
     public is_favorite: boolean;
+
+    @Expose()
+    public id_subcategory: string;
+
+    @Expose()
+    public slug: string;
 
     public constructor(partial: Partial<ItemEntity>) {
         Object.assign(this, partial);
