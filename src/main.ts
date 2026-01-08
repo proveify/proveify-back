@@ -27,19 +27,6 @@ async function bootstrap(): Promise<void> {
             Sentry.init({
                 dsn: glitchtipDsn,
                 environment,
-                integrations: [
-                    Sentry.rewriteFramesIntegration({
-                        iteratee: (frame) => {
-                            if (frame.filename) {
-                                frame.filename = frame.filename
-                                    .replace(/^.*dist\/src\//, "src_code/")
-                                    .replace(/^.*src\//, "src_code/");
-                            }
-
-                            return frame;
-                        },
-                    }),
-                ],
             });
 
             const { httpAdapter } = app.get(HttpAdapterHost);
