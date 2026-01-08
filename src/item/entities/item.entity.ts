@@ -56,10 +56,10 @@ export class ItemEntity {
     public is_favorite: boolean;
 
     @Expose()
-    public id_subcategory: string;
+    public id_subcategory: string | null;
 
     @Expose()
-    public slug: string;
+    public slug: string | null;
 
     public constructor(partial: Partial<ItemEntity>) {
         Object.assign(this, partial);

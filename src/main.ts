@@ -1,13 +1,36 @@
-import { NestFactory } from "@nestjs/core";
+import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import type { LogLevel } from "@nestjs/common";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import * as Sentry from "@sentry/node";
+import { SentryFilter } from "@app/common/sentry-exception.filter";
 
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log", "debug", "verbose"];
     const app = await NestFactory.create(AppModule, { logger: logLevel });
+
+    const configService = app.get(ConfigService);
+    const environment = configService.get<string>("environments.environment")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const isProduction = configService.get<boolean>("environments.isProd")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const isTesting = configService.get<boolean>("environments.isTesting")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const corsUrlList = configService.get<string[]>("app.corsUrlList")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const port = configService.get<number>("app.port")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+
+    if (isProduction || isTesting) {
+        const glitchtipDsn = configService.get<string>("app.glitchtipDsn");
+
+        if (glitchtipDsn) {
+            Sentry.init({
+                dsn: glitchtipDsn,
+                environment,
+            });
+
+            const { httpAdapter } = app.get(HttpAdapterHost);
+            app.useGlobalFilters(new SentryFilter(httpAdapter));
+        }
+    }
 
     const config = new DocumentBuilder()
         .setTitle("proveify api")
@@ -63,14 +86,10 @@ async function bootstrap(): Promise<void> {
         }),
     );
 
-    const configService = app.get(ConfigService);
-    const isProduction = configService.get<boolean>("app.isProd")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    const corsUrlList = configService.get<string[]>("app.corsUrlList")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    const port = configService.get<number>("app.port")!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
-
     app.enableCors({
         origin: isProduction ? corsUrlList : "*",
     });
+
     await app.listen(port);
 }
 
