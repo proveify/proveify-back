@@ -2,9 +2,9 @@ import { registerAs } from "@nestjs/config";
 
 export const environmentsConfig = registerAs("environments", () => ({
     environment: process.env.APP_ENV,
-    appIsProd: process.env.APP_ENV === "production",
-    appIsTesting: process.env.APP_ENV === "testing",
-    AppIsDevelopment: process.env.APP_ENV === "development",
+    isProd: process.env.APP_ENV === "production",
+    isTesting: process.env.APP_ENV === "testing",
+    isDevelopment: process.env.APP_ENV === "development",
 }));
 
 export const appConfig = registerAs("app", () => ({
@@ -12,4 +12,5 @@ export const appConfig = registerAs("app", () => ({
     corsUrlList: process.env.CORS_ULRS?.split(",") ?? [],
     bucket: process.env.BUCKET,
     keyFilename: process.env.KEY_FILENAME,
+    glitchtipDsn: process.env.GLITCHTIP_DSN,
 }));

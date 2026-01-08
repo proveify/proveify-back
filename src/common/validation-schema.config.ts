@@ -14,4 +14,5 @@ export default Joi.object({
     }),
     BUCKET: Joi.string().required(),
     KEY_FILENAME: Joi.string().required(),
+    GLITCHTIP_DSN: Joi.string().optional(),
 });
