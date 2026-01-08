@@ -37,6 +37,7 @@ export class ItemEntity {
     @Expose()
     public images: string[];
 
+    @Expose()
     public type: string;
 
     @ApiProperty({
