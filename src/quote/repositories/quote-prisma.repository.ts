@@ -91,7 +91,11 @@ export class QuotePrismaRepository implements PrismaRepository {
         return prisma.quotes.delete({
             where: { id },
             include: {
-                provider: true,
+                provider: {
+                    include: {
+                        user: true,
+                    },
+                },
                 quote_items: {
                     include: {
                         item: true,
