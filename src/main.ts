@@ -31,7 +31,9 @@ async function bootstrap(): Promise<void> {
                     Sentry.rewriteFramesIntegration({
                         iteratee: (frame) => {
                             if (frame.filename) {
-                                frame.filename = frame.filename.replace(/^.*\/var\/app\//, "");
+                                frame.filename = frame.filename
+                                    .replace(/^.*dist\/src\//, "src_code/")
+                                    .replace(/^.*src\//, "src_code/");
                             }
 
                             return frame;
