@@ -6,7 +6,6 @@ import * as Sentry from "@sentry/node";
 export class SentryFilter extends BaseExceptionFilter {
     public catch(exception: unknown, host: ArgumentsHost): void {
         Sentry.captureException(exception);
-
         super.catch(exception, host);
     }
 }
