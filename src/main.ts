@@ -1,3 +1,5 @@
+import "source-map-support/register";
+
 import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
@@ -25,6 +27,17 @@ async function bootstrap(): Promise<void> {
             Sentry.init({
                 dsn: glitchtipDsn,
                 environment,
+                integrations: [
+                    Sentry.rewriteFramesIntegration({
+                        iteratee: (frame) => {
+                            if (frame.filename) {
+                                frame.filename = frame.filename.replace(/^.*dist\//, "");
+                            }
+
+                            return frame;
+                        },
+                    }),
+                ],
             });
 
             const { httpAdapter } = app.get(HttpAdapterHost);
