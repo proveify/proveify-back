@@ -20,7 +20,6 @@ ENV APP_PORT=3001
 ENV APP_ENV=production
 
 COPY --from=build /var/app/dist .
-COPY --from=build /var/app/src ./src_code
 COPY --from=build /var/app/node_modules /var/app/node_modules
 COPY --from=build /var/app/package*.json ./
 
