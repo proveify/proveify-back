@@ -26,6 +26,7 @@ async function bootstrap(): Promise<void> {
             Sentry.init({
                 dsn: glitchtipDsn,
                 environment,
+                includeLocalVariables: true,
                 integrations: [
                     Sentry.rewriteFramesIntegration({
                         iteratee: (frame) => {
