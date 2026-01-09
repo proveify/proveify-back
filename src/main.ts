@@ -27,13 +27,14 @@ async function bootstrap(): Promise<void> {
                 dsn: glitchtipDsn,
                 environment,
                 includeLocalVariables: true,
+                attachStacktrace: true,
                 integrations: [
                     Sentry.rewriteFramesIntegration({
                         iteratee: (frame) => {
                             if (frame.filename) {
                                 frame.filename = frame.filename
-                                    .replace(/^.*\/var\/app\//, "")
-                                    .replace(/^src\//, "source/");
+                                    .replace(/^.*\/var\/app\/src\//, "/var/app/source/")
+                                    .replace(/^.*\/var\/app\//, "/var/app/source/");
                             }
                             return frame;
                         },
