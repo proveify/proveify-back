@@ -12,6 +12,7 @@ import { ItemFactory } from "@app/item/factories/item.factory";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "@app/user/entities/user.entity";
 import { generateSlug } from "@app/common/helpers/slug";
+import { ItemType } from "@app/item/interfaces/item.interface";
 
 @Injectable()
 export class ItemService {
@@ -260,5 +261,15 @@ export class ItemService {
         const sameSlugs = await this.itemPrismaRepository.getTotalSlug(slug);
 
         return slug + (sameSlugs > 0 ? `-${(sameSlugs + 1).toString()}` : "");
+    }
+
+    public async searchProducts(query: string): Promise<ItemEntity[]> {
+        const products = await this.itemPrismaRepository.findByType(query, ItemType.PRODUCT);
+        return this.itemFactory.createMany(products);
+    }
+
+    public async searchServices(query: string): Promise<ItemEntity[]> {
+        const services = await this.itemPrismaRepository.findByType(query, ItemType.SERVICE);
+        return this.itemFactory.createMany(services);
     }
 }

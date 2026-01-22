@@ -114,4 +114,9 @@ export class UserService {
         await this.fileService.update(file, image);
         return file.id;
     }
+
+    public async searchProviderUsers(query: string): Promise<UserEntity[]> {
+        const usersProviders = await this.userPrismaRepository.findUsersProviders(query);
+        return this.userFactory.createMany(usersProviders);
+    }
 }

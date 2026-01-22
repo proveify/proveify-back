@@ -22,6 +22,7 @@ import { PdfModule } from "./pdf/pdf.module";
 import { ClsModule } from "nestjs-cls";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { LoadUserInterceptor } from "@app/common/interceptors/load-user.interceptor";
+import { SearchModule } from "./search/search.module";
 
 @Module({
     imports: [
@@ -54,6 +55,7 @@ import { LoadUserInterceptor } from "@app/common/interceptors/load-user.intercep
             global: true,
             middleware: { mount: true },
         }),
+        SearchModule,
     ],
     providers: [
         {

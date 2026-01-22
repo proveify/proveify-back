@@ -3,6 +3,7 @@ import { PrismaService } from "@app/prisma/prisma.service";
 import type { Items as ItemModel, Prisma } from "@prisma/client";
 import { TransactionContextService } from "@app/prisma/transaction-context.service";
 import { PrismaRepository } from "@app/prisma/interfaces/prisma-repository.interface";
+import { ItemType } from "@app/item/interfaces/item.interface";
 
 @Injectable()
 export class ItemPrismaRepository implements PrismaRepository {
@@ -46,6 +47,19 @@ export class ItemPrismaRepository implements PrismaRepository {
             where: {
                 slug,
             },
+        });
+    }
+
+    public async findByType(query: string, type: ItemType): Promise<ItemModel[]> {
+        const prisma = this.getClient();
+        return prisma.items.findMany({
+            where: {
+                name: {
+                    contains: query,
+                },
+                type,
+            },
+            take: 30,
         });
     }
 }

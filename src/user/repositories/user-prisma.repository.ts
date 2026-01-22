@@ -60,4 +60,20 @@ export class UserPrismaRepository implements PrismaRepository {
             },
         });
     }
+
+    public async findUsersProviders(query: string): Promise<UserModel[]> {
+        const prisma = this.getClient();
+        return prisma.users.findMany({
+            where: {
+                user_type: "PROVIDER",
+                name: {
+                    contains: query,
+                },
+            },
+            include: {
+                provider: true,
+            },
+            take: 30,
+        });
+    }
 }
