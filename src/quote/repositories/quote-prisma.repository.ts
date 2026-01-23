@@ -25,7 +25,11 @@ export class QuotePrismaRepository implements PrismaRepository {
         return prisma.quotes.create({
             data,
             include: {
-                provider: true,
+                provider: {
+                    include: {
+                        user: true,
+                    },
+                },
                 quote_items: {
                     include: {
                         item: true,
