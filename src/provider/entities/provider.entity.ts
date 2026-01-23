@@ -1,5 +1,6 @@
 import { Exclude, Expose } from "class-transformer";
 import { ApiHideProperty } from "@nestjs/swagger";
+import { UserEntity } from "@app/user/entities/user.entity";
 
 @Exclude()
 export class ProviderEntity {
@@ -29,6 +30,9 @@ export class ProviderEntity {
 
     @Expose()
     public description: string | null;
+
+    @Expose()
+    public user: UserEntity | null = null;
 
     public constructor(partial: Partial<ProviderEntity>) {
         Object.assign(this, partial);
