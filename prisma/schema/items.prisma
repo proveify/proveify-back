@@ -3,7 +3,7 @@
 model Items {
   id          String    @id @default(uuid())
   name        String
-  description String?
+  description String?   @db.Text
   type        String    @default("PRODUCT")
   price       Decimal   @default(0.00) @db.Decimal(10, 2)
   slug        String?   @unique

@@ -2,6 +2,7 @@ import { Exclude, Expose } from "class-transformer";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { ItemImages } from "@prisma/client";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
+import { ProviderItemEntity } from "@app/item/entities/provider.entity";
 
 @Exclude()
 export class ItemEntity {
@@ -46,7 +47,8 @@ export class ItemEntity {
         description: "Provider of item",
         type: ProviderEntity,
     })
-    public provider: ProviderEntity | null = null;
+    @Expose()
+    public provider: ProviderItemEntity;
 
     @ApiProperty({
         description: "Indicates if the item is marked as favorite by the current user",

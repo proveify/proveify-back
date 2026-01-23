@@ -10,6 +10,6 @@ import { ProviderModule } from "@app/provider/provider.module";
     controllers: [ItemController],
     providers: [ItemService, ItemPrismaRepository, FavoritePrismaRepository, ItemFactory],
     imports: [ProviderModule],
-    exports: [ItemFactory],
+    exports: [ItemFactory, ItemService],
 })
 export class ItemModule {}

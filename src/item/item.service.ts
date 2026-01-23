@@ -149,7 +149,11 @@ export class ItemService {
                 type: params?.type,
             },
             include: {
-                provider: true,
+                provider: {
+                    include: {
+                        user: true,
+                    },
+                },
                 itemImages: true,
             },
         });
@@ -160,7 +164,7 @@ export class ItemService {
     public async getItemById(id: string): Promise<ItemEntity | null> {
         const item = await this.itemPrismaRepository.findUnique({
             where: { id },
-            include: { provider: true, itemImages: true },
+            include: { provider: { include: { user: true } }, itemImages: true },
         });
 
         if (!item) {
