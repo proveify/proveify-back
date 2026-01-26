@@ -7,6 +7,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Sentry from "@sentry/node";
 import { SentryFilter } from "@app/common/sentry-exception.filter";
+import type { ExpressLikeApp } from "@app/common/interfaces/expressLikeApp.interface";
 
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log", "debug", "verbose"];
@@ -23,12 +24,17 @@ async function bootstrap(): Promise<void> {
         const glitchtipDsn = configService.get<string>("app.glitchtipDsn");
 
         if (glitchtipDsn) {
+            const expressApp = app.getHttpAdapter().getInstance() as ExpressLikeApp;
+
             Sentry.init({
                 dsn: glitchtipDsn,
                 environment,
                 includeLocalVariables: true,
                 attachStacktrace: true,
+                tracesSampleRate: 0.1,
                 integrations: [
+                    Sentry.httpIntegration(),
+                    Sentry.expressIntegration(),
                     Sentry.rewriteFramesIntegration({
                         iteratee: (frame) => {
                             if (frame.filename) {
@@ -40,6 +46,8 @@ async function bootstrap(): Promise<void> {
                     }),
                 ],
             });
+
+            Sentry.setupExpressErrorHandler(expressApp);
 
             const { httpAdapter } = app.get(HttpAdapterHost);
             app.useGlobalFilters(new SentryFilter(httpAdapter));
