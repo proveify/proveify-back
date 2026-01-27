@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { randomUUID } from "node:crypto";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
-export interface TransactionContext {
+interface TransactionContext {
+    transactionId: string;
     transaction: Prisma.TransactionClient;
 }
 
@@ -17,7 +19,11 @@ export class TransactionContextService {
 
     public async runInTransaction<T>(prisma: PrismaClient, callback: () => Promise<T>): Promise<T> {
         return prisma.$transaction(async (transaction) => {
-            const context: TransactionContext = { transaction };
+            const context: TransactionContext = {
+                transactionId: randomUUID(),
+                transaction,
+            };
+
             return this.asyncLocalStorage.run(context, callback);
         });
     }
