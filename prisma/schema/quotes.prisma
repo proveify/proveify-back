@@ -31,7 +31,7 @@ model QuoteItems {
   quote_id    String
   item_id     String?
   name        String
-  description String?
+  description String?  @db.Text
   quantity    Int
   type        String   @default("PRODUCT")
   price       Decimal  @default(0.00) @db.Decimal(10, 2)
