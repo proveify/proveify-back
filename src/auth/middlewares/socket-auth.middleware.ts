@@ -16,8 +16,6 @@ export const WebsocketAuthMiddleware = (jwtService: JwtService): SocketMiddlewar
                 return;
             }
 
-            console.log(token);
-
             jwtService
                 .verifyAsync<TokenPayload>(token)
                 .then((payload) => {
