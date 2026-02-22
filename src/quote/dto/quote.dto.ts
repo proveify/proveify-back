@@ -174,6 +174,7 @@ export class QuoteParamsProviderDto extends OmitType(QuoteParamsDto, ["provider_
 export class QuoteParamsClientDto extends OmitType(QuoteParamsDto, ["user_id"]) {}
 
 export class QuoteMessageDto {
+    @IsNotEmpty()
     @IsString()
     public content: string;
 

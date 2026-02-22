@@ -13,8 +13,10 @@ import { Server } from "socket.io";
 import { PrismaService } from "@app/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
 import { WebsocketAuthMiddleware } from "@app/auth/middlewares/socket-auth.middleware";
+import { WsValidationPipe } from "@app/common/helpers/ws-validation-pipe";
 
-@WebSocketGateway({ cors: true, namespace: "quotes" })
+//TODO: ajustar los cors segun el ambiente
+@WebSocketGateway({ cors: { origin: "*" }, namespace: "quotes" })
 export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
     @WebSocketServer()
     public server: Server;
@@ -41,7 +43,7 @@ export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage("quote-message")
     public async handleMessage(
-        @MessageBody() message: QuoteMessageDto,
+        @MessageBody(WsValidationPipe) message: QuoteMessageDto,
         @ConnectedSocket() client: TypedSocket,
     ): Promise<void> {
         const user = client.data.user;
