@@ -8,12 +8,16 @@ const mockPrismaService = {
         create: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
         count: jest.fn(),
     },
     providers: {
         findUnique: jest.fn(),
+    },
+    quoteMessages: {
+        findMany: jest.fn(),
     },
 };
 
@@ -496,6 +500,124 @@ describe("QuotePrismaRepository", () => {
             const result = await repository.findProviderById(providerId);
 
             expect(result).toBeNull();
+        });
+    });
+
+    describe("findQuoteByProviderAndPublicRequest", () => {
+        it("should find a quote by provider and public request", async () => {
+            const providerId = "provider-1";
+            const publicRequestId = "request-123";
+            const mockQuote = {
+                id: "quote-1",
+                provider_id: providerId,
+                type: "PROVIDER",
+            };
+
+            mockPrismaService.quotes.findFirst.mockResolvedValue(mockQuote);
+
+            const result = await repository.findQuoteByProviderAndPublicRequest(
+                providerId,
+                publicRequestId,
+            );
+
+            expect(result).toEqual(mockQuote);
+            expect(prismaService.quotes.findFirst).toHaveBeenCalledWith({
+                where: {
+                    provider_id: providerId,
+                    quote_public_request: {
+                        some: { public_request_id: publicRequestId },
+                    },
+                },
+            });
+        });
+
+        it("should return null when no quote exists for provider and public request", async () => {
+            const providerId = "provider-1";
+            const publicRequestId = "request-456";
+
+            mockPrismaService.quotes.findFirst.mockResolvedValue(null);
+
+            const result = await repository.findQuoteByProviderAndPublicRequest(
+                providerId,
+                publicRequestId,
+            );
+
+            expect(result).toBeNull();
+        });
+    });
+
+    describe("userBelongsToQuote", () => {
+        it("should return true when user belongs to quote", async () => {
+            const userId = "user-1";
+            const quoteId = "quote-1";
+
+            mockPrismaService.quotes.findFirst.mockResolvedValue({ id: quoteId });
+
+            const result = await repository.userBelongsToQuote(userId, quoteId);
+
+            expect(result).toBe(true);
+            expect(prismaService.quotes.findFirst).toHaveBeenCalledWith({
+                where: { user_id: userId, id: quoteId },
+            });
+        });
+
+        it("should return false when user does not belong to quote", async () => {
+            const userId = "user-1";
+            const quoteId = "quote-1";
+
+            mockPrismaService.quotes.findFirst.mockResolvedValue(null);
+
+            const result = await repository.userBelongsToQuote(userId, quoteId);
+
+            expect(result).toBe(false);
+        });
+    });
+
+    describe("providerBelongsToQuote", () => {
+        it("should return true when provider belongs to quote", async () => {
+            const providerId = "provider-1";
+            const quoteId = "quote-1";
+
+            mockPrismaService.quotes.findFirst.mockResolvedValue({ id: quoteId });
+
+            const result = await repository.providerBelongsToQuote(providerId, quoteId);
+
+            expect(result).toBe(true);
+            expect(prismaService.quotes.findFirst).toHaveBeenCalledWith({
+                where: { provider_id: providerId, id: quoteId },
+            });
+        });
+
+        it("should return false when provider does not belong to quote", async () => {
+            const providerId = "provider-1";
+            const quoteId = "quote-1";
+
+            mockPrismaService.quotes.findFirst.mockResolvedValue(null);
+
+            const result = await repository.providerBelongsToQuote(providerId, quoteId);
+
+            expect(result).toBe(false);
+        });
+    });
+
+    describe("getQuoteMessages", () => {
+        it("should return quote messages with args", async () => {
+            const args = {
+                where: { quote_id: "quote-1" },
+                take: 10,
+                skip: 0,
+                orderBy: { created_at: "desc" as const },
+            };
+            const mockMessages = [
+                { id: "msg-1", quote_id: "quote-1", content: "Hello", created_at: new Date() },
+            ];
+
+            mockPrismaService.quoteMessages.findMany.mockResolvedValue(mockMessages);
+
+            const result = await repository.getQuoteMessages(args);
+
+            expect(result).toEqual(mockMessages);
+            expect(prismaService.quoteMessages.findMany).toHaveBeenCalledWith(args);
         });
     });
 });

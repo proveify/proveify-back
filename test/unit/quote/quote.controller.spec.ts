@@ -148,6 +148,85 @@ describe("QuoteController", () => {
             expect(quoteService.create).toHaveBeenCalledWith(createDto);
         });
 
+        it("should create a PROVIDER type quote successfully", async () => {
+            const createDto = {
+                provider_id: "provider-1",
+                description: "Provider quote for public request",
+                total_price: "1500.00",
+                type: "PROVIDER",
+                public_request_id: "request-123",
+                quote_items: [
+                    {
+                        name: "Service Item",
+                        description: "Service description",
+                        quantity: 2,
+                        unit_price: "750.00",
+                        price: "1500.00",
+                    },
+                ],
+            };
+
+            const createdQuote = {
+                id: "quote-1",
+                ...createDto,
+                status: "PENDING",
+                user_id: "user-1",
+                created_at: new Date(),
+                updated_at: new Date(),
+                provider: {
+                    id: "provider-1",
+                    name: "Test Provider",
+                },
+                quote_items: [
+                    {
+                        id: "item-1",
+                        quote_id: "quote-1",
+                        name: "Service Item",
+                        description: "Service description",
+                        quantity: 2,
+                        unit_price: "750.00",
+                        price: "1500.00",
+                        created_at: new Date(),
+                        updated_at: new Date(),
+                    },
+                ],
+            };
+
+            mockQuoteService.create.mockResolvedValue(createdQuote);
+
+            const result = await controller.create(createDto as any);
+
+            expect(result).toBeDefined();
+            expect(result.id).toBe("quote-1");
+            expect(result.type).toBe("PROVIDER");
+            expect(quoteService.create).toHaveBeenCalledWith(createDto);
+        });
+
+        it("should throw CONFLICT when provider already quoted for public request", async () => {
+            const createDto = {
+                provider_id: "provider-1",
+                description: "Duplicate quote",
+                total_price: "1000.00",
+                type: "PROVIDER",
+                public_request_id: "request-123",
+                quote_items: [{ name: "Service", quantity: 1 }],
+            };
+
+            mockQuoteService.create.mockRejectedValue(
+                new HttpException(
+                    "Provider has already submitted a quote for this public request",
+                    HttpStatus.CONFLICT,
+                ),
+            );
+
+            await expect(controller.create(createDto as any)).rejects.toThrow(
+                new HttpException(
+                    "Provider has already submitted a quote for this public request",
+                    HttpStatus.CONFLICT,
+                ),
+            );
+        });
+
         it("should throw exception when provider not found", async () => {
             const createDto = {
                 provider_id: "non-existent-provider",
@@ -217,6 +296,31 @@ describe("QuoteController", () => {
             expect(result[0].id).toBe("quote-1");
             expect(result[1].id).toBe("quote-2");
             expect(quoteService.findAll).toHaveBeenCalledWith({});
+        });
+
+        it("should return filtered quotes by type PROVIDER", async () => {
+            const params = { type: "PROVIDER" };
+            const mockQuotes = [
+                {
+                    id: "quote-1",
+                    provider_id: "provider-1",
+                    type: "PROVIDER",
+                    description: "Provider quote",
+                    status: "PENDING",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    provider: { id: "provider-1", name: "Test Provider" },
+                    quote_items: [],
+                },
+            ];
+
+            mockQuoteService.findAll.mockResolvedValue(mockQuotes);
+
+            const result = await controller.findAll(params as any);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].type).toBe("PROVIDER");
+            expect(quoteService.findAll).toHaveBeenCalledWith(params);
         });
 
         it("should return filtered quotes by provider", async () => {

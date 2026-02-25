@@ -18,6 +18,7 @@ const mockQuotePrismaRepository = {
     providerBelongsToQuote: jest.fn(),
     userBelongsToQuote: jest.fn(),
     getQuoteMessages: jest.fn(),
+    findQuoteByProviderAndPublicRequest: jest.fn(),
 };
 
 const mockClsService = {
@@ -190,6 +191,94 @@ describe("QuoteService", () => {
             );
         });
 
+        it("should create a PROVIDER type quote with public_request_id", async () => {
+            const mockUser = { id: "user-1", name: "Test User" };
+            const mockProvider = { id: "provider-1", name: "Test Provider" };
+            const createDto = {
+                provider_id: "provider-1",
+                description: "Provider quote for public request",
+                total_price: "1500.00",
+                type: "PROVIDER",
+                public_request_id: "request-123",
+                quote_items: [
+                    {
+                        name: "Service Item",
+                        description: "Service description",
+                        quantity: 2,
+                        unit_price: "750.00",
+                        price: "1500.00",
+                    },
+                ],
+            };
+
+            const createdQuote = {
+                id: "quote-1",
+                provider_id: createDto.provider_id,
+                description: createDto.description,
+                total_price: createDto.total_price,
+                type: "PROVIDER",
+                user_id: mockUser.id,
+                status: "PENDING",
+                created_at: new Date(),
+                updated_at: new Date(),
+            };
+
+            const quoteEntity = { ...createdQuote };
+
+            mockQuotePrismaRepository.findProviderById.mockResolvedValue(mockProvider);
+            mockClsService.get.mockReturnValue(mockUser);
+            mockQuotePrismaRepository.findQuoteByProviderAndPublicRequest.mockResolvedValue(null);
+            mockQuotePrismaRepository.createQuote.mockResolvedValue(createdQuote);
+            mockQuoteFactory.create.mockReturnValue(quoteEntity);
+
+            const result = await service.create(createDto as any);
+
+            expect(result).toEqual(quoteEntity);
+            expect(quotePrismaRepository.findQuoteByProviderAndPublicRequest).toHaveBeenCalledWith(
+                "provider-1",
+                "request-123",
+            );
+            expect(quotePrismaRepository.createQuote).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: "PROVIDER",
+                    total_price: "1500.00",
+                    quote_public_request: {
+                        create: {
+                            public_request: {
+                                connect: { id: "request-123" },
+                            },
+                        },
+                    },
+                }),
+            );
+        });
+
+        it("should throw CONFLICT when provider already quoted for the same public request", async () => {
+            const mockUser = { id: "user-1", name: "Test User" };
+            const mockProvider = { id: "provider-1", name: "Test Provider" };
+            const createDto = {
+                provider_id: "provider-1",
+                description: "Duplicate provider quote",
+                total_price: "1000.00",
+                type: "PROVIDER",
+                public_request_id: "request-123",
+                quote_items: [{ name: "Service", quantity: 1 }],
+            };
+
+            const existingQuote = { id: "existing-quote-123" };
+
+            mockQuotePrismaRepository.findProviderById.mockResolvedValue(mockProvider);
+            mockClsService.get.mockReturnValue(mockUser);
+            mockQuotePrismaRepository.findQuoteByProviderAndPublicRequest.mockResolvedValue(existingQuote);
+
+            await expect(service.create(createDto as any)).rejects.toThrow(
+                new HttpException(
+                    "Provider has already submitted a quote for this public request",
+                    HttpStatus.CONFLICT,
+                ),
+            );
+        });
+
         it("should create quote with item reference when item_id provided", async () => {
             const mockProvider = { id: "provider-1", name: "Test Provider" };
             const createDto = {
@@ -300,6 +389,78 @@ describe("QuoteService", () => {
             expect(result).toEqual(quoteEntities);
             expect(quotePrismaRepository.findManyQuotes).toHaveBeenCalledWith(
                 { status: "PENDING" },
+                30,
+                undefined,
+                { created_at: "desc" },
+            );
+        });
+
+        it("should return filtered quotes by type", async () => {
+            const params = { type: "PROVIDER" };
+            const mockQuotes = [
+                { id: "quote-1", type: "PROVIDER", description: "Provider quote" },
+            ];
+            const quoteEntities = [...mockQuotes];
+
+            mockQuotePrismaRepository.findManyQuotes.mockResolvedValue(mockQuotes);
+            mockQuoteFactory.createMany.mockReturnValue(quoteEntities);
+
+            const result = await service.findAll(params as any);
+
+            expect(result).toEqual(quoteEntities);
+            expect(quotePrismaRepository.findManyQuotes).toHaveBeenCalledWith(
+                { type: "PROVIDER" },
+                30,
+                undefined,
+                { created_at: "desc" },
+            );
+        });
+
+        it("should return filtered quotes by public_request_id", async () => {
+            const params = { public_request_id: "request-123" };
+            const mockQuotes = [
+                { id: "quote-1", type: "PROVIDER", description: "Provider quote" },
+            ];
+            const quoteEntities = [...mockQuotes];
+
+            mockQuotePrismaRepository.findManyQuotes.mockResolvedValue(mockQuotes);
+            mockQuoteFactory.createMany.mockReturnValue(quoteEntities);
+
+            const result = await service.findAll(params as any);
+
+            expect(result).toEqual(quoteEntities);
+            expect(quotePrismaRepository.findManyQuotes).toHaveBeenCalledWith(
+                {
+                    quote_public_request: {
+                        some: { public_request_id: "request-123" },
+                    },
+                },
+                30,
+                undefined,
+                { created_at: "desc" },
+            );
+        });
+
+        it("should return filtered quotes by type and public_request_id combined", async () => {
+            const params = { type: "PROVIDER", public_request_id: "request-123" };
+            const mockQuotes = [
+                { id: "quote-1", type: "PROVIDER", description: "Provider quote" },
+            ];
+            const quoteEntities = [...mockQuotes];
+
+            mockQuotePrismaRepository.findManyQuotes.mockResolvedValue(mockQuotes);
+            mockQuoteFactory.createMany.mockReturnValue(quoteEntities);
+
+            const result = await service.findAll(params as any);
+
+            expect(result).toEqual(quoteEntities);
+            expect(quotePrismaRepository.findManyQuotes).toHaveBeenCalledWith(
+                {
+                    type: "PROVIDER",
+                    quote_public_request: {
+                        some: { public_request_id: "request-123" },
+                    },
+                },
                 30,
                 undefined,
                 { created_at: "desc" },
