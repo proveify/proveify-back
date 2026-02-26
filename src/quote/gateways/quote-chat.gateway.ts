@@ -28,6 +28,36 @@ export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     public afterInit(client: Server): void {
         client.use(WebsocketAuthMiddleware(this.jwtService));
+
+        client.use((socket: TypedSocket, next) => {
+            void (async (): Promise<void> => {
+                try {
+                    const quoteId = socket.handshake.query.id;
+
+                    if (!quoteId || typeof quoteId !== "string") {
+                        const err = new Error("Missing quote id");
+                        next(err);
+                        return;
+                    }
+
+                    const quote = await this.prismaService.quotes.findUnique({
+                        where: { id: quoteId },
+                        select: { id: true },
+                    });
+
+                    if (!quote) {
+                        const err = new Error("Quote not found");
+                        next(err);
+                        return;
+                    }
+
+                    next();
+                } catch {
+                    const err = new Error("Could not validate quote id");
+                    next(err);
+                }
+            })();
+        });
     }
 
     public handleDisconnect(client: TypedSocket): void {
