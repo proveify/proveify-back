@@ -15,8 +15,7 @@ import { JwtService } from "@nestjs/jwt";
 import { WebsocketAuthMiddleware } from "@app/auth/middlewares/socket-auth.middleware";
 import { WsValidationPipe } from "@app/common/helpers/ws-validation-pipe";
 
-//TODO: ajustar los cors segun el ambiente
-@WebSocketGateway({ cors: { origin: "*" }, namespace: "quotes" })
+@WebSocketGateway({ namespace: "quotes" })
 export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
     @WebSocketServer()
     public server: Server;

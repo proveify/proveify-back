@@ -8,6 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import * as Sentry from "@sentry/node";
 import { SentryFilter } from "@app/common/sentry-exception.filter";
 import type { ExpressLikeApp } from "@app/common/interfaces/expressLikeApp.interface";
+import { SocketIoAdapter } from "@app/common/adapters/socket-io.adapter";
 
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log", "debug", "verbose"];
@@ -111,6 +112,14 @@ async function bootstrap(): Promise<void> {
     app.enableCors({
         origin: isProduction ? corsUrlList : "*",
     });
+
+    app.useWebSocketAdapter(
+        new SocketIoAdapter(app, {
+            cors: {
+                origin: isProduction ? corsUrlList : "*",
+            },
+        }),
+    );
 
     await app.listen(port);
 }
