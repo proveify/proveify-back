@@ -6,6 +6,7 @@ import {
     WebSocketServer,
     OnGatewayInit,
     OnGatewayDisconnect,
+    OnGatewayConnection,
 } from "@nestjs/websockets";
 import { TypedSocket } from "@app/auth/interfaces/ws-auth.interface";
 import { QuoteMessageDto } from "@app/quote/dto/quote.dto";
@@ -15,9 +16,8 @@ import { JwtService } from "@nestjs/jwt";
 import { WebsocketAuthMiddleware } from "@app/auth/middlewares/socket-auth.middleware";
 import { WsValidationPipe } from "@app/common/helpers/ws-validation-pipe";
 
-//TODO: ajustar los cors segun el ambiente
-@WebSocketGateway({ cors: { origin: "*" }, namespace: "quotes" })
-export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
+@WebSocketGateway({ namespace: "quotes" })
+export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewayConnection {
     @WebSocketServer()
     public server: Server;
 
@@ -51,6 +51,7 @@ export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
                         return;
                     }
 
+                    socket.data.joinedRooms = [quoteId];
                     next();
                 } catch {
                     const err = new Error("Could not validate quote id");
@@ -60,15 +61,20 @@ export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
         });
     }
 
-    public handleDisconnect(client: TypedSocket): void {
-        const userId = client.data.user.id;
+    public handleConnection(client: TypedSocket): void {
+        const quoteId = client.handshake.query.id as string;
+        const room = `quote_${quoteId}`;
 
-        for (const room of client.data.joinedRooms) {
-            client.broadcast.to(room).emit("user-left", {
-                userId: userId,
-                quoteId: room,
-            });
+        if (!client.data.joinedRooms.includes(room)) {
+            client.data.joinedRooms.push(room);
         }
+    }
+
+    public handleDisconnect(client: TypedSocket): void {
+        const quoteId = client.handshake.query.id as string;
+        const room = `quote_${quoteId}`;
+
+        client.data.joinedRooms = client.data.joinedRooms.filter((r: string) => r !== room);
     }
 
     @SubscribeMessage("quote-message")
@@ -77,46 +83,33 @@ export class QuoteChatGateway implements OnGatewayInit, OnGatewayDisconnect {
         @ConnectedSocket() client: TypedSocket,
     ): Promise<void> {
         const user = client.data.user;
+        const quoteId = client.handshake.query.id as string;
 
         await this.prismaService.$transaction(async (tx) => {
             const quoteMessage = await tx.quoteMessages.create({
                 data: {
                     content: message.content,
-                    quote_id: message.quoteId,
+                    quote_id: quoteId,
                     user_id: user.id,
                 },
             });
 
-            this.server.to(`quote_${message.quoteId}`).emit("new-message", {
+            this.server.to(`quote_${quoteId}`).emit("new-message", {
                 messageId: quoteMessage.id,
                 userId: user.id,
                 content: message.content,
                 timestamp: quoteMessage.created_at.toISOString(),
-                quoteId: message.quoteId,
+                quoteId: quoteId,
             });
         });
     }
 
-    @SubscribeMessage("join-quote-room")
-    public async handleJoinRoom(
-        @MessageBody() data: { quoteId: string },
+    @SubscribeMessage("join-quote")
+    public async handleJoinQuote(
+        @MessageBody() quoteId: string,
         @ConnectedSocket() client: TypedSocket,
-    ): Promise<void> {
-        const room = `quote_${data.quoteId}`;
-        await client.join(room);
-
-        if (!client.data.joinedRooms.includes(room)) {
-            client.data.joinedRooms.push(room);
-        }
-    }
-
-    @SubscribeMessage("leave-quote-room")
-    public async handleLeaveRoom(
-        @MessageBody() data: { quoteId: string },
-        @ConnectedSocket() client: TypedSocket,
-    ): Promise<void> {
-        const room = `quote_${data.quoteId}`;
-        await client.leave(room);
-        client.data.joinedRooms = client.data.joinedRooms.filter((r: string) => r !== room);
+    ): Promise<{ ok: true; room: string }> {
+        await client.join(`quote_${quoteId}`);
+        return { ok: true, room: `quote_${quoteId}` };
     }
 }
