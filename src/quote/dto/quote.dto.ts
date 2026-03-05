@@ -177,9 +177,6 @@ export class QuoteMessageDto {
     @IsNotEmpty()
     @IsString()
     public content: string;
-
-    @IsUUID()
-    public quoteId: string;
 }
 
 export class QuoteMessageParamsDto extends IntersectionType(ParamsDto) {
