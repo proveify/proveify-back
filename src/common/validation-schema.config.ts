@@ -15,4 +15,9 @@ export default Joi.object({
     BUCKET: Joi.string().required(),
     KEY_FILENAME: Joi.string().required(),
     GLITCHTIP_DSN: Joi.string().optional(),
+    WOMPI_PUBLIC_KEY: Joi.string().required(),
+    WOMPI_BASE_URL: Joi.string().required(),
+    WOMPI_INTEGRITY_SECRET: Joi.string().required(),
+    WOMPI_PRIVATE_KEY: Joi.string().required(),
+    WOMPI_SECRET_EVENT: Joi.string().required(),
 });
