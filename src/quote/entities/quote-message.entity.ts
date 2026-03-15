@@ -6,7 +6,7 @@ export class QuoteMessageEntity {
     public id: string;
 
     @Expose()
-    public message: string;
+    public content: string;
 
     @Expose()
     public created_at: Date;
