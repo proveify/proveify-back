@@ -1,20 +1,27 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { CategoryEntity } from "@app/category/entities/category.entity";
+import { Exclude, Expose } from "class-transformer";
 
+@Exclude()
 export class SubcategoryEntity {
     @ApiProperty()
+    @Expose()
     public id: string;
 
     @ApiProperty()
+    @Expose()
     public name: string;
 
     @ApiProperty({ required: false })
+    @Expose()
     public description: string | null;
 
     @ApiProperty()
+    @Expose()
     public id_category: string;
 
     @ApiProperty({ required: false })
+    @Expose()
     public category?: CategoryEntity;
 
     @ApiProperty()
