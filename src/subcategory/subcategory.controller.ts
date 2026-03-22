@@ -24,12 +24,16 @@ import {
     GetSubcategoryDocumentation,
     UpdateSubcategoryDocumentation,
 } from "./decorators/documentations/subcategory.documentation";
+import { CategoryMapper } from "@app/category/mappers/category.mapper";
 
 @ApiTags("Subcategories")
 @Controller("subcategories")
 @UseInterceptors(ClassSerializerInterceptor)
 export class SubcategoryController {
-    public constructor(private readonly subcategoryService: SubcategoryService) {}
+    public constructor(
+        private readonly subcategoryService: SubcategoryService,
+        private readonly categoryMapper: CategoryMapper,
+    ) {}
 
     @Post()
     @CreateSubcategoryDocumentation()
@@ -37,14 +41,14 @@ export class SubcategoryController {
         @Body() createSubcategoryDto: CreateSubcategoryDto,
     ): Promise<SubcategoryEntity> {
         const subcategory = await this.subcategoryService.create(createSubcategoryDto);
-        return new SubcategoryEntity(subcategory);
+        return this.categoryMapper.toSubcategoryEntity(subcategory);
     }
 
     @Get()
     @GetSubcategoriesDocumentation()
     public async findAll(): Promise<SubcategoryEntity[]> {
         const subcategories = await this.subcategoryService.findAll();
-        return subcategories.map((subcategory) => new SubcategoryEntity(subcategory));
+        return this.categoryMapper.toSubcategoryEntities(subcategories);
     }
 
     @Get(":id")
@@ -56,7 +60,7 @@ export class SubcategoryController {
             throw new HttpException("Subcategory not found", HttpStatus.NOT_FOUND);
         }
 
-        return new SubcategoryEntity(subcategory);
+        return this.categoryMapper.toSubcategoryEntity(subcategory);
     }
 
     @Get("category/:categoryId")
@@ -65,7 +69,7 @@ export class SubcategoryController {
         @Param("categoryId") categoryId: string,
     ): Promise<SubcategoryEntity[]> {
         const subcategories = await this.subcategoryService.findByCategoryId(categoryId);
-        return subcategories.map((subcategory) => new SubcategoryEntity(subcategory));
+        return this.categoryMapper.toSubcategoryEntities(subcategories);
     }
 
     @Patch(":id")
@@ -75,13 +79,13 @@ export class SubcategoryController {
         @Body() updateSubcategoryDto: UpdateSubcategoryDto,
     ): Promise<SubcategoryEntity> {
         const updatedSubcategory = await this.subcategoryService.update(id, updateSubcategoryDto);
-        return new SubcategoryEntity(updatedSubcategory);
+        return this.categoryMapper.toSubcategoryEntity(updatedSubcategory);
     }
 
     @Delete(":id")
     @DeleteSubcategoryDocumentation()
     public async remove(@Param("id") id: string): Promise<SubcategoryEntity> {
         const deletedSubcategory = await this.subcategoryService.remove(id);
-        return new SubcategoryEntity(deletedSubcategory);
+        return this.categoryMapper.toSubcategoryEntity(deletedSubcategory);
     }
 }

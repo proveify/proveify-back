@@ -23,25 +23,29 @@ import {
     GetCategoryDocumentation,
     UpdateCategoryDocumentation,
 } from "./decorators/documentations/category.documentation";
+import { CategoryMapper } from "./mappers/category.mapper";
 
 @ApiTags("Categories")
 @Controller("categories")
 @UseInterceptors(ClassSerializerInterceptor)
 export class CategoryController {
-    public constructor(private readonly categoryService: CategoryService) {}
+    public constructor(
+        private readonly categoryService: CategoryService,
+        private readonly categoryMapper: CategoryMapper,
+    ) {}
 
     @Post()
     @CreateCategoryDocumentation()
     public async create(@Body() createCategoryDto: CreateCategoryDto): Promise<CategoryEntity> {
         const category = await this.categoryService.create(createCategoryDto);
-        return new CategoryEntity(category);
+        return this.categoryMapper.toCategoryEntity(category);
     }
 
     @Get()
     @GetCategoriesDocumentation()
     public async findAll(): Promise<CategoryEntity[]> {
         const categories = await this.categoryService.findAll();
-        return categories.map((category) => new CategoryEntity(category));
+        return this.categoryMapper.toCategoryEntities(categories);
     }
 
     @Get(":id")
@@ -51,7 +55,7 @@ export class CategoryController {
         if (!category) {
             throw new HttpException("Category not found", HttpStatus.NOT_FOUND);
         }
-        return new CategoryEntity(category);
+        return this.categoryMapper.toCategoryEntity(category);
     }
 
     @Patch(":id")
@@ -61,13 +65,13 @@ export class CategoryController {
         @Body() updateCategoryDto: UpdateCategoryDto,
     ): Promise<CategoryEntity> {
         const updatedCategory = await this.categoryService.update(id, updateCategoryDto);
-        return new CategoryEntity(updatedCategory);
+        return this.categoryMapper.toCategoryEntity(updatedCategory);
     }
 
     @Delete(":id")
     @DeleteCategoryDocumentation()
     public async remove(@Param("id") id: string): Promise<CategoryEntity> {
         const deletedCategory = await this.categoryService.remove(id);
-        return new CategoryEntity(deletedCategory);
+        return this.categoryMapper.toCategoryEntity(deletedCategory);
     }
 }

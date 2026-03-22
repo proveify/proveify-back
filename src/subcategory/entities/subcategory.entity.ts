@@ -17,7 +17,6 @@ export class SubcategoryEntity {
     public description: string | null;
 
     @ApiProperty()
-    @Expose()
     public id_category: string;
 
     @ApiProperty({ required: false })
