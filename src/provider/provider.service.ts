@@ -6,16 +6,16 @@ import { ProviderUpdateDto } from "./dto/provider.dto";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { ProviderEntity } from "@app/provider/entities/provider.entity";
-import { ProviderFactory } from "@app/provider/factories/provider.factory";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "@app/user/entities/user.entity";
+import { UserProviderMapper } from "@app/user/mappers/user-provider.mapper";
 
 @Injectable()
 export class ProviderService {
     public constructor(
         private providerPrismaRepository: ProviderPrismaRepository,
         private fileService: FileService,
-        private readonly providerFactory: ProviderFactory,
+        private readonly userProviderMapper: UserProviderMapper,
         private cls: ClsService,
     ) {}
 
@@ -31,13 +31,13 @@ export class ProviderService {
             { id: params?.order_by_date ?? "desc" },
         );
 
-        return this.providerFactory.createMany(providers);
+        return this.userProviderMapper.toProviderEntities(providers);
     }
 
     public async getProviderById(id: string): Promise<ProviderEntity | null> {
         const provider = await this.providerPrismaRepository.findUniqueProvider(id);
         if (!provider) return null;
-        return this.providerFactory.create(provider);
+        return this.userProviderMapper.toProviderEntity(provider);
     }
 
     public async updateProvider(data: ProviderUpdateDto): Promise<ProviderEntity> {
@@ -86,6 +86,6 @@ export class ProviderService {
             providerData,
         );
 
-        return this.providerFactory.create(providerUpdated);
+        return this.userProviderMapper.toProviderEntity(providerUpdated);
     }
 }

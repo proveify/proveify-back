@@ -3,25 +3,25 @@ import { Prisma } from "@prisma/client";
 import { UserPrismaRepository } from "./repositories/user-prisma.repository";
 import { UserNotFoundException } from "./exceptions/user-not-found.exception/user-not-found.exception";
 import { UserEntity } from "./entities/user.entity";
-import { UserFactory } from "@app/user/factories/user.factory";
 import { ClsService } from "nestjs-cls";
 import { UserUpdateDto } from "@app/user/dto/user.dto";
 import { FileService } from "@app/file/file.service";
 import { ResourceType } from "@app/file/interfaces/file-manager.interface";
 import { MemoryStoredFile } from "nestjs-form-data";
+import { UserProviderMapper } from "./mappers/user-provider.mapper";
 
 @Injectable()
 export class UserService {
     public constructor(
         private readonly userPrismaRepository: UserPrismaRepository,
-        private readonly userFactory: UserFactory,
+        private readonly userProviderMapper: UserProviderMapper,
         private readonly cls: ClsService,
         private readonly fileService: FileService,
     ) {}
 
     public async saveUser(data: Prisma.UsersCreateInput): Promise<UserEntity> {
         const user = await this.userPrismaRepository.createUser(data);
-        return this.userFactory.create(user);
+        return this.userProviderMapper.toUserEntity(user);
     }
 
     public async findUserOneByEmail(email: string): Promise<UserEntity | null> {
@@ -31,7 +31,7 @@ export class UserService {
             return null;
         }
 
-        return this.userFactory.create(user);
+        return this.userProviderMapper.toUserEntity(user);
     }
 
     public async findUserOneById(
@@ -43,12 +43,12 @@ export class UserService {
             return null;
         }
 
-        return this.userFactory.create(user);
+        return this.userProviderMapper.toUserEntity(user);
     }
 
     public async update(id: string, userData: Prisma.UsersUpdateInput): Promise<UserEntity> {
         const user = await this.userPrismaRepository.updateUser(id, userData);
-        return this.userFactory.create(user);
+        return this.userProviderMapper.toUserEntity(user);
     }
 
     public async updateWithProviderData(data: UserUpdateDto): Promise<UserEntity> {
@@ -92,7 +92,7 @@ export class UserService {
             throw new UserNotFoundException(id);
         }
 
-        return this.userFactory.create(user);
+        return this.userProviderMapper.toUserEntity(user);
     }
 
     public async upProfilePicture(image: MemoryStoredFile): Promise<string> {
@@ -117,6 +117,6 @@ export class UserService {
 
     public async searchProviderUsers(query: string): Promise<UserEntity[]> {
         const usersProviders = await this.userPrismaRepository.findUsersProviders(query);
-        return this.userFactory.createMany(usersProviders);
+        return this.userProviderMapper.toUserEntities(usersProviders);
     }
 }

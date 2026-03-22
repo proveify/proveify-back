@@ -3,7 +3,7 @@ import { QuoteEntity } from "@app/quote/entities/quote.entity";
 import { Injectable } from "@nestjs/common";
 import { QuoteItemEntity } from "@app/quote/entities/quote-item.entity";
 import { FileService } from "@app/file/file.service";
-import { UserFactory } from "@app/user/factories/user.factory";
+import { UserProviderMapper } from "@app/user/mappers/user-provider.mapper";
 
 type QuoteInput =
     | Prisma.QuotesGetPayload<{
@@ -17,7 +17,7 @@ type QuoteInput =
 @Injectable()
 export class QuoteFactory {
     public constructor(
-        private readonly userFactory: UserFactory,
+        private readonly userProviderMapper: UserProviderMapper,
         private readonly fileService: FileService,
     ) {}
 
@@ -26,7 +26,9 @@ export class QuoteFactory {
             ...quote,
             quote_items: [] as QuoteItemEntity[],
             provider:
-                "provider" in quote ? await this.userFactory.create(quote.provider.user) : null,
+                "provider" in quote
+                    ? await this.userProviderMapper.toUserEntity(quote.provider.user)
+                    : null,
         };
 
         if ("quote_items" in quote) {
