@@ -14,3 +14,11 @@ export const appConfig = registerAs("app", () => ({
     keyFilename: process.env.KEY_FILENAME,
     glitchtipDsn: process.env.GLITCHTIP_DSN,
 }));
+
+export const wompiConfig = registerAs("wompi", () => ({
+    publicKey: process.env.WOMPI_PUBLIC_KEY,
+    baseUrl: process.env.WOMPI_BASE_URL,
+    integritySecret: process.env.WOMPI_INTEGRITY_SECRET,
+    privateKey: process.env.WOMPI_PRIVATE_KEY,
+    secretEvent: process.env.WOMPI_SECRET_EVENT,
+}));

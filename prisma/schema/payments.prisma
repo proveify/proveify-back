@@ -1,0 +1,30 @@
+// Model Payments
+
+model Payments {
+  id              String        @id @default(uuid())
+  reference       String        @unique
+  wompi_id        String?
+  amount_in_cents Int
+  currency        String        @default("COP")
+  status          PaymentStatus @default(PENDING)
+  redirect_url    String?       @db.Text
+  quote_id        String        @unique
+  user_id         String
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @default(now()) @updatedAt
+
+  quote Quotes @relation(fields: [quote_id], references: [id])
+  user  Users  @relation(fields: [user_id], references: [id])
+
+  @@index([reference])
+  @@index([user_id])
+  @@index([status])
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  VOIDED
+  ERROR
+}

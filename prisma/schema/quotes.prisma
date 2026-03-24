@@ -18,6 +18,7 @@ model Quotes {
   provider     Providers       @relation(fields: [provider_id], references: [id])
   quote_items  QuoteItems[]
   quoteMessage QuoteMessages[]
+  payment      Payments?
 
   @@index([provider_id])
   @@index([email])

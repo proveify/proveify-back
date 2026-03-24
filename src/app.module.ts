@@ -10,7 +10,7 @@ import { PlanModule } from "./plan/plan.module";
 import { ItemModule } from "./item/item.module";
 import { ConfigModule } from "@nestjs/config";
 import validationSchemaConfig from "@app/common/validation-schema.config";
-import { appConfig, environmentsConfig } from "@app/common/base.config";
+import { appConfig, environmentsConfig, wompiConfig } from "@app/common/base.config";
 import jwtConfig from "@app/common/jwt.config";
 import refreshJwtConfig from "@app/common/refresh-jwt-config";
 import { CategoryModule } from "./category/category.module";
@@ -23,6 +23,7 @@ import { ClsModule } from "nestjs-cls";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { LoadUserInterceptor } from "@app/common/interceptors/load-user.interceptor";
 import { SearchModule } from "./search/search.module";
+import { PaymentModule } from "./payment/payment.module";
 
 @Module({
     imports: [
@@ -48,7 +49,7 @@ import { SearchModule } from "./search/search.module";
             validationOptions: {
                 allowUnknown: true,
             },
-            load: [appConfig, environmentsConfig, jwtConfig, refreshJwtConfig],
+            load: [appConfig, environmentsConfig, jwtConfig, refreshJwtConfig, wompiConfig],
         }),
         PdfModule,
         ClsModule.forRoot({
@@ -56,6 +57,7 @@ import { SearchModule } from "./search/search.module";
             middleware: { mount: true },
         }),
         SearchModule,
+        PaymentModule,
     ],
     providers: [
         {
