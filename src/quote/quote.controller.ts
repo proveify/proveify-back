@@ -139,6 +139,7 @@ export class QuoteController {
 
     @Get(":id/messages")
     @UseGuards(JwtAuthGuard)
+    @LoadUser()
     public async getQuoteMessages(
         @Param("id") id: string,
         @Query() params: QuoteMessageParamsDto,
