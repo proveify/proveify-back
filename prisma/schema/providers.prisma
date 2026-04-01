@@ -14,4 +14,5 @@ model Providers {
   items            Items[]
   quotes           Quotes[]
   ProviderQuotes   ProviderQuotes[]
+  payments         Payments[]
 }

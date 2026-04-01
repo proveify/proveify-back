@@ -32,32 +32,33 @@ export class PaymentService {
     public async initiatePayment(dto: InitiatePaymentDto): Promise<PaymentEntity> {
         const user = this.cls.get<UserEntity>("user");
 
-        const quote = await this.paymentPrismaRepository.findQuoteById(dto.quote_id);
-
-        if (!quote) {
-            throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
+        if (!user.provider) {
+            throw new HttpException("User does not have a provider profile", HttpStatus.FORBIDDEN);
         }
 
-        if (quote.status !== "QUOTED") {
-            throw new HttpException(
-                "Only approved quotes can be paid",
-                HttpStatus.BAD_REQUEST,
-            );
+        const plan = await this.paymentPrismaRepository.findPlanById(dto.plan_id);
+
+        if (!plan) {
+            throw new HttpException("Plan not found", HttpStatus.NOT_FOUND);
         }
 
-        const existing = await this.paymentPrismaRepository.findPaymentByQuoteId(dto.quote_id);
+        if (plan.price <= 0) {
+            throw new HttpException("This plan does not require payment", HttpStatus.BAD_REQUEST);
+        }
+
+        const existing = await this.paymentPrismaRepository.findPendingPaymentByProvider(
+            user.provider.id,
+            dto.plan_id,
+        );
         if (existing) {
             throw new HttpException(
-                "A payment already exists for this quote",
+                "A pending payment already exists for this plan",
                 HttpStatus.CONFLICT,
             );
         }
 
-        const amountInCents = quote.quote_items.reduce((sum, item) => {
-            return sum + Math.round(item.price.toNumber() * 100);
-        }, 0);
-
-        const reference = `PRV-${Date.now()}-${quote.id.slice(0, 8)}`;
+        const amountInCents = Math.round(plan.price * 100);
+        const reference = `PRV-${Date.now()}-${user.provider.id.slice(0, 8)}`;
 
         const integritySignature = this.wompiService.generateIntegritySignature(
             reference,
@@ -69,8 +70,8 @@ export class PaymentService {
             reference,
             amount_in_cents: amountInCents,
             currency: CURRENCY,
-            quote: { connect: { id: dto.quote_id } },
-            user: { connect: { id: user.id } },
+            plan: { connect: { id: dto.plan_id } },
+            provider: { connect: { id: user.provider.id } },
         };
 
         const payment = await this.paymentPrismaRepository.createPayment(createData);

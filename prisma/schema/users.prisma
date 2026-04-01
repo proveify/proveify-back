@@ -20,5 +20,4 @@ model Users {
   publicRequest         PublicRequests[]
   quoteMessage          QuoteMessages[]
   ProviderQuoteMessages ProviderQuoteMessages[]
-  payments              Payments[]
 }

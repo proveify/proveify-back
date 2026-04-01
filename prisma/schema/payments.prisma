@@ -8,16 +8,16 @@ model Payments {
   currency        String        @default("COP")
   status          PaymentStatus @default(PENDING)
   redirect_url    String?       @db.Text
-  quote_id        String        @unique
-  user_id         String
+  plan_id         String
+  provider_id     String
   created_at      DateTime      @default(now())
   updated_at      DateTime      @default(now()) @updatedAt
 
-  quote Quotes @relation(fields: [quote_id], references: [id])
-  user  Users  @relation(fields: [user_id], references: [id])
+  plan     Plans     @relation(fields: [plan_id], references: [id])
+  provider Providers @relation(fields: [provider_id], references: [id])
 
   @@index([reference])
-  @@index([user_id])
+  @@index([provider_id])
   @@index([status])
 }
 
