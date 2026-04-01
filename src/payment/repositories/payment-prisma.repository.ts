@@ -25,9 +25,11 @@ export class PaymentPrismaRepository implements PrismaRepository {
         return prisma.payments.findUnique({ where: { reference } });
     }
 
-    public async findPaymentByQuoteId(quoteId: string): Promise<PaymentModel | null> {
+    public async findPendingPaymentByProvider(providerId: string, planId: string): Promise<PaymentModel | null> {
         const prisma = this.getClient();
-        return prisma.payments.findUnique({ where: { quote_id: quoteId } });
+        return prisma.payments.findFirst({
+            where: { provider_id: providerId, plan_id: planId, status: "PENDING" },
+        });
     }
 
     public async updatePaymentByReference(
@@ -38,11 +40,8 @@ export class PaymentPrismaRepository implements PrismaRepository {
         return prisma.payments.update({ where: { reference }, data });
     }
 
-    public async findQuoteById(id: string) {
+    public async findPlanById(id: string) {
         const prisma = this.getClient();
-        return prisma.quotes.findUnique({
-            where: { id },
-            include: { quote_items: true },
-        });
+        return prisma.plans.findUnique({ where: { id } });
     }
 }

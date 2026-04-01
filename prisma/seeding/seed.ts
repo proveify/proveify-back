@@ -17,7 +17,31 @@ async function main() {
         },
     });
 
+    const planBasic = await prisma.plans.upsert({
+        where: { plan_key: "PLAN_BASIC" },
+        update: {},
+        create: {
+            plan_key: "PLAN_BASIC",
+            name: "Plan Básico",
+            description: "Subir cotizaciones manuales, aparecer en los primeros 10 artículos, recordatorio de bandeja de notificaciones, registro de catálogo en la página y reportes periódicos",
+            price: 50000.0,
+        },
+    });
+
+    const planAdvanced = await prisma.plans.upsert({
+        where: { plan_key: "PLAN_ADVANCED" },
+        update: {},
+        create: {
+            plan_key: "PLAN_ADVANCED",
+            name: "Plan Avanzado",
+            description: "Catálogo con inventario real, autocotización, subir cualquier tipo de archivo, hasta 15 cotizaciones públicas diarias, prioridad en búsqueda y solución de problemas, reportes desde la página",
+            price: 150000.0,
+        },
+    });
+
     console.log(planNone);
+    console.log(planBasic);
+    console.log(planAdvanced);
     
     // Seed de categorías
     await seedCategories(prisma);

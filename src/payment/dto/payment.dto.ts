@@ -2,8 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsUUID } from "class-validator";
 
 export class InitiatePaymentDto {
-    @ApiProperty({ description: "ID of the approved quote to pay", example: "uuid" })
+    @ApiProperty()
     @IsUUID()
     @IsNotEmpty()
-    public quote_id: string;
+    public plan_id: string;
 }
