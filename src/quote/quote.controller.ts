@@ -32,7 +32,7 @@ import {
     CreateQuoteDocumentation,
     DeleteQuoteDocumentation,
     GetMyQuotesDocumentation,
-    GetQuoteDocumentation,
+    GetQuoteDocumentation, GetQuoteMessageDocumentation,
     GetQuotesDocumentation,
     PrintQuoteDocumentation,
     SentQuoteDocumentation,
@@ -139,6 +139,7 @@ export class QuoteController {
 
     @Get(":id/messages")
     @UseGuards(JwtAuthGuard)
+    @GetQuoteMessageDocumentation()
     @LoadUser()
     public async getQuoteMessages(
         @Param("id") id: string,
