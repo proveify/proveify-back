@@ -261,3 +261,9 @@ export function SentQuoteDocumentation(): MethodDecorator & ClassDecorator {
         ApiBearerAuth(),
     );
 }
+
+export function GetQuoteMessageDocumentation(): MethodDecorator & ClassDecorator {
+    return applyDecorators(
+        ApiBearerAuth(),
+    );
+}
