@@ -260,7 +260,7 @@ export class QuoteService {
 
         if (!quote) throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
 
-        if (user.provider?.id !== quote.provider?.id && user.id !== quote.user_id) {
+        if (user.provider?.id !== quote.provider_id && user.id !== quote.user_id) {
             throw new HttpException("You can only view your own quotes", HttpStatus.FORBIDDEN);
         }
 
