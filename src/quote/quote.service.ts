@@ -255,34 +255,13 @@ export class QuoteService {
         id: string,
         params: QuoteMessageParamsDto,
     ): Promise<QuoteMessageEntity[]> {
-        if (params.getAs === UserTypes.PROVIDER) {
-            const user = this.cls.get<UserEntity>("user");
+        const user = this.cls.get<UserEntity>("user");
+        const quote = await this.findOne(id);
 
-            if (!user.provider) {
-                throw new HttpException(
-                    "User does not have a provider profile",
-                    HttpStatus.FORBIDDEN,
-                );
-            }
+        if (!quote) throw new HttpException("Quote not found", HttpStatus.NOT_FOUND);
 
-            const providerBelongsToQuote = await this.quotePrismaRepository.providerBelongsToQuote(
-                user.provider.id,
-                id,
-            );
-
-            if (!providerBelongsToQuote) {
-                throw new HttpException("Provider does not belong to quote", HttpStatus.FORBIDDEN);
-            }
-        } else {
-            const user = this.cls.get<UserEntity>("user");
-            const userBelongsToQuote = await this.quotePrismaRepository.userBelongsToQuote(
-                user.id,
-                id,
-            );
-
-            if (!userBelongsToQuote) {
-                throw new HttpException("User does not belong to quote", HttpStatus.FORBIDDEN);
-            }
+        if (user.provider?.id !== quote.provider?.id && user.id !== quote.user_id) {
+            throw new HttpException("You can only view your own quotes", HttpStatus.FORBIDDEN);
         }
 
         const quoteMessages = await this.quotePrismaRepository.getQuoteMessages({
