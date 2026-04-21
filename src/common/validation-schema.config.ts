@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+import Joi from "joi";
 
 export default Joi.object({
     APP_ENV: Joi.string().valid("development", "production", "testing").default("development"),
