@@ -1,151 +1,232 @@
 import { ItemEntity } from "@app/item/entities/item.entity";
 import { applyDecorators } from "@nestjs/common";
-import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiParam } from "@nestjs/swagger";
+import {
+    ApiBearerAuth,
+    ApiConsumes,
+    ApiOkResponse,
+    ApiCreatedResponse,
+    ApiNotFoundResponse,
+    ApiOperation,
+    ApiParam,
+    ApiTags,
+} from "@nestjs/swagger";
 import { FavoriteEntity } from "@app/item/entities/favorite.entity";
+
+const ITEM_TAG = "Artículos";
 
 export function PostCreateItemDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Create item" }),
-        ApiConsumes("multipart/form-data"),
+        ApiTags(ITEM_TAG),
         ApiBearerAuth(),
+        ApiOperation({
+            summary: "Crear artículo",
+            description:
+                "Registra un nuevo **Artículo** o producto en el catálogo. Permite la carga de archivos multimedia mediante `multipart/form-data`.",
+        }),
+        ApiConsumes("multipart/form-data"),
+        ApiCreatedResponse({
+            description: "Artículo creado exitosamente.",
+            type: ItemEntity,
+        }),
     );
 }
 
 export function GetItemDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(ITEM_TAG),
         ApiOperation({
-            summary: "Get item by ID",
+            summary: "Obtener artículo por ID",
             description:
-                "Retrieves item details. If user is authenticated, includes favorite status.",
+                "Recupera los detalles detallados de un **Artículo** específico. Si el usuario está autenticado, se incluye el estado de 'favorito' del artículo para ese usuario.",
         }),
-        ApiOkResponse({ type: ItemEntity }),
+        ApiOkResponse({
+            description: "Artículo encontrado exitosamente.",
+            type: ItemEntity,
+        }),
+        ApiNotFoundResponse({
+            description: "El artículo solicitado no existe.",
+        }),
     );
 }
 
 export function GetItemsDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(ITEM_TAG),
         ApiOperation({
-            summary: "Get all items",
+            summary: "Obtener todos los artículos",
             description:
-                "Retrieves paginated list of items. If user is authenticated, includes favorite status for each item.",
+                "Recupera una lista paginada y filtrable de **Artículos**. Incluye metadatos sobre favoritos si se proporciona un token de sesión válido.",
         }),
         ApiParam({
             name: "limit",
             required: false,
             type: Number,
-            description: "limite de 1 a 30 registros por consulta",
+            description: "Límite de registros por consulta (rango sugerido: 1-30).",
         }),
         ApiParam({
             name: "offset",
             required: false,
             type: Number,
+            description: "Número de registros a saltar para paginación.",
         }),
         ApiParam({
             name: "order_by",
             required: false,
             type: String,
             enum: ["asc", "desc"],
+            description: "Dirección del ordenamiento cronológico.",
         }),
-        ApiOkResponse({ type: [ItemEntity] }),
+        ApiOkResponse({
+            description: "Listado de artículos recuperado exitosamente.",
+            type: [ItemEntity],
+        }),
     );
 }
 
 export function PutSelfItemDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Update item for user loged" }),
-        ApiConsumes("multipart/form-data"),
+        ApiTags(ITEM_TAG),
         ApiBearerAuth(),
+        ApiOperation({
+            summary: "Actualizar artículo propio",
+            description:
+                "Permite modificar los datos de un **Artículo** perteneciente al usuario autenticado. Soporta la actualización de imágenes asociadas.",
+        }),
+        ApiConsumes("multipart/form-data"),
+        ApiOkResponse({
+            description: "Artículo actualizado exitosamente.",
+            type: ItemEntity,
+        }),
+        ApiNotFoundResponse({
+            description:
+                "No se encontró el artículo para actualizar o el usuario no tiene permisos.",
+        }),
     );
 }
 
 export function DeleteSelfItemDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Delete item for user loged" }),
-        ApiOkResponse({ type: ItemEntity }),
+        ApiTags(ITEM_TAG),
         ApiBearerAuth(),
+        ApiOperation({
+            summary: "Eliminar artículo propio",
+            description:
+                "Elimina permanentemente un **Artículo** del catálogo. Solo el propietario puede realizar esta acción.",
+        }),
+        ApiOkResponse({
+            description: "Artículo eliminado exitosamente.",
+            type: ItemEntity,
+        }),
+        ApiNotFoundResponse({
+            description: "No se encontró el artículo para eliminar.",
+        }),
     );
 }
 
-// Funciones movidas desde favorite.documentation.ts
 export function AddFavoriteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Add item to favorites" }),
+        ApiTags(ITEM_TAG),
+        ApiBearerAuth(),
+        ApiOperation({
+            summary: "Agregar artículo a favoritos",
+            description:
+                "Añade un **Artículo** específico a la lista de favoritos del usuario autenticado.",
+        }),
         ApiOkResponse({
             type: FavoriteEntity,
-            description: "Item successfully added to favorites",
+            description: "Artículo agregado a favoritos exitosamente.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function RemoveFavoriteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Remove item from favorites" }),
+        ApiTags(ITEM_TAG),
+        ApiBearerAuth(),
+        ApiOperation({
+            summary: "Eliminar artículo de favoritos",
+            description:
+                "Remueve un **Artículo** de la lista de favoritos del usuario autenticado.",
+        }),
         ApiOkResponse({
             type: FavoriteEntity,
-            description: "Item successfully removed from favorites",
+            description: "Artículo removido de favoritos exitosamente.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetFavoritesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Get user's favorite items" }),
+        ApiTags(ITEM_TAG),
+        ApiBearerAuth(),
+        ApiOperation({
+            summary: "Obtener artículos favoritos",
+            description:
+                "Recupera el listado de todos los **Artículos** que el usuario ha marcado como preferidos.",
+        }),
         ApiParam({
             name: "limit",
             required: false,
             type: Number,
-            description: "Maximum number of items to return (1-30)",
+            description: "Máximo número de elementos a retornar.",
         }),
         ApiParam({
             name: "offset",
             required: false,
             type: Number,
-            description: "Number of items to skip for pagination",
+            description: "Punto de inicio para la paginación.",
         }),
         ApiParam({
             name: "order_by",
             required: false,
             type: String,
             enum: ["asc", "desc"],
-            description: "Order of results by creation date",
+            description: "Orden cronológico de los resultados.",
         }),
         ApiOkResponse({
             type: [FavoriteEntity],
-            description: "List of favorite items",
+            description: "Lista de favoritos recuperada exitosamente.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetProviderItemsDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiOperation({ summary: "Get items by provider ID" }),
+        ApiTags(ITEM_TAG),
+        ApiBearerAuth(),
+        ApiOperation({
+            summary: "Obtener artículos de un proveedor",
+            description:
+                "Consulta el catálogo de **Artículos** disponibles ofrecidos por un proveedor específico.",
+        }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the provider",
+            description: "Identificador único del proveedor.",
         }),
         ApiParam({
             name: "limit",
             required: false,
             type: Number,
-            description: "limite de 1 a 30 registros por consulta",
+            description: "Límite de registros.",
         }),
         ApiParam({
             name: "offset",
             required: false,
             type: Number,
+            description: "Desplazamiento para paginación.",
         }),
         ApiParam({
             name: "order_by",
             required: false,
             type: String,
             enum: ["asc", "desc"],
+            description: "Orden de los resultados.",
         }),
-        ApiOkResponse({ type: [ItemEntity] }),
-        ApiBearerAuth(),
+        ApiOkResponse({
+            description: "Catálogo del proveedor obtenido exitosamente.",
+            type: [ItemEntity],
+        }),
     );
 }

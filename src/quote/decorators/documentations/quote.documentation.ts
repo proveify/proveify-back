@@ -1,59 +1,65 @@
 import { applyDecorators } from "@nestjs/common";
 import {
     ApiOperation,
-    ApiResponse,
     ApiBearerAuth,
     ApiParam,
     ApiQuery,
     ApiProduces,
     ApiConsumes,
     ApiOkResponse,
+    ApiTags,
+    ApiCreatedResponse,
+    ApiBadRequestResponse,
+    ApiNotFoundResponse,
+    ApiForbiddenResponse,
 } from "@nestjs/swagger";
 import { QuoteEntity } from "../../entities/quote.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
 
+const QUOTE_TAG = "Cotizaciones";
+
 export function CreateQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Create a new quote request",
+            summary: "Solicitar una nueva cotización",
             description:
-                "Creates a new quote request. Can be used by anonymous users or authenticated users.",
+                "Permite a un usuario (autenticado o anónimo) enviar una solicitud de cotización a un proveedor específico. Se crea un registro inicial en estado 'PENDIENTE'.",
         }),
-        ApiResponse({
-            status: 201,
-            description: "Quote request created successfully",
+        ApiCreatedResponse({
+            description: "Solicitud de cotización enviada exitosamente.",
             type: QuoteEntity,
         }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - validation errors",
+        ApiBadRequestResponse({
+            description: "Datos de entrada inválidos o errores de validación.",
         }),
-        ApiResponse({
-            status: 404,
-            description: "Provider not found",
+        ApiNotFoundResponse({
+            description: "El proveedor especificado no existe.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
         ApiOperation({
-            summary: "Get all quotes with filters",
-            description: "Retrieves paginated list of quotes with optional filtering and search",
+            summary: "Listar todas las cotizaciones",
+            description:
+                "Recupera un listado paginado de cotizaciones con capacidades de filtrado por proveedor, estado, usuario y búsqueda general.",
         }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
-            description: "Límite de 1 a 30 registros por consulta",
+            description: "Límite de registros (1-30).",
             example: 10,
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
-            description: "Número de registros a saltar para paginación",
+            description: "Paginación: registros a saltar.",
             example: 0,
         }),
         ApiQuery({
@@ -61,14 +67,14 @@ export function GetQuotesDocumentation(): MethodDecorator & ClassDecorator {
             required: false,
             type: String,
             enum: ["asc", "desc"],
-            description: "Orden de los resultados por fecha de creación",
+            description: "Orden cronológico.",
             example: "desc",
         }),
         ApiQuery({
             name: "provider_id",
             required: false,
             type: String,
-            description: "Filtrar por ID de proveedor específico",
+            description: "Filtrar por proveedor específico.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
         ApiQuery({
@@ -76,26 +82,25 @@ export function GetQuotesDocumentation(): MethodDecorator & ClassDecorator {
             required: false,
             type: String,
             enum: ["PENDING", "QUOTED", "REJECTED"],
-            description: "Filtrar por estado de cotización",
+            description: "Filtrar por estado actual.",
             example: "PENDING",
         }),
         ApiQuery({
             name: "user_id",
             required: false,
             type: String,
-            description: "Filtrar por ID de usuario específico",
+            description: "Filtrar por el usuario solicitante.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
         ApiQuery({
             name: "search",
             required: false,
             type: String,
-            description: "Buscar en nombre, email y descripción",
+            description: "Buscar por nombre, email o descripción.",
             example: "desarrollo",
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of quotes",
+        ApiOkResponse({
+            description: "Listado de cotizaciones obtenido exitosamente.",
             type: [QuoteEntity],
         }),
     );
@@ -103,43 +108,50 @@ export function GetQuotesDocumentation(): MethodDecorator & ClassDecorator {
 
 export function GetQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
         ApiOperation({
-            summary: "Get a quote by ID",
-            description: "Retrieves a specific quote with provider and items information",
+            summary: "Obtener detalle de cotización",
+            description:
+                "Recupera la información completa de una cotización específica, incluyendo los artículos solicitados y datos del proveedor.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the quote",
+            description: "ID único de la cotización.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Quote found",
+        ApiOkResponse({
+            description: "Información de la cotización obtenida exitosamente.",
             type: QuoteEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Quote not found",
+        ApiNotFoundResponse({
+            description: "No se encontró la cotización solicitada.",
         }),
     );
 }
 
 export function GetMyQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
+        ApiBearerAuth(),
+        ApiOperation({
+            summary: "Obtener mis cotizaciones recibidas (como proveedor)",
+            description:
+                "Recupera las solicitudes de cotización que han sido enviadas al perfil de proveedor del usuario autenticado.",
+        }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
-            description: "Límite de 1 a 30 registros por consulta",
+            description: "Límite de registros.",
             example: 10,
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
-            description: "Número de registros a saltar para paginación",
+            description: "Desplazamiento.",
             example: 0,
         }),
         ApiQuery({
@@ -147,123 +159,126 @@ export function GetMyQuotesDocumentation(): MethodDecorator & ClassDecorator {
             required: false,
             type: String,
             enum: ["asc", "desc"],
-            description: "Orden de los resultados por fecha de creación",
+            description: "Orden cronológico.",
             example: "desc",
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of provider's quotes",
+        ApiOkResponse({
+            description: "Listado de cotizaciones recibidas obtenido exitosamente.",
             type: [QuoteEntity],
         }),
-        ApiResponse({
-            status: 403,
-            description: "User does not have a provider profile",
+        ApiForbiddenResponse({
+            description: "El usuario no tiene un perfil de proveedor asociado.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function UpdateQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Update a quote",
+            summary: "Actualizar una cotización",
             description:
-                "Update a quote received by the provider. Only the quote owner can update it.",
+                "Permite al proveedor modificar el estado o detalles de una cotización recibida.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the quote to update",
+            description: "ID de la cotización a actualizar.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Quote updated successfully",
+        ApiOkResponse({
+            description: "Cotización actualizada exitosamente.",
             type: QuoteEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Quote not found",
+        ApiNotFoundResponse({
+            description: "La cotización no existe.",
         }),
-        ApiResponse({
-            status: 403,
-            description: "Forbidden - not the quote owner",
+        ApiForbiddenResponse({
+            description: "No tienes permisos para actualizar esta cotización.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function DeleteQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Delete a quote",
-            description:
-                "Delete a quote received by the provider. Only the quote owner can delete it.",
+            summary: "Eliminar una cotización",
+            description: "Remueve permanentemente una cotización del sistema.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the quote to delete",
+            description: "ID de la cotización a eliminar.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Quote deleted successfully",
+        ApiOkResponse({
+            description: "Cotización eliminada exitosamente.",
             type: BasicResponseEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Quote not found",
+        ApiNotFoundResponse({
+            description: "La cotización no existe.",
         }),
-        ApiResponse({
-            status: 403,
-            description: "Forbidden - not the quote owner",
+        ApiForbiddenResponse({
+            description: "No tienes permisos para realizar esta acción.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function PrintQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Descargar/visualizar PDF de la cotización",
-            description: "Genera y devuelve un archivo PDF con el detalle de la cotización.",
+            summary: "Generar PDF de la cotización",
+            description:
+                "Genera dinámicamente un documento PDF con los detalles de la cotización para su descarga o visualización.",
         }),
         ApiProduces("application/pdf"),
-        ApiResponse({
-            status: 200,
-            description: "PDF generado correctamente",
+        ApiOkResponse({
+            description: "Archivo PDF generado exitosamente.",
             schema: {
                 type: "string",
                 format: "binary",
             },
         }),
-        ApiResponse({
-            status: 404,
-            description: "Quote not found",
+        ApiNotFoundResponse({
+            description: "Cotización no encontrada para generar el documento.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function SentQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
-        ApiResponse({
-            status: 404,
-            description: "Quote not found",
+        ApiTags(QUOTE_TAG),
+        ApiBearerAuth(),
+        ApiOperation({
+            summary: "Enviar/Actualizar propuesta de cotización",
+            description:
+                "Permite al proveedor subir documentos adjuntos o actualizar el estado de una cotización para marcarla como 'enviada'.",
         }),
         ApiOkResponse({
-            description: "Quote sent successfully or updated without sent",
+            description: "Propuesta enviada o actualizada exitosamente.",
+        }),
+        ApiNotFoundResponse({
+            description: "La cotización no existe.",
         }),
         ApiConsumes("multipart/form-data"),
-        ApiBearerAuth(),
     );
 }
 
 export function GetQuoteMessageDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(QUOTE_TAG),
         ApiBearerAuth(),
+        ApiOperation({
+            summary: "Obtener mensajes de la cotización",
+            description:
+                "Recupera el historial de comunicación asociado a una cotización específica.",
+        }),
     );
 }
