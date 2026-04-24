@@ -1,51 +1,65 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
+import {
+    ApiOperation,
+    ApiBearerAuth,
+    ApiParam,
+    ApiQuery,
+    ApiTags,
+    ApiCreatedResponse,
+    ApiOkResponse,
+    ApiBadRequestResponse,
+    ApiUnauthorizedResponse,
+    ApiNotFoundResponse,
+    ApiForbiddenResponse,
+} from "@nestjs/swagger";
 import { PublicRequestEntity } from "../../entities/public-request.entity";
 import { BasicResponseEntity } from "@app/common/entities/response.entity";
 import { ProviderQuoteEntity } from "@app/provider-quote/entities/provider-quote.entity";
 
+const PUBLIC_REQUEST_TAG = "Solicitudes Públicas";
+
 export function CreatePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Create a new public request",
-            description: "Creates a new public request for the authenticated user",
+            summary: "Crear una nueva solicitud pública",
+            description:
+                "Registra una solicitud de cotización abierta en el sistema. Otros proveedores podrán verla y enviar sus propuestas económicas.",
         }),
-        ApiResponse({
-            status: 201,
-            description: "Public request created successfully",
+        ApiCreatedResponse({
+            description: "Solicitud pública creada exitosamente.",
             type: PublicRequestEntity,
         }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - validation errors",
+        ApiBadRequestResponse({
+            description: "Datos de entrada inválidos o errores de validación.",
         }),
-        ApiResponse({
-            status: 401,
-            description: "Unauthorized - authentication required",
+        ApiUnauthorizedResponse({
+            description: "No se proporcionó un token de acceso válido.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetPublicRequestsDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
         ApiOperation({
-            summary: "Get all public requests",
+            summary: "Obtener todas las solicitudes públicas",
             description:
-                "Retrieves paginated list of public requests with optional filtering and search",
+                "Recupera una lista paginada de todas las solicitudes de cotización disponibles. Incluye capacidades de búsqueda y filtrado.",
         }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
-            description: "Límite de 1 a 30 registros por consulta",
+            description: "Límite de registros (1-30).",
             example: 10,
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
-            description: "Número de registros a saltar para paginación",
+            description: "Número de registros a omitir.",
             example: 0,
         }),
         ApiQuery({
@@ -53,157 +67,146 @@ export function GetPublicRequestsDocumentation(): MethodDecorator & ClassDecorat
             required: false,
             type: String,
             enum: ["asc", "desc"],
-            description: "Orden de los resultados por fecha de creación",
+            description: "Orden cronológico por fecha de creación.",
             example: "desc",
         }),
         ApiQuery({
             name: "user_id",
             required: false,
             type: String,
-            description: "Filtrar por ID de usuario específico",
+            description: "Filtrar solicitudes por un autor específico.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
         ApiQuery({
             name: "search",
             required: false,
             type: String,
-            description: "Buscar en título y descripción",
+            description: "Palabra clave para buscar en título o descripción.",
             example: "diseño",
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of public requests",
+        ApiOkResponse({
+            description: "Listado de solicitudes obtenido exitosamente.",
             type: [PublicRequestEntity],
         }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - invalid query parameters",
+        ApiBadRequestResponse({
+            description: "Parámetros de consulta inválidos.",
         }),
     );
 }
 
 export function GetPublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
         ApiOperation({
-            summary: "Get a public request by ID",
-            description: "Retrieves a specific public request with user information",
+            summary: "Obtener solicitud por ID",
+            description:
+                "Recupera la información detallada de una solicitud pública específica, incluyendo datos del solicitante.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the public request",
+            description: "ID único de la solicitud.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Public request found",
+        ApiOkResponse({
+            description: "Solicitud encontrada exitosamente.",
             type: PublicRequestEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Public request not found",
+        ApiNotFoundResponse({
+            description: "La solicitud solicitada no existe.",
         }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - invalid ID format",
+        ApiBadRequestResponse({
+            description: "Formato de ID inválido.",
         }),
     );
 }
 
 export function UpdatePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Update user's own public request",
+            summary: "Actualizar solicitud propia",
             description:
-                "Update a public request created by the authenticated user. Only the owner can update their requests.",
+                "Permite al autor de una solicitud modificar sus detalles. Solo el creador tiene permisos para realizar esta acción.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the public request to update",
+            description: "ID de la solicitud a actualizar.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Public request updated successfully",
+        ApiOkResponse({
+            description: "Solicitud actualizada exitosamente.",
             type: PublicRequestEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Public request not found",
+        ApiNotFoundResponse({
+            description: "No se encontró la solicitud para actualizar.",
         }),
-        ApiResponse({
-            status: 403,
-            description: "Forbidden - not the owner of this request",
+        ApiForbiddenResponse({
+            description: "No tienes permisos para editar esta solicitud (no eres el propietario).",
         }),
-        ApiResponse({
-            status: 401,
-            description: "Unauthorized - authentication required",
+        ApiUnauthorizedResponse({
+            description: "Se requiere autenticación para esta acción.",
         }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - validation errors",
-        }),
-        ApiBearerAuth(),
     );
 }
 
 export function DeletePublicRequestDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Delete user's own public request",
+            summary: "Eliminar solicitud propia",
             description:
-                "Delete a public request created by the authenticated user. Only the owner can delete their requests.",
+                "Remueve permanentemente una solicitud pública creada por el usuario autenticado.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the public request to delete",
+            description: "ID de la solicitud a eliminar.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Public request deleted successfully",
+        ApiOkResponse({
+            description: "Solicitud eliminada exitosamente.",
             type: BasicResponseEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Public request not found",
+        ApiNotFoundResponse({
+            description: "No se encontró la solicitud.",
         }),
-        ApiResponse({
-            status: 403,
-            description: "Forbidden - not the owner of this request",
+        ApiForbiddenResponse({
+            description: "No tienes permisos para eliminar esta solicitud.",
         }),
-        ApiResponse({
-            status: 401,
-            description: "Unauthorized - authentication required",
+        ApiUnauthorizedResponse({
+            description: "Autenticación requerida.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetMyPublicRequestsDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Get authenticated user's public requests",
+            summary: "Obtener mis solicitudes públicas",
             description:
-                "Retrieves all public requests created by the authenticated user with pagination",
+                "Recupera todas las solicitudes que el usuario autenticado ha publicado en la plataforma.",
         }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
-            description: "Límite de 1 a 30 registros por consulta",
+            description: "Límite de registros.",
             example: 10,
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
-            description: "Número de registros a saltar para paginación",
+            description: "Desplazamiento para paginación.",
             example: 0,
         }),
         ApiQuery({
@@ -211,73 +214,59 @@ export function GetMyPublicRequestsDocumentation(): MethodDecorator & ClassDecor
             required: false,
             type: String,
             enum: ["asc", "desc"],
-            description: "Orden de los resultados por fecha de creación",
+            description: "Orden cronológico.",
             example: "desc",
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of user's public requests",
+        ApiOkResponse({
+            description: "Listado de solicitudes propias recuperado exitosamente.",
             type: [PublicRequestEntity],
         }),
-        ApiResponse({
-            status: 401,
-            description: "Unauthorized - authentication required",
+        ApiUnauthorizedResponse({
+            description: "Token no válido o no proporcionado.",
         }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - invalid query parameters",
-        }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetPublicRequestProviderQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PUBLIC_REQUEST_TAG),
         ApiOperation({
-            summary: "Get provider quotes for a public request",
-            description: "Retrieves all quotes submitted by providers for this public request",
+            summary: "Obtener cotizaciones de proveedores para una solicitud",
+            description:
+                "Recupera todas las propuestas económicas que diversos proveedores han enviado en respuesta a esta solicitud pública.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
-            description: "ID of the public request",
+            description: "ID de la solicitud pública.",
             example: "123e4567-e89b-12d3-a456-426614174000",
         }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
-            description: "Límite de 1 a 30 registros por consulta",
-            example: 10,
+            description: "Límite de registros.",
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
-            description: "Número de registros a saltar para paginación",
-            example: 0,
+            description: "Desplazamiento.",
         }),
         ApiQuery({
             name: "order_by",
             required: false,
             type: String,
             enum: ["asc", "desc"],
-            description: "Orden de los resultados por fecha de creación",
-            example: "desc",
+            description: "Orden.",
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of provider quotes",
+        ApiOkResponse({
+            description: "Listado de propuestas de proveedores obtenido exitosamente.",
             type: [ProviderQuoteEntity],
         }),
-        ApiResponse({
-            status: 404,
-            description: "Public request not found",
-        }),
-        ApiResponse({
-            status: 400,
-            description: "Bad request - invalid query parameters",
+        ApiNotFoundResponse({
+            description: "La solicitud pública especificada no existe.",
         }),
     );
 }

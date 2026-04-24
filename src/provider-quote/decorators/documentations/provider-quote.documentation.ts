@@ -1,72 +1,89 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from "@nestjs/swagger";
+import {
+    ApiOperation,
+    ApiBearerAuth,
+    ApiParam,
+    ApiQuery,
+    ApiTags,
+    ApiCreatedResponse,
+    ApiOkResponse,
+    ApiForbiddenResponse,
+    ApiNotFoundResponse,
+    ApiConflictResponse,
+    ApiBadRequestResponse,
+} from "@nestjs/swagger";
 import { ProviderQuoteEntity } from "../../entities/provider-quote.entity";
+
+const PROVIDER_QUOTE_TAG = "Cotizaciones de Proveedores";
 
 export function CreateProviderQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PROVIDER_QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Create a provider quote for a public request",
-            description: "Allows a provider to submit a quote for a public request",
+            summary: "Crear una cotización de proveedor para una solicitud pública",
+            description:
+                "Permite a un **Proveedor** enviar una propuesta económica en respuesta a una solicitud de cotización pública abierta.",
         }),
-        ApiResponse({
-            status: 201,
-            description: "Provider quote created successfully",
+        ApiCreatedResponse({
+            description: "Cotización enviada exitosamente.",
             type: ProviderQuoteEntity,
         }),
-        ApiResponse({
-            status: 403,
-            description: "User does not have a provider profile",
+        ApiForbiddenResponse({
+            description: "El usuario no tiene un perfil de proveedor activo.",
         }),
-        ApiResponse({
-            status: 404,
-            description: "Public request not found",
+        ApiNotFoundResponse({
+            description: "La solicitud pública referenciada no existe.",
         }),
-        ApiResponse({
-            status: 409,
-            description: "Provider has already submitted a quote for this request",
+        ApiConflictResponse({
+            description:
+                "El proveedor ya ha enviado una cotización previa para esta misma solicitud.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function GetProviderQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PROVIDER_QUOTE_TAG),
         ApiOperation({
-            summary: "Get all provider quotes",
-            description: "Retrieves paginated list of provider quotes with optional filtering",
+            summary: "Obtener todas las cotizaciones de proveedores",
+            description:
+                "Recupera una lista paginada de todas las cotizaciones enviadas por proveedores en el sistema. Soporta diversos filtros.",
         }),
         ApiQuery({
             name: "limit",
             required: false,
             type: Number,
-            description: "Límite de 1 a 30 registros por consulta",
+            description: "Límite de registros (1-30).",
         }),
         ApiQuery({
             name: "offset",
             required: false,
             type: Number,
+            description: "Desplazamiento para paginación.",
         }),
         ApiQuery({
             name: "order_by",
             required: false,
             type: String,
             enum: ["asc", "desc"],
+            description: "Orden cronológico.",
         }),
         ApiQuery({
             name: "public_request_id",
             required: false,
             type: String,
-            description: "Filter by public request ID",
+            description: "Filtrar por ID de solicitud pública específica.",
         }),
         ApiQuery({
             name: "status",
             required: false,
             type: String,
             enum: ["PENDING", "ACCEPTED", "REJECTED"],
+            description: "Filtrar por estado de la cotización.",
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of provider quotes",
+        ApiOkResponse({
+            description: "Listado de cotizaciones obtenido exitosamente.",
             type: [ProviderQuoteEntity],
         }),
     );
@@ -74,30 +91,36 @@ export function GetProviderQuotesDocumentation(): MethodDecorator & ClassDecorat
 
 export function GetProviderQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PROVIDER_QUOTE_TAG),
         ApiOperation({
-            summary: "Get a provider quote by ID",
+            summary: "Obtener cotización por ID",
+            description:
+                "Recupera la información detallada de una cotización de proveedor específica.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
+            description: "ID único de la cotización.",
         }),
-        ApiResponse({
-            status: 200,
-            description: "Provider quote found",
+        ApiOkResponse({
+            description: "Cotización encontrada exitosamente.",
             type: ProviderQuoteEntity,
         }),
-        ApiResponse({
-            status: 404,
-            description: "Provider quote not found",
+        ApiNotFoundResponse({
+            description: "Cotización no encontrada.",
         }),
     );
 }
 
 export function GetMyProviderQuotesDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PROVIDER_QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Get authenticated provider's quotes",
+            summary: "Obtener mis cotizaciones enviadas",
+            description:
+                "Recupera el listado de cotizaciones que el proveedor autenticado ha enviado a diferentes solicitudes.",
         }),
         ApiQuery({
             name: "limit",
@@ -126,74 +149,70 @@ export function GetMyProviderQuotesDocumentation(): MethodDecorator & ClassDecor
             type: String,
             enum: ["PENDING", "ACCEPTED", "REJECTED"],
         }),
-        ApiResponse({
-            status: 200,
-            description: "List of provider's quotes",
+        ApiOkResponse({
+            description: "Listado de cotizaciones propias obtenido exitosamente.",
             type: [ProviderQuoteEntity],
         }),
-        ApiResponse({
-            status: 403,
-            description: "User does not have a provider profile",
+        ApiForbiddenResponse({
+            description: "El usuario no cuenta con un perfil de proveedor.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function UpdateProviderQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PROVIDER_QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Update a provider quote",
-            description: "Only pending quotes can be updated",
+            summary: "Actualizar una cotización",
+            description:
+                "Permite modificar los datos de una cotización enviada. **Nota:** Solo las cotizaciones en estado 'PENDING' pueden ser editadas.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
         }),
-        ApiResponse({
-            status: 200,
-            description: "Provider quote updated successfully",
+        ApiOkResponse({
+            description: "Cotización actualizada exitosamente.",
             type: ProviderQuoteEntity,
         }),
-        ApiResponse({
-            status: 400,
-            description: "Cannot update accepted/rejected quotes",
+        ApiBadRequestResponse({
+            description:
+                "No se puede actualizar una cotización que ya ha sido aceptada o rechazada.",
         }),
-        ApiResponse({
-            status: 403,
-            description: "Can only update own quotes",
+        ApiForbiddenResponse({
+            description: "No tienes permisos para modificar esta cotización.",
         }),
-        ApiResponse({
-            status: 404,
-            description: "Provider quote not found",
+        ApiNotFoundResponse({
+            description: "Cotización no encontrada.",
         }),
-        ApiBearerAuth(),
     );
 }
 
 export function DeleteProviderQuoteDocumentation(): MethodDecorator & ClassDecorator {
     return applyDecorators(
+        ApiTags(PROVIDER_QUOTE_TAG),
+        ApiBearerAuth(),
         ApiOperation({
-            summary: "Delete a provider quote",
+            summary: "Eliminar una cotización",
+            description:
+                "Remueve permanentemente una cotización del sistema. Solo aplicable por el autor.",
         }),
         ApiParam({
             name: "id",
             required: true,
             type: String,
         }),
-        ApiResponse({
-            status: 200,
-            description: "Provider quote deleted successfully",
+        ApiOkResponse({
+            description: "Cotización eliminada exitosamente.",
             type: ProviderQuoteEntity,
         }),
-        ApiResponse({
-            status: 403,
-            description: "Can only delete own quotes",
+        ApiForbiddenResponse({
+            description: "No tienes permisos para eliminar esta cotización.",
         }),
-        ApiResponse({
-            status: 404,
-            description: "Provider quote not found",
+        ApiNotFoundResponse({
+            description: "Cotización no encontrada.",
         }),
-        ApiBearerAuth(),
     );
 }

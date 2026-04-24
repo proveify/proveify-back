@@ -10,6 +10,8 @@ import { SentryFilter } from "@app/common/sentry-exception.filter";
 import type { ExpressLikeApp } from "@app/common/interfaces/expressLikeApp.interface";
 import { SocketIoAdapter } from "@app/common/adapters/socket-io.adapter";
 
+import { apiReference } from "@scalar/nestjs-api-reference";
+
 async function bootstrap(): Promise<void> {
     const logLevel: LogLevel[] = ["error", "warn", "fatal", "log", "debug", "verbose"];
     const app = await NestFactory.create(AppModule, { logger: logLevel });
@@ -62,41 +64,16 @@ async function bootstrap(): Promise<void> {
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("docs", app, document, {
-        swaggerOptions: {
-            docExpansion: "none",
-            filter: true,
-            showRequestDuration: true,
-            showCommonExtensions: true,
-            displayOperationId: true,
-            displayRequestDuration: true,
-            deepLinking: true,
-            defaultModelsExpandDepth: 1,
-            defaultModelRendering: "example",
-            tryItOutEnabled: true,
-            persistAuthorization: true,
-            tagsSorter: "alpha",
-            operationsSorter: "alpha",
-            syntaxHighlight: {
-                activate: true,
-                theme: "agate",
+
+    app.use(
+        "/docs",
+        apiReference({
+            spec: {
+                content: document,
             },
-        },
-        customCss: `
-        .swagger-ui .topbar { display: none }
-        .swagger-ui { 
-            background-color: #fafafa; 
-        }
-        .swagger-ui .info .title { 
-            color: #3b4151; 
-            font-size: 36px; 
-        }
-        .swagger-ui .scheme-container { 
-            background: #fff; 
-            box-shadow: 0 1px 2px 0 rgba(0,0,0,.15); 
-        }
-        `,
-    });
+            theme: "purple",
+        }),
+    );
 
     app.useGlobalPipes(
         new ValidationPipe({
